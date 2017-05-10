@@ -25,3 +25,7 @@ class Renewal(models.Model):
 class BillingAgent(models.Model):
     name = models.CharField(max_length=255, blank=False)
     users = models.ManyToManyField('core.Account')
+
+
+class ExcludedUser(models.Model):
+    user = models.ForeignKey('core.Account')

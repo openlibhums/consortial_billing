@@ -5,6 +5,7 @@
 {% block breadcrumbs %}
 {{ block.super }}
 <li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+<li><a href="{% url 'consortial_non_funding_author_insts' %}">Non Funding Users</a></li>
 {% endblock %}
 
 
@@ -13,24 +14,30 @@
     <div class="box">
         <div class="title-area">
             <h2>Authors and Editors Not Funding OLH</h2>
+            <a class="button" href="/admin/consortial_billing/excludeduser/">Edit Excluded Users</a>
         </div>
         <div class="content">
-            <table id="books">
-                <thead>
-                <tr>
-                    <th>Author Name</th>
-                    <th>Institution</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for user in authors_and_editors %}
-                <tr>
-                    <td>{{ user.full_name }}</td>
-                    <td>{{ user.institution }}</td>
-                {% empty %}
-                {% endfor %}
-                </tbody>
-            </table>
+            <form method="POST">
+                {% csrf_token %}
+                <table id="books" class="small">
+                    <thead>
+                    <tr>
+                        <th>Author Name</th>
+                        <th>Institution</th>
+                        <th>Exclude</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in authors_and_editors %}
+                    <tr>
+                        <td>{{ user.full_name }}</td>
+                        <td>{{ user.institution }}</td>
+                        <td><button type="submit" name="user" class="button" value="{{ user.pk }}">Exclude User</button></td>
+                    {% empty %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </form>
         </div>
     </div>
 </div>
