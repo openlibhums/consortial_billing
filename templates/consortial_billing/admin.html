@@ -13,13 +13,13 @@
     <div class="large-8 columns">
         <div class="box">
             <div class="title-area">
-                <h2>Institutions</h2>
+                <h2>Upcoming Renewals</h2>
             </div>
             <div class="content">
-                <table id="institutions">
+                <table id="books">
                     <thead>
                     <tr>
-                        <th>Institution</th>
+                        <th>Title</th>
                         <th>First Author</th>
                         <th>ISBN</th>
                         <th>DOI</th>
@@ -55,30 +55,32 @@
     </div>
 </div>
 <div class="row expanded">
-    <div class="large-8 columns">
+<div class="large-{% if institutions|length > 0 %}12{% else %}8{% endif %} columns {% if institutions|length > 0 %}end{% endif %}">
         <div class="box">
             <div class="title-area">
-                <h2>Upcoming Renewals</h2>
+                <h2>Institutions</h2>
             </div>
             <div class="content">
-                <table id="books">
+                <table id="institutions">
                     <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>First Author</th>
-                        <th>ISBN</th>
-                        <th>DOI</th>
-                        <th>Date Published</th>
+                        <th>Institution</th>
+                        <th>Country</th>
+                        <th>Billing Agent</th>
+                        <th>Active</th>
+                        <th>Display</th>
+                        <th>Next Renewal</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {% for book in books %}
+                    {% for institution in institutions %}
                     <tr>
-                        <td><a href="{% url 'books_edit_book' book.pk %}">{{ book.title }}</a></td>
-                        <td>{{ book.first_contributor }}</td>
-                        <td>{{ book.isbn }}</td>
-                        <td>{{ book.doi }}</td>
-                        <td>{{ book.date_published|date:"Y-m-d" }}</td>
+                        <td>{{ institution.name }}</td>
+                        <td>{{ institution.country }}</td>
+                        <td>{{ institution.billing_agent }}</td>
+                        <td>{% if institution.active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
+                        <td>{% if institution.display %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
+                        <td>{{ institution.next_renewal.date }}</td>
                     </tr>
                     {% empty %}
                     {% endfor %}
@@ -87,6 +89,7 @@
             </div>
         </div>
     </div>
+    {% if institutions|length == 0 %}
     <div class="large-4 columns">
         <div class="box">
             <div class="title-area">
@@ -104,6 +107,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 
 {% endblock body %}

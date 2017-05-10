@@ -47,7 +47,9 @@ def index(request):
                                                         institution=institution,
                                                         currency=row["Currency"])
 
-    return render(request, 'consortial_billing/admin.html', {})
+    context = {'institutions': models.Institution.objects.all()}
+
+    return render(request, 'consortial_billing/admin.html', context)
 
 
 def non_funding_author_insts(request):
