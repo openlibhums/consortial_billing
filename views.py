@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 import distutils.util
+from django.db.models import Sum
 
 from django.utils import timezone
 
@@ -53,8 +54,13 @@ def index(request):
 
     near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(1*365/12),
                                                   institution__active=True).order_by('date')
+
+    renewals_in_next_year = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(12 * 365 / 12),
+                                                          institution__active=True).values('currency').annotate(price=Sum('amount'))
+
     context = {'institutions': models.Institution.objects.all(),
-               'renewals': near_renewals}
+               'renewals': near_renewals,
+               'renewals_in_year': renewals_in_next_year}
 
     return render(request, 'consortial_billing/admin.html', context)
 
