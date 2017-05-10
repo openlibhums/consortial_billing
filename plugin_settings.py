@@ -1,7 +1,9 @@
 PLUGIN_NAME = 'Consortial Billing'
 DESCRIPTION = 'This is a plugin to handle consortial billing.'
 AUTHOR = 'Martin Paul Eve'
-
+VERSION = '1.0'
+SHORT_NAME = 'consortial'
+MANAGER_URL = 'consortial_index'
 
 def install():
     # Install stub, when the revists install_plugins management command is run,
