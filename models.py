@@ -7,6 +7,11 @@ class Banding(models.Model):
     default_price = models.IntegerField(blank=True)
 
 
+class BillingAgent(models.Model):
+    name = models.CharField(max_length=255, blank=False)
+    users = models.ManyToManyField('core.Account')
+
+
 class Institution(models.Model):
     name = models.CharField(max_length=255, blank=False)
     country = models.CharField(max_length=255, blank=False)
@@ -23,11 +28,6 @@ class Renewal(models.Model):
     amount = models.IntegerField(blank=False)
     currency = models.CharField(max_length=255, blank=False)
     institution = models.ForeignKey(Institution)
-
-
-class BillingAgent(models.Model):
-    name = models.CharField(max_length=255, blank=False)
-    users = models.ManyToManyField('core.Account')
 
 
 class ExcludedUser(models.Model):
