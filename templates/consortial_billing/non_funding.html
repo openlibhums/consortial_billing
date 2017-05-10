@@ -1,0 +1,43 @@
+{% extends "admin/core/base.html" %}
+
+{% block title %}Consortial Billing{% endblock title %}
+
+{% block breadcrumbs %}
+{{ block.super }}
+<li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+{% endblock %}
+
+
+{% block body %}
+<div class="large-12 columns">
+    <div class="box">
+        <div class="title-area">
+            <h2>Authors and Editors Not Funding OLH</h2>
+        </div>
+        <div class="content">
+            <table id="books">
+                <thead>
+                <tr>
+                    <th>Author Name</th>
+                    <th>Institution</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for user in authors_and_editors %}
+                <tr>
+                    <td>{{ user.full_name }}</td>
+                    <td>{{ user.institution }}</td>
+                {% empty %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+{% endblock body %}
+
+{% block js %}
+{% include "elements/datatables.html" with target="#books" sort=1 %}
+{% endblock js %}
