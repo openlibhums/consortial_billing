@@ -1,13 +1,17 @@
 import csv
 import io
 
+import datetime
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 import distutils.util
 
+from django.utils import timezone
+
 from plugins.consortial_billing import models, logic
 from core import models as core_models
+
 
 def index(request):
     if request.POST:
@@ -47,7 +51,10 @@ def index(request):
                                                         institution=institution,
                                                         currency=row["Currency"])
 
-    context = {'institutions': models.Institution.objects.all()}
+    near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(1*365/12),
+                                                  institution__active=True).order_by('date')
+    context = {'institutions': models.Institution.objects.all(),
+               'renewals': near_renewals}
 
     return render(request, 'consortial_billing/admin.html', context)
 

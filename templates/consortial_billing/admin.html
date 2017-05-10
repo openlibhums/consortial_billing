@@ -13,27 +13,25 @@
     <div class="large-8 columns">
         <div class="box">
             <div class="title-area">
-                <h2>Upcoming Renewals</h2>
+                <h2>Renewals Due in Next 30 Days</h2>
             </div>
             <div class="content">
-                <table id="books">
+                <table id="institutions_renewals">
                     <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>First Author</th>
-                        <th>ISBN</th>
-                        <th>DOI</th>
-                        <th>Date Published</th>
+                        <th>Institution</th>
+                        <th>Country</th>
+                        <th>Billing Agent</th>
+                        <th>Next Renewal</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {% for book in books %}
+                    {% for renewal in renewals %}
                     <tr>
-                        <td><a href="{% url 'books_edit_book' book.pk %}">{{ book.title }}</a></td>
-                        <td>{{ book.first_contributor }}</td>
-                        <td>{{ book.isbn }}</td>
-                        <td>{{ book.doi }}</td>
-                        <td>{{ book.date_published|date:"Y-m-d" }}</td>
+                        <td>{{ renewal.institution.name }}</td>
+                        <td>{{ renewal.institution.country }}</td>
+                        <td>{{ renewal.institution.billing_agent }}</td>
+                        <td>{{ renewal.institution.next_renewal.date }}</td>
                     </tr>
                     {% empty %}
                     {% endfor %}
@@ -58,7 +56,7 @@
 <div class="large-{% if institutions|length > 0 %}12{% else %}8{% endif %} columns {% if institutions|length > 0 %}end{% endif %}">
         <div class="box">
             <div class="title-area">
-                <h2>Institutions</h2>
+                <h2>All Institutions</h2>
             </div>
             <div class="content">
                 <table id="institutions">
