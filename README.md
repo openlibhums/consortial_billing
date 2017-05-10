@@ -1,2 +1,2 @@
-# generic_plugin
-This is a plugin stub for Revista.
+# consortial-billing
+This is a plugin for Janeway that handles consortial billing.
