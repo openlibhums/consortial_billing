@@ -1,4 +1,6 @@
 from django.http import HttpResponse
+from django.shortcuts import render
+
 
 def index(request):
-	return HttpResponse("<p>This is a dummy plugin. It does nothing.</p>")
+	return render(request, 'consortial_billing/admin.html', {})
