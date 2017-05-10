@@ -22,6 +22,9 @@ class Institution(models.Model):
     banding = models.ForeignKey(Banding, blank=True, null=True)
     billing_agent = models.ForeignKey(BillingAgent, blank=True, null=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Renewal(models.Model):
     date = models.DateField(default=timezone.now)
