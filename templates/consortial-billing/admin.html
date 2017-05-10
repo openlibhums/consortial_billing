@@ -1,0 +1,46 @@
+{% extends "core/admin/base.html" %}
+
+{% block title %}Consortial Billing{% endblock title %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    <li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+{% endblock %}
+
+
+{% block body %}
+    <div class="large-8 columns">
+        <h4>Institutions</h4>
+        <table id="books">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>First Author</th>
+                    <th>ISBN</th>
+                    <th>DOI</th>
+                    <th>Date Published</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for book in books %}
+                <tr>
+                    <td><a href="{% url 'books_edit_book' book.pk %}">{{ book.title }}</a></td>
+                    <td>{{ book.first_contributor }}</td>
+                    <td>{{ book.isbn }}</td>
+                    <td>{{ book.doi }}</td>
+                    <td>{{ book.date_published|date:"Y-m-d" }}</td>
+                </tr>
+            {% empty %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="large-4 columns">
+    <h4>Revenue Stats</h4>
+    </div>
+
+{% endblock body %}
+
+{% block js %}
+    {% include "elements/datatables.html" with target="#books" %}
+{% endblock js %}
