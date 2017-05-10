@@ -13,7 +13,7 @@ class BillingAgent(models.Model):
 
 
 class Institution(models.Model):
-    name = models.CharField(max_length=255, blank=False)
+    name = models.CharField(max_length=255, blank=False, unique=True)
     country = models.CharField(max_length=255, blank=False)
     active = models.BooleanField(default=True)
     consortial_billing = models.BooleanField(default=False)
