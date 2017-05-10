@@ -1,3 +1,5 @@
+from utils import models
+
 PLUGIN_NAME = 'Consortial Billing'
 DESCRIPTION = 'This is a plugin to handle consortial billing.'
 AUTHOR = 'Martin Paul Eve'
@@ -5,11 +7,14 @@ VERSION = '1.0'
 SHORT_NAME = 'consortial'
 MANAGER_URL = 'consortial_index'
 
+
 def install():
-    # Install stub, when the revists install_plugins management command is run,
-    # this command is run for all plugins that do not have a record in the
-    # plugins table.
-    pass
+    new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME, version=VERSION, enabled=True)
+
+    if created:
+        print('Plugin {0} installed.'.format(PLUGIN_NAME))
+    else:
+        print('Plugin {0} is already installed.'.format(PLUGIN_NAME))
 
 
 def hook_registry():
