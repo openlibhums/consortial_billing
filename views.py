@@ -18,7 +18,7 @@ def index(request):
 
             for row in csv_reader:
                 # get the band
-                band = models.Banding.objects.get_or_create(name=row["Banding"])
+                band, created = models.Banding.objects.get_or_create(name=row["Banding"])
 
                 if distutils.util.strtobool(row["Consortial Billing"]):
                     consortium, created = models.Institution.objects.get_or_create(name=row["Consortium"])
