@@ -86,3 +86,7 @@ def non_funding_author_insts(request):
     }
 
     return render(request, template, context)
+
+
+def supporters(request):
+    pass

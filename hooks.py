@@ -1,6 +1,5 @@
+from django.core.urlresolvers import reverse
 
-# hook functions have 
-
-def a_hook_function(context):
-	# do something
-	return '<p>This hook does nothing and is just a test.</p>'
+def nav_hook(context):
+	url = reverse('view_supporting_institutions')
+	return '<li><a href="{0}">Supporting Institutions</a></li>'.format(url)
