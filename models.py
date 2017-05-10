@@ -9,7 +9,7 @@ class Banding(models.Model):
 
 class BillingAgent(models.Model):
     name = models.CharField(max_length=255, blank=False)
-    users = models.ManyToManyField('core.Account')
+    users = models.ManyToManyField('core.Account', blank=True, null=True)
 
 
 class Institution(models.Model):
