@@ -12,7 +12,10 @@ class Institution(models.Model):
     country = models.CharField(max_length=255, blank=False)
     active = models.BooleanField(default=True)
     consortial_billing = models.BooleanField(default=False)
+    display = models.BooleanField(default=True)
+    consortium = models.ForeignKey('self', blank=True, null=True)
     banding = models.ForeignKey(Banding)
+    billing_agent = models.ForeignKey(BillingAgent, blank=True, null=True)
 
 
 class Renewal(models.Model):
