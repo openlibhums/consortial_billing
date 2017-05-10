@@ -94,10 +94,10 @@
             </div>
             <div class="content">
                 <p>Upload a CSV file here to import institutions. The format and order of fields is: Institution Name, Renewal Amount,	Currency,	Renewal Date,	Country	Banding,	Active,	Consortium,	Consortial Billing,	Billing Agent</p>
-                <form id="csv_upload">
+                <form id="csv_upload_form" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <input type="file"/>
-                    <input class="button success pull-right" type="submit">
+                    <input type="file" id="csv_upload"/>
+                    <input class="button success pull-right" id="import_csv" type="submit"/>
                     <span class="clearfix"></span>
                 </form>
 
