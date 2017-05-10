@@ -9,7 +9,7 @@
 
 
 {% block body %}
-<div class="row">
+<div class="row expand">
     <div class="large-8 columns">
         <div class="box">
             <div class="title-area">
@@ -54,7 +54,7 @@
         </div>
     </div>
 </div>
-<div class="row">
+<div class="row expand">
     <div class="large-8 columns">
         <div class="box">
             <div class="title-area">
@@ -96,7 +96,7 @@
                 <p>Upload a CSV file here to import institutions. The format and order of fields is: Institution Name, Renewal Amount,	Currency,	Renewal Date,	Country	Banding,	Active,	Consortium,	Consortial Billing,	Billing Agent</p>
                 <form id="csv_upload_form" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <input type="file" id="csv_upload"/>
+                    <input type="file" name="csv_upload" id="csv_upload"/>
                     <input class="button success pull-right" id="import_csv" type="submit"/>
                     <span class="clearfix"></span>
                 </form>
