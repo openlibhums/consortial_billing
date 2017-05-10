@@ -52,11 +52,13 @@ def index(request):
                                                         institution=institution,
                                                         currency=row["Currency"])
 
-    near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(1*365/12),
+    near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=31),
                                                   institution__active=True).order_by('date')
 
-    renewals_in_next_year = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(12 * 365 / 12),
+    renewals_in_next_year = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=365),
                                                           institution__active=True).values('currency').annotate(price=Sum('amount'))
+
+    print(list(renewals_in_next_year))
 
     context = {'institutions': models.Institution.objects.all(),
                'renewals': near_renewals,
