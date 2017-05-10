@@ -39,10 +39,10 @@ def index(request):
                                                                                 banding=band,
                                                                                 billing_agent=billing_agent)
 
-                renewal = models.Institution.objects.create(date=row["Renewal Date"],
-                                                            amount=row["Renewal Amount"],
-                                                            institution=institution,
-                                                            currency=row["Currency"])
+                renewal = models.Renewal.objects.create(date=row["Renewal Date"],
+                                                        amount=row["Renewal Amount"],
+                                                        institution=institution,
+                                                        currency=row["Currency"])
 
     return render(request, 'consortial_billing/admin.html', {})
 
