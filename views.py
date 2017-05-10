@@ -40,7 +40,7 @@ def index(request):
                                                                                 billing_agent=billing_agent)
 
                 renewal = models.Renewal.objects.create(date=row["Renewal Date"],
-                                                        amount=row["Renewal Amount"],
+                                                        amount=row.get("Renewal Amount", 0.00),
                                                         institution=institution,
                                                         currency=row["Currency"])
 
