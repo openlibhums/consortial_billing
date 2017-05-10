@@ -6,10 +6,15 @@ class Banding(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
     default_price = models.IntegerField(blank=True, null=True, default=0)
 
+    def __str__(self):
+        return self.name
 
 class BillingAgent(models.Model):
     name = models.CharField(max_length=255, blank=False)
     users = models.ManyToManyField('core.Account', blank=True, null=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Institution(models.Model):
@@ -24,6 +29,15 @@ class Institution(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def next_renewal(self):
+        renewals = self.renewal_set.order_by('-date')
+
+        if len(renewals) > 0:
+            return renewals[0]
+        else:
+            return None
 
 
 class Renewal(models.Model):
