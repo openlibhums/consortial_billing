@@ -2,14 +2,14 @@ import csv
 from django.shortcuts import render
 
 from plugins.consortial_billing import models, logic
-
+import io
 
 def index(request):
     if request.POST:
         # an action
-        if 'import_csv' in request.POST and len(request.FILES) > 0:
-            csv_import = request.FILES[0]
-            csv_reader = csv.DictReader(csv_import.chunks, delimeter=',')
+        if 'csv_upload' in request.FILES:
+            csv_import = request.FILES['csv_upload']
+            csv_reader = csv.DictReader(io.StringIO(csv_import.read().decode('utf-8')))
 
             for row in csv_reader:
                 print(row["Institution Name"])
