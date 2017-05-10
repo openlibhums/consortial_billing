@@ -22,12 +22,12 @@ def index(request):
                 if bool(row["Consortial Billing"]):
                     consortium, created = models.Institution.objects.get_or_create(name=row["Consortium"])
                 else:
-                    consortium, created = None
+                    consortium = None
 
                 if row["Billing Agent"] != '':
                     billing_agent, created = models.BillingAgent.objects.get_or_create(name=row["Billing Agent"])
                 else:
-                    billing_agent, created = None
+                    billing_agent = None
 
                 institution, created = models.Institution.objects.get_or_create(name=row["Institution Name"],
                                                                                 country=row["Country"],

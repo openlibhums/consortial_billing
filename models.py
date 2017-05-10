@@ -4,7 +4,7 @@ from django.utils import timezone
 
 class Banding(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
-    default_price = models.IntegerField(blank=True)
+    default_price = models.IntegerField(blank=True, default=0)
 
 
 class BillingAgent(models.Model):
@@ -19,7 +19,7 @@ class Institution(models.Model):
     consortial_billing = models.BooleanField(default=False)
     display = models.BooleanField(default=True)
     consortium = models.ForeignKey('self', blank=True, null=True)
-    banding = models.ForeignKey(Banding)
+    banding = models.ForeignKey(Banding, blank=True, null=True)
     billing_agent = models.ForeignKey(BillingAgent, blank=True, null=True)
 
 
