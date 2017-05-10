@@ -12,16 +12,32 @@ def index(request):
             csv_reader = csv.DictReader(io.StringIO(csv_import.read().decode('utf-8')))
 
             for row in csv_reader:
-                print(row["Institution Name"])
-                print(row["Renewal Amount"])
-                print(row["Currency"])
-                print(row["Renewal Date"])
-                print(row["Country"])
-                print(row["Banding"])
-                print(row["Active"])
-                print(row["Consortium"])
-                print(row["Consortial Billing"])
-                print(row["Billing Agent"])
+                # get the band
+                band = models.Banding.objects.get_or_create(name=row["Banding"])
+
+                if bool(row["Consortial Billing"]):
+                    consortium, created = models.Institution.objects.get_or_create(name=row["Consortium"])
+                else:
+                    consortium, created = None
+
+                if row["Billing Agent"] != '':
+                    billing_agent, created = models.BillingAgent.objects.get_or_create(name=row["Billing Agent"])
+                else:
+                    billing_agent, created = None
+
+                institution, created = models.Institution.objects.get_or_create(name=row["Institution Name"],
+                                                                                country=row["Country"],
+                                                                                active=row["Active"],
+                                                                                consortial_billing=
+                                                                                row["Consortial Billing"],
+                                                                                consortium=consortium,
+                                                                                banding=band,
+                                                                                billing_agent=billing_agent)
+
+                renewal = models.Institution.objects.create(date=row["Renewal Date"],
+                                                            amount=row["Renewal Amount"],
+                                                            institution=institution,
+                                                            currency=row["Currency"])
 
     return render(request, 'consortial_billing/admin.html', {})
 

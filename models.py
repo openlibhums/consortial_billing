@@ -7,12 +7,20 @@ class Banding(models.Model):
     default_price = models.IntegerField(blank=True)
 
 
+class BillingAgent(models.Model):
+    name = models.CharField(max_length=255, blank=False)
+    users = models.ManyToManyField('core.Account')
+
+
 class Institution(models.Model):
     name = models.CharField(max_length=255, blank=False)
     country = models.CharField(max_length=255, blank=False)
     active = models.BooleanField(default=True)
     consortial_billing = models.BooleanField(default=False)
+    display = models.BooleanField(default=True)
+    consortium = models.ForeignKey('self', blank=True, null=True)
     banding = models.ForeignKey(Banding)
+    billing_agent = models.ForeignKey(BillingAgent, blank=True, null=True)
 
 
 class Renewal(models.Model):
@@ -21,7 +29,3 @@ class Renewal(models.Model):
     currency = models.CharField(max_length=255, blank=False)
     institution = models.ForeignKey(Institution)
 
-
-class BillingAgent(models.Model):
-    name = models.CharField(max_length=255, blank=False)
-    users = models.ManyToManyField('core.Account')
