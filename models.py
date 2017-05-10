@@ -4,7 +4,7 @@ from django.utils import timezone
 
 class Banding(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
-    default_price = models.IntegerField(blank=True, default=0)
+    default_price = models.IntegerField(blank=True, null=True, default=0)
 
 
 class BillingAgent(models.Model):

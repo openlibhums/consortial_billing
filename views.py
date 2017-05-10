@@ -4,6 +4,7 @@ import io
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.urlresolvers import reverse
+import distutils.util
 
 from plugins.consortial_billing import models, logic
 from core import models as core_models
@@ -19,7 +20,7 @@ def index(request):
                 # get the band
                 band = models.Banding.objects.get_or_create(name=row["Banding"])
 
-                if bool(row["Consortial Billing"]):
+                if distutils.util.strtobool(row["Consortial Billing"]):
                     consortium, created = models.Institution.objects.get_or_create(name=row["Consortium"])
                 else:
                     consortium = None
