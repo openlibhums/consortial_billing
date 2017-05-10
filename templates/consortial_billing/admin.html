@@ -51,6 +51,8 @@
                 {% for item in renewals_in_year %}
                     <p>{{ item.currency }} {{ item.price|intcomma }}</p>
                 {% endfor %}
+
+                <canvas id="myChart" width="400" height="400"></canvas>
             </div>
         </div>
     </div>
@@ -114,6 +116,28 @@
 {% endblock body %}
 
 {% block js %}
-{% include "elements/datatables.html" with target="#institutions" %}
-{% include "elements/datatables.html" with target="#institutions_renewals" %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.4/Chart.bundle.min.js"></script>
+
+<script>
+    var data = {
+        labels: [
+            {% for item in renewals_in_year %}"{{ item.currency }}",{% endfor %}
+        ],
+        datasets: [
+            {
+                data: [{% for item in renewals_in_year %}"{{ item.price }}",{% endfor %}],
+                backgroundColor: [
+                    "#3366CC","#DC3912","#FF9900","#109618","#990099","#3B3EAC","#0099C6","#DD4477","#66AA00","#B82E2E","#316395","#994499","#22AA99","#AAAA11","#6633CC","#E67300","#8B0707","#329262","#5574A6","#3B3EAC"
+                ],
+            }]
+    };
+    var ctx = document.getElementById("myChart");
+    var myDoughnutChart = new Chart(ctx, {
+        type: 'pie',
+        data: data
+    });
+</script>
+
+{% include "elements/datatables.html" with target="#institutions" sort=3 %}
+{% include "elements/datatables.html" with target="#institutions_renewals" sort=3 order="asc" %}
 {% endblock js %}
