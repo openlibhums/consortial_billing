@@ -30,12 +30,16 @@ def users_not_supporting(institutions, authors, editors):
     authors_and_editors = list(set(authors + editors))
     institution_names = [inst.name for inst in institutions]
 
-    for user in authors_and_editors:
-        find = re.compile(".*?{0}.*".format(user.institution))
-        print(filter(find.match, institution_names))
-        if filter(find.match, institution_names):
-            authors_and_editors.remove(user)
-        else:
-            print(user.full_name, user.institution, 'not matched')
+    authors_and_editors_output = list(set(authors + editors))
 
-    return authors_and_editors
+    print(institution_names)
+
+    for user in authors_and_editors:
+        find = re.compile(".*?{0}.*".format(user.institution.split(',')[0]))
+        print(list(filter(find.match, institution_names)))
+        if len(list(filter(find.match, institution_names))) > 0:
+            authors_and_editors_output.remove(user)
+        else:
+            print(user.full_name(), user.institution, 'not matched')
+
+    return authors_and_editors_output
