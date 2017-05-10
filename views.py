@@ -91,4 +91,11 @@ def non_funding_author_insts(request):
 
 
 def supporters(request):
-    pass
+    institutions = models.Institution.objects.filter(display=True)
+
+    template = 'consortial_billing/supporters.html'
+    context = {
+        'institutions': institutions,
+    }
+
+    return render(request, template, context)

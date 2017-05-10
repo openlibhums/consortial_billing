@@ -1,0 +1,24 @@
+{% extends "core/base.html" %}
+
+{% block title %}Supporters{% endblock title %}
+
+
+{% block body %}
+<section id="content">
+    <div class="row columns">
+        <h4>Supporters</h4>
+        <p>The Open Library of Humanities is financially supported by an international library consortium. This means that we never have to charge our authors to publish with us. In turn, we therefore have no incentive to admit sub-par work to the platform, unlike some open-access journals. The OLH is a not-for-profit enterprise with the sole mission of advancing open access to research.</p>
+        <p>Since our financial launch in January 2015, the below institutions have signed up to support the platform. Including block signups (see below) this is a current total of 218 institutions.</p>
+        {% regroup institutions by country as institutions_list %}
+        {% for institution in institutions_list %}
+        <h5>{{ institution.grouper }}</h5>
+        <hr/>
+        <ul>
+            {% for institution in institution.list %}
+            <li>{{ institution }}</li>
+            {% endfor %}
+        </ul>
+        {% endfor %}
+    </div>
+</section>
+{% endblock body %}
