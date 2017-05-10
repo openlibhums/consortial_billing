@@ -39,8 +39,11 @@ def index(request):
                                                                                 banding=band,
                                                                                 billing_agent=billing_agent)
 
+                dict_renewal_amount = row.get("Renewal Amount")
+                renewal_amount = dict_renewal_amount if dict_renewal_amount != '' else 0.00
+
                 renewal = models.Renewal.objects.create(date=row["Renewal Date"],
-                                                        amount=row.get("Renewal Amount", 0.00),
+                                                        amount=renewal_amount,
                                                         institution=institution,
                                                         currency=row["Currency"])
 
