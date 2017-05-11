@@ -24,6 +24,18 @@ def options():
              'types': 'rich-text'},]
 
 
+def display_options():
+    return [{'name': 'pre_text', 'object': setting_handler.get_plugin_setting(get_self(), 'pre_text', None,
+                                                                                  create=True,
+                                                                                  pretty='Text Before List of Institutions'),
+             'types': 'rich-text'},
+            {'name': 'post_text', 'object': setting_handler.get_plugin_setting(get_self(), 'post_text', None,
+                                                                               create=True,
+                                                                               pretty='Text After List of Institutions'),
+             'types': 'rich-text'}
+            ]
+
+
 def install():
     new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME,
                                                               display_name=DISPLAY_NAME,

@@ -103,9 +103,15 @@ def non_funding_author_insts(request):
 def supporters(request):
     institutions = models.Institution.objects.filter(display=True)
 
+    plugin = plugin_settings.get_self()
+    pre_text = setting_handler.get_plugin_setting(plugin, 'pre_text', None)
+    post_text = setting_handler.get_plugin_setting(plugin, 'post_text', None)
+
     template = 'consortial_billing/supporters.html'
     context = {
         'institutions': institutions,
+        'pre_text': pre_text,
+        'post_text': post_text
     }
 
     return render(request, template, context)
