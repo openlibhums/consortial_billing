@@ -8,6 +8,7 @@ VERSION = '1.0'
 SHORT_NAME = 'consortial_billing'
 DISPLAY_NAME = 'supporters'
 MANAGER_URL = 'consortial_index'
+BASE_CURRENCY = 'GBP'
 
 
 def get_self():
