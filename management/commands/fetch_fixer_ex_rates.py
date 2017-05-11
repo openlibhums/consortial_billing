@@ -20,13 +20,14 @@ class Command(BaseCommand):
         :param options: None
         :return: None
         """
-        currencies = models.Renewal.objects.all().values('currency').distinct()
-        api_call = requests.get('http://api.fixer.io/latest?base={0}'.format(plugin_settings.BASE_CURRENCY)).json()
         plugin = plugin_settings.get_self()
+        base_currency = setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value
+        currencies = models.Renewal.objects.all().values('currency').distinct()
+        api_call = requests.get('http://api.fixer.io/latest?base={0}'.format(base_currency)).json()
 
         for currency in currencies:
             currency_code = currency.get('currency')
-            if currency_code != plugin_settings.BASE_CURRENCY:
+            if currency_code != base_currency:
                 rate = api_call['rates'].get(currency_code)
                 value = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency_code),
                                                             None,

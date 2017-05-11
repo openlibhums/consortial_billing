@@ -9,13 +9,14 @@ register = template.Library()
 
 @register.simple_tag()
 def convert(value, currency, action="display"):
-    if currency == plugin_settings.BASE_CURRENCY:
+    plugin = plugin_settings.get_self()
+    base_currency = setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value
+    if currency == base_currency:
         if action == "display":
             return intcomma(value)
         else:
             return value
 
-    plugin = plugin_settings.get_self()
     ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency), None, create=False)
 
     if ex_rate:
