@@ -10,6 +10,7 @@ from django.db.models import Sum
 
 from django.utils import timezone
 
+from utils import setting_handler
 from plugins.consortial_billing import models, logic, plugin_settings
 from core import models as core_models
 
@@ -68,8 +69,12 @@ def index(request):
     return render(request, 'consortial_billing/admin.html', context)
 
 
-def configure_signup(request):
-    return render(request, 'consortial_billing/admin.html', {})
+def signup(request):
+    signup_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'preface_text', None)
+
+    context = {'signup_text': signup_text}
+
+    return render(request, 'consortial_billing/signup.html', context)
 
 
 def non_funding_author_insts(request):
