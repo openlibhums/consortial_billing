@@ -1,0 +1,17 @@
+{% extends "core/base.html" %}
+
+{% block title %}Support the Open Library of Humanities{% endblock title %}
+
+
+{% block body %}
+<section id="content">
+    <div class="row columns">
+        {{ signup_text|safe }}
+    </div>
+    <div class="large-12 columns">
+        <button class="success button pull-right" type="submit" name="start_submission"><i
+                class="fa fa-check">&nbsp;</i>{% trans "Agree and Continue" %}
+        </button>
+    </div>
+</section>
+{% endblock body %}
