@@ -1,20 +1,20 @@
 import csv
 import io
-
+import distutils.util
 import datetime
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-import distutils.util
 from django.db.models import Sum
-
 from django.utils import timezone
 
-from utils import setting_handler
+from utils import setting_handler, function_cache
 from plugins.consortial_billing import models, logic, plugin_settings
 from core import models as core_models
 
 
+@function_cache.cache(900)
 def index(request):
     if request.POST:
         # an action
