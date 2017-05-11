@@ -4,10 +4,11 @@ from django.utils import timezone
 
 class Banding(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
+    currency = models.CharField(max_length=255, blank=True, null=True)
     default_price = models.IntegerField(blank=True, null=True, default=0)
 
     def __str__(self):
-        return self.name
+        return '{0}: {1} {2}'.format(self.name, self.default_price, self.currency if self.currency else '')
 
 
 class BillingAgent(models.Model):

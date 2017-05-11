@@ -77,6 +77,14 @@ def signup(request):
     return render(request, 'consortial_billing/signup.html', context)
 
 
+def signup_stage_two(request):
+    signup_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'preface_text', None)
+
+    context = {'signup_text': signup_text}
+
+    return render(request, 'consortial_billing/signup2.html', context)
+
+
 def non_funding_author_insts(request):
     if request.POST and 'user' in request.POST:
         user_id = request.POST.get('user')
