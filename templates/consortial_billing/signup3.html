@@ -1,0 +1,51 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load humanize %}
+{% load foundation %}
+{% block title %}Support the Open Library of Humanities{% endblock title %}
+
+
+{% block body %}
+<section id="content">
+    <div class="row columns">
+        <h2>Step Three</h2>
+        <p>You have selected banding <i>{{ banding.name }}</i> which has a cost of <i>{{ banding.currency }} {{ banding.default_price|intcomma }}</i>. To continue your sign up, please complete the following form.</p>
+        {% include "elements/forms/errors.html" with form=form %}
+        <form method="POST">
+            {% csrf_token %}
+            <div class="large-4 columns">
+                {{ form.first_name.label }}
+                {{ form.first_name }}
+            </div>
+            <div class="large-4 columns">
+                {{ form.last_name.label }}
+                {{ form.last_name }}
+            </div>
+            <div class="large-4 columns">
+                {{ form.email_address.label }}
+                {{ form.email_address }}
+            </div>
+            <div class="large-12 columns">
+                {{ form.name.label }}
+                {{ form.name }}
+
+                {{ form.address.label }}
+                {{ form.address }}
+
+                {{ form.country.label }}
+                {{ form.country }}
+
+                {{ form.postal_code.label }}
+                {{ form.postal_code }}
+
+                Please check this box if we can display your support publicly
+                {{ form.display }}
+            </div>
+
+            <button type="submit" class="success button pull-right" type="submit" name="start_submission"><i
+                    class="fa fa-check">&nbsp;</i>{% trans "Agree and Continue" %}
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock body %}

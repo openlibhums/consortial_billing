@@ -1,8 +1,11 @@
 import re
 
+from django.conf import settings
+
 from plugins.consortial_billing import models
 from submission import models as submission_models
 from core import models as core_models
+from utils import notify_helpers, render_template
 
 
 def get_authors():
@@ -46,3 +49,14 @@ def users_not_supporting(institutions, authors, editors):
             authors_and_editors_output.remove(user)
 
     return authors_and_editors_output
+
+
+def send_emails(institution, request):
+    message = 'A new supporting institution has registered. <a href=\"{0}{1}\">View information</a>'.format(
+        settings.DEFAULT_HOST,
+        '/plugins/supporters/admin/'
+    )
+
+    if institution.banding.billing_agent:
+        emails = [user.email for user in institution.banding.billing_agent.users.all()]
+        notify_helpers.send_email_with_body_from_user(request, 'New Supporting Institution', emails, message)

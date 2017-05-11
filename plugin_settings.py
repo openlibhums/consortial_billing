@@ -21,7 +21,11 @@ def get_self():
 def options():
     return [{'name': 'preface_text', 'object': setting_handler.get_plugin_setting(get_self(), 'preface_text', None,
                                                                                   create=True, pretty='Preface Text'),
-             'types': 'rich-text'},]
+             'types': 'rich-text'},
+            {'name': 'complete_text', 'object': setting_handler.get_plugin_setting(get_self(), 'complete_text', None,
+                                                                                  create=True, pretty='Complete Text'),
+             'types': 'rich-text'}
+            ]
 
 
 def display_options():

@@ -1,19 +1,36 @@
 {% extends "core/base.html" %}
 {% load i18n %}
+{% load foundation %}
+{% load humanize %}
 {% block title %}Support the Open Library of Humanities{% endblock title %}
 
 
 {% block body %}
 <section id="content">
     <div class="row columns">
-        <h1>Step Two</h1>
-        <p>Please select your banding/price:</p>
-        {{ banding_form.banding|foundation}}
-    </div>
-    <div class="large-12 columns">
-        <button class="success button pull-right" type="submit" name="start_submission"><i
-                class="fa fa-check">&nbsp;</i>{% trans "Agree and Continue" %}
-        </button>
+        <h3>Step Two</h3>
+        {% include "elements/forms/generic_errors.html" with errors=errors %}
+        <form method="POST">
+            {% csrf_token %}
+            <p>Please select your banding/price:</p>
+            <table>
+                <tr>
+                    <th>Select</th>
+                    <th>Description</th>
+                    <th>Cost</th>
+                </tr>
+                {% for banding in bandings %}
+                <tr>
+                    <td><input name="banding" type="radio" value="{{ banding.pk }}"></td>
+                    <td>{{ banding.name}}</td>
+                    <td>{{ banding.currency}} {{ banding.default_price|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            <button class="success button pull-right" type="submit" name="start_submission"><i
+                    class="fa fa-check">&nbsp;</i>{% trans "Select and Continue" %}
+            </button>
+        </form>
     </div>
 </section>
 {% endblock body %}

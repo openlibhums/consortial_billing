@@ -6,12 +6,11 @@
 {% block body %}
 <section id="content">
     <div class="row columns">
+        <h2>Step One</h2>
         {{ signup_text.value|safe }}
-    </div>
-    <div class="large-12 columns">
-        <button class="success button pull-right" type="submit" name="start_submission"><i
+        <a href="{% url 'consortial_banding' %}" class="success button pull-right" type="submit" name="start_submission"><i
                 class="fa fa-check">&nbsp;</i>{% trans "Agree and Continue" %}
-        </button>
+        </a>
     </div>
 </section>
 {% endblock body %}

@@ -11,7 +11,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from utils import setting_handler, function_cache
-from plugins.consortial_billing import models, logic, plugin_settings
+from plugins.consortial_billing import models, logic, plugin_settings, forms
 from core import models as core_models
 
 @staff_member_required
@@ -79,11 +79,54 @@ def signup(request):
 
 
 def signup_stage_two(request):
-    signup_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'preface_text', None)
+    bandings = models.Banding.objects.all().order_by('name', '-default_price')
+    errors = list()
 
-    context = {'signup_text': signup_text}
+    if request.POST:
+        banding_id = request.POST.get('banding')
+        if banding_id:
+            banding = get_object_or_404(models.Banding, pk=banding_id)
+            return redirect(reverse('consortial_detail', kwargs={'banding_id': banding.pk}))
+        else:
+            banding = None
+            errors.append('No banding has been selected')
+
+
+    context = {
+        'bandings': bandings,
+        'errors': errors,
+    }
 
     return render(request, 'consortial_billing/signup2.html', context)
+
+
+def signup_complete(request):
+    complete_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'complete_text', None)
+
+    context = {'complete_text': complete_text}
+
+    return render(request, 'consortial_billing/complete.html', context)
+
+def signup_stage_three(request, banding_id):
+    banding = get_object_or_404(models.Banding, pk=banding_id)
+    form = forms.Institution()
+
+    if request.POST:
+        form = forms.Institution(request.POST)
+        if form.is_valid():
+            institution = form.save(commit=False)
+            institution.banding = banding
+            institution.save()
+            logic.send_emails(institution, request)
+            return redirect(reverse('consortial_complete'))
+
+
+    context = {
+        'banding': banding,
+        'form': form,
+    }
+
+    return render(request, 'consortial_billing/signup3.html', context)
 
 
 @staff_member_required

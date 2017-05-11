@@ -1,7 +1,8 @@
 from django import forms
-from consortial_billing import models
+from plugins.consortial_billing import models
 
-class BandingForm(forms.ModelForm):
+
+class Institution(forms.ModelForm):
     class Meta:
-        fields =
-        model = models.Banding
+        model = models.Institution
+        fields = ('first_name', 'last_name', 'email_address', 'name', 'address', 'postal_code', 'country', 'display')
