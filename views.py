@@ -86,6 +86,13 @@ def signup_stage_two(request):
     return render(request, 'consortial_billing/signup2.html', context)
 
 
+def process_renewal(request, renewal_id):
+    renewal = get_object_or_404(models.Renewal, pk=renewal_id)
+
+    context = {'renewal': renewal}
+
+    return render(request, 'consortial_billing/process_renewal.html', context)
+
 @staff_member_required
 def non_funding_author_insts(request):
     if request.POST and 'user' in request.POST:

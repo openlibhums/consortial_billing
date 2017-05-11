@@ -5,6 +5,7 @@ urlpatterns = [
     url(r'^admin/$', views.index, name='consortial_index'),
     url(r'^signup/$', views.signup, name='consortial_signup'),
     url(r'^signup/banding$', views.signup_stage_two, name='consortial_banding'),
-    url(r'^non_funding_author_insts/$', views.non_funding_author_insts, name='consortial_non_funding_author_insts'),
+    url(r'^process_renewal/(?P<renewal_id>\d+)/$', views.process_renewal, name='consortial_process_renewal'),
+    url(r'^non_funding_author_insts/$', views. non_funding_author_insts, name='consortial_non_funding_author_insts'),
     url(r'^$', views.supporters, name='consortial_supporters'),
 ]
