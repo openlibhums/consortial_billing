@@ -1,5 +1,18 @@
 from django.core.urlresolvers import reverse
+from utils import setting_handler
+from consortial_billing import plugin_settings
+
 
 def nav_hook(context):
-	url = reverse('consortial_supporters')
-	return '<li><a href="{0}">Supporting Institutions</a></li>'.format(url)
+    supporters_url = reverse('consortial_supporters')
+    signup_url = reverse('consortial_signup')
+
+    plugin = plugin_settings.get_self()
+    short_org_name = setting_handler.get_plugin_setting(plugin, 'organisation_short_name', None, create=True,
+                                                        pretty='Organisation Short Name')
+
+    return '<li><a href="{0}">Support {1}</a>' \
+           '<ul class="dropdown menu" data-dropdown-menu>' \
+           '<li><a href="{0}">Library Sign Up</a></li>' \
+           '<li><a href="{2}">Supporting Institutions</a></li>' \
+           '</ul></li>'.format(signup_url, short_org_name.value, supporters_url)

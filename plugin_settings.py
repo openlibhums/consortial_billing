@@ -26,7 +26,12 @@ def options():
 
 
 def display_options():
-    return [{'name': 'pre_text', 'object': setting_handler.get_plugin_setting(get_self(), 'pre_text', None,
+    return [{'name': 'organisation_short_name', 'object': setting_handler.get_plugin_setting(get_self(), 'organisation_short_name'
+                                                                                             , None,
+                                                                                             create=True,
+                                                                                             pretty='Organisation Short Name'),
+             'types': 'rich-text'},
+            {'name': 'pre_text', 'object': setting_handler.get_plugin_setting(get_self(), 'pre_text', None,
                                                                                   create=True,
                                                                                   pretty='Text Before List of Institutions'),
              'types': 'rich-text'},
