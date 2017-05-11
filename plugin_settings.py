@@ -21,7 +21,7 @@ def get_self():
 def options():
     return [{'name': 'preface_text', 'object': setting_handler.get_plugin_setting(get_self(), 'preface_text', None,
                                                                                   create=True, pretty='Preface Text'),
-             'type': 'rich-text'},]
+             'types': 'rich-text'},]
 
 
 def install():
