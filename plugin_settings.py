@@ -8,7 +8,6 @@ VERSION = '1.0'
 SHORT_NAME = 'consortial_billing'
 DISPLAY_NAME = 'supporters'
 MANAGER_URL = 'consortial_index'
-BASE_CURRENCY = 'GBP'
 
 
 def get_self():
@@ -41,6 +40,15 @@ def display_options():
              'types': 'rich-text'}
             ]
 
+def currency_options():
+    return [
+        {'name': 'base_currency', 'object': setting_handler.get_plugin_setting(get_self(),
+                                                                               'base_currency',
+                                                                                None,
+                                                                                create=True,
+                                                                                pretty='Press Base Currency'),
+         'types': 'char'}
+    ]
 
 def install():
     new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME,
