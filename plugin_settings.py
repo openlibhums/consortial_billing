@@ -17,9 +17,11 @@ def get_self():
                                                               enabled=True)
     return new_plugin
 
-options = [{'name': 'preface_text', 'object': setting_handler.get_plugin_setting(get_self(), 'preface_text', None,
-                                                                                 create=True),
-            'type': 'rich-text'},]
+
+def options():
+    return [{'name': 'preface_text', 'object': setting_handler.get_plugin_setting(get_self(), 'preface_text', None,
+                                                                                  create=True),
+             'type': 'rich-text'},]
 
 
 def install():
