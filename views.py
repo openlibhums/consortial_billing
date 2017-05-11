@@ -4,6 +4,7 @@ import distutils.util
 import datetime
 
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
@@ -13,7 +14,7 @@ from utils import setting_handler, function_cache
 from plugins.consortial_billing import models, logic, plugin_settings
 from core import models as core_models
 
-
+@staff_member_required
 @function_cache.cache(900)
 def index(request):
     if request.POST:
@@ -77,6 +78,7 @@ def signup(request):
     return render(request, 'consortial_billing/signup.html', context)
 
 
+@staff_member_required
 def non_funding_author_insts(request):
     if request.POST and 'user' in request.POST:
         user_id = request.POST.get('user')
