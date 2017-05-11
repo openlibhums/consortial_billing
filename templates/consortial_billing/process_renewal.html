@@ -1,0 +1,48 @@
+{% extends "admin/core/base.html" %}
+{% load humanize %}
+{% load currency %}
+
+{% block title %}Consortial Billing{% endblock title %}
+
+{% block breadcrumbs %}
+{{ block.super }}
+<li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+<li><a href="">Process Renewal</a></li>
+{% endblock %}
+
+
+{% block body %}
+<div class="row expanded">
+    <div class="large-12 columns">
+        <div class="box">
+            <div class="title-area">
+                <h2>Process renewal for {{ renewal.institution }} scheduled for {{ renewal.date|date:"Y-m-d" }}</h2>
+            </div>
+            <div class="content">
+                <table id="institutions_renewals">
+                    <thead>
+                    <tr>
+                        <th>Institution</th>
+                        <th>Country</th>
+                        <th>Billing Agent</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Currency</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>{{ renewal.institution.name }}</td>
+                        <td>{{ renewal.institution.country }}</td>
+                        <td>{{ renewal.institution.billing_agent }}</td>
+                        <td>{{ renewal.institution.next_renewal.date }}</td>
+                        <td>{{ renewal.institution.next_renewal.amount }}</td>
+                        <td>{{ renewal.institution.next_renewal.currency }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

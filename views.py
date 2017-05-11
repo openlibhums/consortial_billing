@@ -168,3 +168,11 @@ def supporters(request):
     }
 
     return render(request, template, context)
+
+
+def process_renewal(request, renewal_id):
+    renewal = get_object_or_404(models.Renewal, pk=renewal_id)
+
+    context = {'renewal': renewal}
+
+    return render(request, 'consortial_billing/process_renewal.html', context)
