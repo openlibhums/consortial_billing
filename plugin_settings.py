@@ -40,6 +40,7 @@ def display_options():
              'types': 'rich-text'}
             ]
 
+
 def currency_options():
     return [
         {'name': 'base_currency', 'object': setting_handler.get_plugin_setting(get_self(),
@@ -49,6 +50,7 @@ def currency_options():
                                                                                 pretty='Press Base Currency'),
          'types': 'char'}
     ]
+
 
 def install():
     new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME,
