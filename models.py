@@ -9,6 +9,7 @@ class Banding(models.Model):
     def __str__(self):
         return self.name
 
+
 class BillingAgent(models.Model):
     name = models.CharField(max_length=255, blank=False)
     users = models.ManyToManyField('core.Account', blank=True, null=True)
@@ -49,3 +50,19 @@ class Renewal(models.Model):
 
 class ExcludedUser(models.Model):
     user = models.ForeignKey('core.Account')
+
+
+class Signup(models.Model):
+    first_name = models.CharField(max_length=50)
+    last_name = models.CharField(max_length=50)
+    email_address = models.CharField(max_length=500)
+    institution = models.CharField(max_length=500)
+    address = models.TextField(max_length=500)
+
+    public = models.BooleanField()
+    billing_agent_member = models.BooleanField()
+
+    fte = models.TextField(max_length=500)
+    other_amount = models.IntegerField(default=0, null=True)
+    years = models.IntegerField(default=1)
+    amount = models.IntegerField()

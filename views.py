@@ -10,7 +10,7 @@ from django.db.models import Sum
 
 from django.utils import timezone
 
-from plugins.consortial_billing import models, logic
+from plugins.consortial_billing import models, logic, plugin_settings
 from core import models as core_models
 
 
@@ -62,9 +62,14 @@ def index(request):
 
     context = {'institutions': models.Institution.objects.all(),
                'renewals': near_renewals,
-               'renewals_in_year': renewals_in_next_year}
+               'renewals_in_year': renewals_in_next_year,
+               'plugin': plugin_settings.SHORT_NAME}
 
     return render(request, 'consortial_billing/admin.html', context)
+
+
+def configure_signup(request):
+    return render(request, 'consortial_billing/admin.html', {})
 
 
 def non_funding_author_insts(request):
