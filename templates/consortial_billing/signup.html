@@ -1,12 +1,12 @@
 {% extends "core/base.html" %}
-
+{% load i18n %}
 {% block title %}Support the Open Library of Humanities{% endblock title %}
 
 
 {% block body %}
 <section id="content">
     <div class="row columns">
-        {{ signup_text|safe }}
+        {{ signup_text.value|safe }}
     </div>
     <div class="large-12 columns">
         <button class="success button pull-right" type="submit" name="start_submission"><i
