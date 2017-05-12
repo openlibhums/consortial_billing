@@ -196,3 +196,30 @@ def process_renewal(request, renewal_id):
     }
 
     return render(request, 'consortial_billing/process_renewal.html', context)
+
+
+def view_renewals_report(request, start_date=None, end_date=None):
+    if request.POST:
+        start = request.POST.get('start')
+        end = request.POST.get('end')
+        print(start)
+        return redirect(reverse('consortial_renewals_with_date', kwargs={'start_date': start, 'end_date': end}))
+
+    if not start_date:
+        start_date = timezone.now() - datetime.timedelta(days=365)
+
+    if not end_date:
+        end_date = timezone.now()
+
+    renewals = models.Renewal.objects.filter(billing_complete=True,
+                                             date_renewed__gte=start_date,
+                                             date_renewed__lte=end_date)
+
+    template = 'consortial_billing/renewals_report.html'
+    context = {
+        'start_date': start_date,
+        'end_date': end_date,
+        'renewals': renewals,
+    }
+
+    return render(request, template, context)

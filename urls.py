@@ -13,4 +13,8 @@ urlpatterns = [
     url(r'^process_renewal/(?P<renewal_id>\d+)/$', views.process_renewal, name='consortial_process_renewal'),
 
     url(r'^non_funding_author_insts/$', views.non_funding_author_insts, name='consortial_non_funding_author_insts'),
+    url(r'^renewals/$', views.view_renewals_report, name='consortial_renewals'),
+    url(r'^renewals/start/(?P<start_date>\d{4}-\d{2}-\d{2})/end/(?P<end_date>\d{4}-\d{2}-\d{2})/$',
+        views.view_renewals_report,
+        name='consortial_renewals_with_date'),
 ]
