@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.utils import timezone
+from django.core.cache import cache
 
 from utils import setting_handler, function_cache
 from plugins.consortial_billing import models, logic, plugin_settings, forms
@@ -55,12 +56,12 @@ def index(request):
                                                         currency=row["Currency"])
 
     near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=31),
-                                                  institution__active=True).order_by('date')
+                                                  institution__active=True,
+                                                  billing_complete=False).order_by('date')
 
     renewals_in_next_year = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=365),
-                                                          institution__active=True).values('currency').annotate(price=Sum('amount'))
-
-    print(list(renewals_in_next_year))
+                                                          institution__active=True,
+                                                          billing_complete=False).values('currency').annotate(price=Sum('amount'))
 
     context = {'institutions': models.Institution.objects.all(),
                'renewals': near_renewals,
@@ -171,8 +172,27 @@ def supporters(request):
 
 
 def process_renewal(request, renewal_id):
-    renewal = get_object_or_404(models.Renewal, pk=renewal_id)
+    renewal = get_object_or_404(models.Renewal, pk=renewal_id, billing_complete=False)
+    renewal_form = forms.Renewal(institution=renewal.institution)
 
-    context = {'renewal': renewal}
+    if request.POST:
+        renewal_form = forms.Renewal(request.POST)
+        if renewal_form.is_valid():
+            new_renewal = renewal_form.save(commit=False)
+            new_renewal.institution = renewal.institution
+            renewal.billing_complete = True
+            renewal.date_renewed = timezone.now()
+
+            new_renewal.save()
+            renewal.save()
+            cache.clear()
+
+            messages.add_message(request, messages.SUCCESS, 'Renewal for {0} processed.'.format(renewal.institution))
+            return redirect(reverse('consortial_index'))
+
+    context = {
+        'renewal': renewal,
+        'renewal_form': renewal_form,
+    }
 
     return render(request, 'consortial_billing/process_renewal.html', context)

@@ -57,6 +57,8 @@ class Renewal(models.Model):
     amount = models.DecimalField(decimal_places=2, max_digits=20, blank=False)
     currency = models.CharField(max_length=255, blank=False)
     institution = models.ForeignKey(Institution)
+    billing_complete = models.BooleanField(default=False)
+    date_renewed = models.DateTimeField(blank=True, null=True)
 
 
 class ExcludedUser(models.Model):
