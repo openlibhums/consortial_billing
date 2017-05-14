@@ -15,7 +15,7 @@ from utils import setting_handler, function_cache
 from plugins.consortial_billing import models, logic, plugin_settings, forms, security
 from core import models as core_models
 
-@staff_member_required
+@security.billing_agent_required
 @function_cache.cache(900)
 def index(request):
     if request.POST:
