@@ -7,16 +7,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.db.models import Sum
 from django.utils import timezone
 from django.core.cache import cache
 
-from utils import setting_handler, function_cache
+from utils import setting_handler
 from plugins.consortial_billing import models, logic, plugin_settings, forms, security
 from core import models as core_models
 
 @security.billing_agent_required
-@function_cache.cache(120)
 def index(request):
     if request.POST:
         # an action
@@ -57,18 +55,9 @@ def index(request):
 
 
     agent_for = logic.get_users_agencies(request)
+    near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(agent_for)
 
-    near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=31),
-                                                  institution__active=True,
-                                                  institution__billing_agent__in=agent_for,
-                                                  billing_complete=False).order_by('date')
-
-    renewals_in_next_year = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=365),
-                                                          institution__active=True,
-                                                          institution__billing_agent__in=agent_for,
-                                                          billing_complete=False).values('currency').annotate(price=Sum('amount'))
-
-    context = {'institutions': models.Institution.objects.filter(billing_agent__in=agent_for),
+    context = {'institutions': institutions,
                'renewals': near_renewals,
                'renewals_in_year': renewals_in_next_year,
                'plugin': plugin_settings.SHORT_NAME}

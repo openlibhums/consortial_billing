@@ -1,11 +1,14 @@
 import re
+import datetime
 
 from django.conf import settings
+from django.utils import timezone
+from django.db.models import Sum
 
 from plugins.consortial_billing import models
 from submission import models as submission_models
 from core import models as core_models
-from utils import notify_helpers, render_template
+from utils import notify_helpers, function_cache
 
 
 def get_authors():
@@ -63,4 +66,24 @@ def send_emails(institution, request):
 
 
 def get_users_agencies(request):
-    return models.BillingAgent.objects.filter(users__id__exact=request.user.pk)
+    if request.user.is_staff:
+        return models.BillingAgent.objects.all()
+    else:
+        return models.BillingAgent.objects.filter(users__id__exact=request.user.pk)
+
+
+@function_cache.cache(120)
+def get_institutions_and_renewals(agent_for):
+    near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=31),
+                                                  institution__active=True,
+                                                  institution__billing_agent__in=agent_for,
+                                                  billing_complete=False).order_by('date')
+
+    renewals_in_next_year = models.Renewal.objects.filter(
+        date__lte=timezone.now().date() + datetime.timedelta(days=365),
+        institution__active=True,
+        institution__billing_agent__in=agent_for,
+        billing_complete=False).values('currency').annotate(price=Sum('amount'))
+    institutions = models.Institution.objects.filter(billing_agent__in=agent_for)
+
+    return near_renewals, renewals_in_next_year, institutions
