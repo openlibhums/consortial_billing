@@ -31,7 +31,7 @@
                     <tbody>
                     {% for renewal in renewals %}
                     <tr>
-                        <td>{{ renewal.institution.name }}</td>
+                        <td><a href="{% url 'consortial_institution_id' renewal.institution.pk %}">{{ renewal.institution.name }}</a></td>
                         <td>{{ renewal.institution.country }}</td>
                         <td>{{ renewal.institution.billing_agent }}</td>
                         <td><a href="{% url 'consortial_process_renewal' renewal.institution.next_renewal.id %}">{{ renewal.institution.next_renewal.date }}</a></td>
@@ -65,8 +65,9 @@
         <div class="box">
             <div class="title-area">
                 <h2>All Institutions</h2>
-                <a class="float-right small button success" href="{% url 'core_edit_plugin_settings_groups' plugin 'options' 0 %}?return=consortial_index"><i class="fa fa-pencil action-icon">&nbsp;</i>Configure signup system</a>
-                <a class="float-right small button success" href="{% url 'core_edit_plugin_settings_groups' plugin 'display_options' 0 %}?return=consortial_index"><i class="fa fa-pencil action-icon">&nbsp;</i>Configure supporting institutions page</a>
+                <a class="button" href="{% url 'core_edit_plugin_settings_groups' plugin 'options' 0 %}?return=consortial_index"><i class="fa fa-pencil action-icon">&nbsp;</i>Configure signup system</a>
+                <a class="button" href="{% url 'core_edit_plugin_settings_groups' plugin 'display_options' 0 %}?return=consortial_index"><i class="fa fa-pencil action-icon">&nbsp;</i>Configure supporting institutions page</a>
+                <a class="button" href="{% url 'consortial_institution' %}"><i class="fa fa-plus">&nbsp;</i>Add New Institution</a>
             </div>
             <div class="content">
                 <table id="institutions">
@@ -83,7 +84,7 @@
                     <tbody>
                     {% for institution in institutions %}
                     <tr>
-                        <td>{{ institution.name }}</td>
+                        <td><a href="{% url 'consortial_institution_id' institution.pk %}">{{ institution.name }}</a></td>
                         <td>{{ institution.country }}</td>
                         <td>{{ institution.billing_agent }}</td>
                         <td>{% if institution.active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>

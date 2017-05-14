@@ -12,6 +12,11 @@ class Institution(forms.ModelForm):
         fields = ('first_name', 'last_name', 'email_address', 'name', 'address', 'postal_code', 'country', 'display')
 
 
+class InstitutionForm(forms.ModelForm):
+    class Meta:
+        model = models.Institution
+        exclude = ('',)
+
 class Renewal(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):

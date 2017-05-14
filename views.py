@@ -204,6 +204,7 @@ def process_renewal(request, renewal_id):
     return render(request, 'consortial_billing/process_renewal.html', context)
 
 
+@staff_member_required
 def view_renewals_report(request, start_date=None, end_date=None):
     if request.POST:
         start = request.POST.get('start')
@@ -226,6 +227,41 @@ def view_renewals_report(request, start_date=None, end_date=None):
         'start_date': start_date,
         'end_date': end_date,
         'renewals': renewals,
+    }
+
+    return render(request, template, context)
+
+
+def institution_manager(request, institution_id=None):
+    if institution_id:
+        institution = get_object_or_404(models.Institution, pk=institution_id)
+        form = forms.InstitutionForm(instance=institution)
+    else:
+        institution = None
+        form = forms.InstitutionForm()
+
+    if request.POST:
+        if institution_id:
+            form = forms.InstitutionForm(request.POST, instance=institution)
+        else:
+            form = forms.InstitutionForm(request.POST)
+            cache.clear()
+
+        if form.is_valid():
+            institution = form.save()
+            if not institution_id:
+                models.Renewal.objects.create(institution=institution,
+                                              currency=institution.currency,
+                                              amount=institution.default_price,
+                                              date=timezone.now())
+
+            messages.add_message(request, messages.SUCCESS, '{0} has been saved.'.format(institution.name))
+            return redirect(reverse('consortial_index'))
+
+    template = 'consortial_billing/institution_manager.html'
+    context = {
+        'institution': institution,
+        'form': form,
     }
 
     return render(request, template, context)

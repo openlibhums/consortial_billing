@@ -17,4 +17,7 @@ urlpatterns = [
     url(r'^renewals/start/(?P<start_date>\d{4}-\d{2}-\d{2})/end/(?P<end_date>\d{4}-\d{2}-\d{2})/$',
         views.view_renewals_report,
         name='consortial_renewals_with_date'),
+
+    url(r'^institution/new/$', views.institution_manager, name='consortial_institution'),
+    url(r'^institution/(?P<institution_id>\d+)/$', views.institution_manager, name='consortial_institution_id'),
 ]
