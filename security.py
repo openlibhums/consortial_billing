@@ -14,9 +14,9 @@ def billing_agent_required(func):
     def wrapper(request, *args, **kwargs):
         base_check(request)
 
-        test = models.BillingAgent.objects.filter(users__id__exact=request.user.pk)
+        agent_for = models.BillingAgent.objects.filter(users__id__exact=request.user.pk)
 
-        if not test:
+        if not agent_for:
             raise PermissionDenied
 
         return func(request, *args, **kwargs)

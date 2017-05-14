@@ -60,3 +60,7 @@ def send_emails(institution, request):
     if institution.banding.billing_agent:
         emails = [user.email for user in institution.banding.billing_agent.users.all()]
         notify_helpers.send_email_with_body_from_user(request, 'New Supporting Institution', emails, message)
+
+
+def get_users_agencies(request):
+    return models.BillingAgent.objects.filter(users__id__exact=request.user.pk)
