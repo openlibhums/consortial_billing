@@ -12,7 +12,7 @@ from django.utils import timezone
 from django.core.cache import cache
 
 from utils import setting_handler, function_cache
-from plugins.consortial_billing import models, logic, plugin_settings, forms
+from plugins.consortial_billing import models, logic, plugin_settings, forms, security
 from core import models as core_models
 
 @staff_member_required
@@ -177,6 +177,7 @@ def supporters(request):
     return render(request, template, context)
 
 
+@security.billing_agent_required
 def process_renewal(request, renewal_id):
     renewal = get_object_or_404(models.Renewal, pk=renewal_id, billing_complete=False)
     renewal_form = forms.Renewal(institution=renewal.institution)
@@ -232,6 +233,7 @@ def view_renewals_report(request, start_date=None, end_date=None):
     return render(request, template, context)
 
 
+@security.billing_agent_for_institution_required
 def institution_manager(request, institution_id=None):
     if institution_id:
         institution = get_object_or_404(models.Institution, pk=institution_id)
