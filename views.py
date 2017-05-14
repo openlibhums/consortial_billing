@@ -118,6 +118,12 @@ def signup_stage_three(request, banding_id):
             institution = form.save(commit=False)
             institution.banding = banding
             institution.save()
+
+            models.Renewal.objects.create(institution=institution,
+                                          currency=banding.currency,
+                                          amount=banding.default_price,
+                                          date=timezone.now())
+
             logic.send_emails(institution, request)
             return redirect(reverse('consortial_complete'))
 
