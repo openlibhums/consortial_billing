@@ -283,3 +283,53 @@ def renewals_by_agent(request, billing_agent_id):
     }
 
     return render(request, template, context)
+
+
+@staff_member_required
+def polling_manager(request, poll_id=None, option_id=None):
+    if poll_id:
+        poll = get_object_or_404(models.Poll, pk=poll_id)
+    else:
+        poll = None
+
+    if option_id:
+        option = get_object_or_404(models.Option, pk=option_id)
+    else:
+        option = None
+
+    bandings =  models.Banding.objects.all()
+
+    form = forms.Poll(instance=poll)
+    option_form = forms.Option(instance=option)
+    banding_form = forms.Banding(option=option)
+
+    if request.POST and 'poll' in request.POST:
+        form = forms.Poll(request.POST, instance=poll)
+        if form.is_valid():
+            new_poll = form.save(commit=False)
+            new_poll.staffer = request.user
+            new_poll.save()
+            messages.add_message(request, messages.INFO, 'Poll saved.')
+            return redirect(reverse('consortial_polling_id', kwargs={'poll_id': new_poll.pk}))
+
+    if request.POST and 'option' in request.POST:
+        option_form = forms.Option(request.POST, instance=option)
+        banding_form = forms.Banding(request.POST, option=option)
+
+        if option_form.is_valid() and banding_form.is_valid():
+            new_option = option_form.save()
+            poll.options.add(new_option)
+            banding_form.save(option=new_option)
+            return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
+
+    template = 'consortial_billing/polling_manager.html'
+    context = {
+        'form': form,
+        'poll': poll,
+        'bandings': bandings,
+        'option': option,
+        'option_form': option_form,
+        'banding_form': banding_form,
+    }
+
+    return render(request, template, context)

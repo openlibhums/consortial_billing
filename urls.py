@@ -21,4 +21,9 @@ urlpatterns = [
 
     url(r'^institution/new/$', views.institution_manager, name='consortial_institution'),
     url(r'^institution/(?P<institution_id>\d+)/$', views.institution_manager, name='consortial_institution_id'),
+
+    url(r'^polling/new/$', views.polling_manager, name='consortial_polling'),
+    url(r'^polling/(?P<poll_id>\d+)/$', views.polling_manager, name='consortial_polling_id'),
+    url(r'^polling/(?P<poll_id>\d+)/option/(?P<option_id>\d+)/$', views.polling_manager,
+        name='consortial_polling_option'),
 ]

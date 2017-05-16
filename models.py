@@ -79,3 +79,27 @@ class Signup(models.Model):
     other_amount = models.IntegerField(default=0, null=True)
     years = models.IntegerField(default=1)
     amount = models.IntegerField()
+
+
+class Poll(models.Model):
+    staffer = models.ForeignKey('core.Account')
+    name = models.CharField(max_length=255)
+    text = models.TextField(null=True)
+
+    date_started = models.DateTimeField(default=timezone.now)
+    date_open = models.DateTimeField()
+    date_close = models.DateTimeField()
+
+    options = models.ManyToManyField('Option')
+
+
+class Option(models.Model):
+    text = models.CharField(max_length=300)
+
+
+class IncreaseOptionBand(models.Model):
+    banding = models.ForeignKey(Banding)
+    option = models.ForeignKey(Option)
+    price_increase = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+

@@ -8,6 +8,9 @@ admin_list = [
     (Renewal,),
     (BillingAgent,),
     (ExcludedUser,),
+    (Poll,),
+    (Option,),
+    (IncreaseOptionBand,),
     ]
 
 [admin.site.register(*t) for t in admin_list]

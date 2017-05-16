@@ -31,3 +31,45 @@ class Renewal(forms.ModelForm):
     class Meta:
         model = models.Renewal
         fields = ('date', 'amount', 'currency')
+
+
+class Poll(forms.ModelForm):
+    class Meta:
+        model = models.Poll
+        exclude = ('staffer', 'date_started', 'options',)
+
+
+class Option(forms.ModelForm):
+    class Meta:
+        model = models.Option
+        exclude = ('',)
+
+
+class Banding(forms.Form):
+
+    def __init__(self,  *args, **kwargs):
+        option = kwargs.pop('option', None)
+        super(Banding, self).__init__(*args, **kwargs)
+
+        for banding in models.Banding.objects.all():
+            self.fields[str(banding.pk)] = forms.CharField(widget=forms.TextInput(), required=False)
+            self.fields[str(banding.pk)].label = banding.name
+            self.fields[str(banding.pk)].help_text = banding.currency
+
+            if option:
+                try:
+                    option_banding = models.IncreaseOptionBand.objects.get(banding=banding, option=option)
+                    self.fields[str(banding.pk)].initial = option_banding.price_increase
+                except models.IncreaseOptionBand.DoesNotExist:
+                    self.fields[str(banding.pk)].initial = ''
+
+    def save(self, *args, **kwargs):
+        option = kwargs.pop('option', None)
+        for banding in models.Banding.objects.all():
+            banding_price = self.cleaned_data.get(str(banding.pk))
+            o, c = models.IncreaseOptionBand.objects.get_or_create(option=option,
+                                                                   banding=banding,
+                                                                   defaults={'price_increase': banding_price})
+            if not c:
+                o.price_increase = banding_price
+                o.save()
