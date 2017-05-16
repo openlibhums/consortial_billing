@@ -152,3 +152,31 @@ def get_inst_and_poll_from_session(request):
         return None, None, False
 
 
+@function_cache.cache(60)
+def vote_count(poll):
+    votes = models.Vote.objects.filter(poll=poll)
+    vote_list = list()
+    all_count = 0
+
+    for option in poll.options.all():
+        count = 0
+        for vote in votes:
+            count = count + vote.aye.filter(text=option.text).count()
+
+        _dict = {
+            'text': option.text,
+            'count': count,
+        }
+
+        vote_list.append(_dict)
+
+        if option.all:
+            all_count = all_count + count
+
+    return vote_list, all_count
+
+
+
+
+
+

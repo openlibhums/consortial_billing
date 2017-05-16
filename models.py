@@ -116,5 +116,3 @@ class Vote(models.Model):
     poll = models.ForeignKey(Poll)
     aye = models.ManyToManyField(Option, related_name="vote_aye")
     no = models.ManyToManyField(Option, related_name="vote_no")
-
-

@@ -24,7 +24,7 @@
                         </tr>
                         {% for option in poll.options.all %}
                             <tr>
-                                <td><input type="checkbox" name="{{ options }}[]" value="{{ option.pk }}"
+                                <td><input type="checkbox" name="options" value="{{ option.pk }}"
                                            {% if option.all %}class="uncheckall"{% else %}class="check"{% endif %}></td>
                                 <td>{{ option.text }}</td>
                                 <td>{% increase option institution %}</td>

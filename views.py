@@ -322,6 +322,8 @@ def polling_manager(request, poll_id=None, option_id=None):
             banding_form.save(option=new_option)
             return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
 
+    vote_count, all_count = logic.vote_count(poll)
+
     template = 'consortial_billing/polling_manager.html'
     context = {
         'form': form,
@@ -330,6 +332,8 @@ def polling_manager(request, poll_id=None, option_id=None):
         'option': option,
         'option_form': option_form,
         'banding_form': banding_form,
+        'vote_count': vote_count,
+        'all_count': all_count,
     }
 
     return render(request, template, context)
@@ -367,10 +371,26 @@ def polls(request):
 
 def polls_vote(request, poll_id):
     poll, institution, complete = logic.get_inst_and_poll_from_session(request)
-    print(institution)
 
     if not poll or not institution or complete:
         messages.add_message(request, messages.WARNING, 'You do not have permission to access this poll.')
+        return redirect(reverse('consortial_polls'))
+
+    if request.POST:
+        voting = request.POST.getlist('options')
+        aye_options = poll.options.filter(pk__in=voting)
+        no_options = poll.options.exclude(pk__in=voting)
+
+        vote = models.Vote.objects.create(institution=institution,
+                                          poll=poll)
+        vote.aye.add(*aye_options)
+        vote.no.add(*no_options)
+        vote.save()
+
+        request.session['consortial_voting'] = None
+        request.session.modified = True
+
+        messages.add_message(request, messages.SUCCESS, 'Thank you for voting')
         return redirect(reverse('consortial_polls'))
 
     template = 'consortial_billing/polls_vote.html'
