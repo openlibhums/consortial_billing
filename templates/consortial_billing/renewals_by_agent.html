@@ -1,0 +1,80 @@
+{% extends "admin/core/base.html" %}
+{% load foundation %}
+
+{% block title %}Consortial Billing{% endblock title %}
+
+{% block breadcrumbs %}
+{{ block.super }}
+<li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+<li><a href="{% url 'consortial_non_funding_author_insts' %}">Non Funding Users</a></li>
+{% endblock %}
+
+
+{% block body %}
+<form method="POST">
+    {% csrf_token %}
+    {% include "elements/forms/errors.html" with form=form %}
+    <div class="large-8 columns">
+        <div class="box">
+            <div class="title-area">
+                <h2>Renewals</h2>
+                <a class="button" href="{% url 'consortial_index' %}">Back</a>
+            </div>
+            <div class="content">
+                <table id="renewals">
+                    <thead>
+                    <tr>
+                        <th>Institution</th>
+                        <th>Country</th>
+                        <th>Billing Agent</th>
+                        <th>Next Renewal</th>
+                        <th>Banding</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for renewal in renewals %}
+                    <tr>
+                        <td><a href="{% url 'consortial_institution_id' renewal.institution.pk %}">{{ renewal.institution.name }}</a></td>
+                        <td>{{ renewal.institution.country }}</td>
+                        <td><a href="{% url 'consortial_renewals_agent' renewal.institution.billing_agent.pk %}">{{ renewal.institution.billing_agent }}</a></td>
+                        <td><a href="{% url 'consortial_process_renewal' renewal.institution.next_renewal.id %}">{{ renewal.institution.next_renewal.date }}</a></td>
+                        <td>{{ renewal.institution.banding }}</td>
+                    </tr>
+                    {% empty %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="large-4 columns">
+        <div class="box">
+            <div class="title-area">
+                <h2>Agent Info</h2>
+            </div>
+            <div class="content">
+                <p><strong>Name: </strong>{{ billing_agent.name }}</p>
+                <p><strong># Institutions: </strong>{{ billing_agent.institution_set.all|length }}</p>
+                <p><strong>Agents: </strong> {% for user in billing_agent.users.all %}{{ user.full_name }}{% if not forloop.last %}, {% endif %}{% empty %}None{% endfor %}</p>
+            </div>
+            <div class="title-area">
+                <h2>Mass Renewal</h2>
+            </div>
+            <div class="content">
+                <form method="POST">
+                    {% csrf_token %}
+                    <p>You can mark renewals as complete for all institutions associated with this agent: {{ billing_agent.name }}.</p>
+                    <p><strong>Note:</strong> All institutions will have a renewal auto-generated based on their banding, renewal date will be set 11 months from now.</p>
+                    <button name="mass_renewal" value="{{ billing_agent.pk }}" class="success button">Renew all Institutions</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+{% endblock body %}
+
+{% block js %}
+{% include "elements/datatables.html" with target="#renewals" %}
+{% endblock js %}

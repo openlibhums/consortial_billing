@@ -87,3 +87,18 @@ def get_institutions_and_renewals(agent_for):
     institutions = models.Institution.objects.filter(billing_agent__in=agent_for)
 
     return near_renewals, renewals_in_next_year, institutions
+
+
+def complete_all_renewals(renewals):
+    renewal_date = timezone.now() + datetime.timedelta(days=334)
+
+    for renewal in renewals:
+        new_renewal = models.Renewal(date=renewal_date,
+                                     amount=renewal.institution.banding.default_price,
+                                     currency=renewal.institution.banding.currency,
+                                     institution=renewal.institution)
+        renewal.billing_complete = True
+        renewal.date_renewed = timezone.now()
+
+        new_renewal.save()
+        renewal.save()

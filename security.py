@@ -57,3 +57,25 @@ def billing_agent_for_institution_required(func):
         raise PermissionDenied
 
     return wrapper
+
+
+def agent_for_billing_agent_required(func):
+    """
+    Checks that a user is a billing agent for the given agent_id
+    :return:
+    """
+
+    def wrapper(request, *args, **kwargs):
+        base_check(request)
+
+        billing_agent_id = kwargs.get('billing_agent_id', None)
+
+        if billing_agent_id:
+            billing_agent = get_object_or_404(models.BillingAgent, pk=billing_agent_id)
+
+            if request.user.is_staff or request.user in billing_agent.users:
+                return func(request, *args, **kwargs)
+
+        raise PermissionDenied
+
+    return wrapper

@@ -261,3 +261,25 @@ def institution_manager(request, institution_id=None):
     }
 
     return render(request, template, context)
+
+
+@security.agent_for_billing_agent_required
+def renewals_by_agent(request, billing_agent_id):
+    billing_agent = get_object_or_404(models.BillingAgent, pk=billing_agent_id)
+    renewals = models.Renewal.objects.filter(institution__billing_agent=billing_agent, billing_complete=False)
+
+    if request.POST and 'mass_renewal' in request.POST:
+        agent_id = request.POST.get('mass_renewal')
+        if int(agent_id) == billing_agent.pk:
+            logic.complete_all_renewals(renewals)
+            messages.add_message(request, messages.SUCCESS, "{0} renewals completed".format(len(renewals)))
+            cache.clear()
+            return redirect(reverse('consortial_index'))
+
+    template = 'consortial_billing/renewals_by_agent.html'
+    context = {
+        'billing_agent': billing_agent,
+        'renewals': renewals,
+    }
+
+    return render(request, template, context)
