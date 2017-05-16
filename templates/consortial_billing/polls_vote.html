@@ -1,0 +1,37 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+{% load options %}
+
+{% block title %}Active Polls{% endblock title %}
+
+
+{% block body %}
+    <section id="content">
+        <div class="row columns">
+            <h2>Poll: {{ poll.name }}</h2>
+                <div class="callout">
+                    {{ poll.text|safe }}
+                    <p><strong>Opened: </strong>{{ poll.date_open }} | <strong>Closes: </strong>{{ poll.date_close }}
+                    </p>
+                    <p>You can check multiple boxes. Though if you select ALL you shouldn't select any others.</p>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <table>
+                            <tr>
+                                <th>Check</th>
+                                <th>Option</th>
+                                <th>Increase</th>
+                            </tr>
+                            {% for option in poll.options.all %}
+                                <tr>
+                                <td><input type="checkbox" name="{{ options }}[]" value="{{ option.pk }}"></td>
+                                <td>{{ option.text }}</td>
+                                <td>{% increase option institution %}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </form>
+                </div>
+        </div>
+    </section>
+{% endblock body %}

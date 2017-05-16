@@ -333,3 +333,51 @@ def polling_manager(request, poll_id=None, option_id=None):
     }
 
     return render(request, template, context)
+
+
+def polls(request):
+    polls = models.Poll.objects.filter(
+        date_open__lte=timezone.now(),
+        date_close__gte=timezone.now()
+    )
+
+    if request.POST:
+        institution, poll, complete = logic.handle_polls_post(request, polls)
+
+        if not institution:
+            messages.add_message(request, messages.WARNING, 'No institution with that email address found.')
+            return redirect(reverse('consortial_polls'))
+        elif not poll:
+            messages.add_message(request, messages.WARNING, 'No active poll with that ID found.')
+            return redirect(reverse('consortial_polls'))
+        elif complete:
+            messages.add_message(request, messages.WARNING, 'Institution with that email address has already voted.')
+            return redirect(reverse('consortial_polls'))
+        else:
+            logic.assign_cookie_for_vote(request, poll.pk, institution.pk)
+            return redirect(reverse('consortial_polls_vote', kwargs={'poll_id': poll.pk}))
+
+    template = 'consortial_billing/polls.html'
+    context = {
+        'polls': polls,
+    }
+
+    return render(request, template, context)
+
+
+def polls_vote(request, poll_id):
+    poll, institution, complete = logic.get_inst_and_poll_from_session(request)
+    print(institution)
+
+    if not poll or not institution or complete:
+        messages.add_message(request, messages.WARNING, 'You do not have permission to access this poll.')
+        return redirect(reverse('consortial_polls'))
+
+    template = 'consortial_billing/polls_vote.html'
+    context = {
+        'institution': institution,
+        'poll': poll,
+    }
+
+    return render(request, template, context)
+

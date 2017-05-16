@@ -4,6 +4,7 @@ import datetime
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Sum
+from django.shortcuts import get_object_or_404
 
 from plugins.consortial_billing import models
 from submission import models as submission_models
@@ -102,3 +103,52 @@ def complete_all_renewals(renewals):
 
         new_renewal.save()
         renewal.save()
+
+
+def handle_polls_post(request, polls):
+
+    poll_id = request.POST.get('poll')
+    email = request.POST.get('email')
+
+    poll = get_object_or_404(models.Poll, pk=poll_id,
+                             date_open__lte=timezone.now(),
+                             date_close__gte=timezone.now()
+                             )
+
+    try:
+        institution = models.Institution.objects.get(email_address__iexact=email)
+    except (models.Institution.DoesNotExist, models.Institution.MultipleObjectsReturned):
+        institution = None
+
+    try:
+        vote = models.Vote.objects.filter(institution=institution)
+    except models.Vote.DoesNotExist:
+        vote = False
+
+    return institution, poll, vote
+
+
+def assign_cookie_for_vote(request, poll_id, institution_id):
+    request.session['consortial_voting'] = {'poll': poll_id, 'institution': institution_id}
+    request.session.modified = True
+
+
+def get_inst_and_poll_from_session(request):
+    if request.session.get('consortial_voting', None):
+        poll_id = request.session['consortial_voting'].get('poll')
+        institution_id = request.session['consortial_voting'].get('institution')
+
+        poll = models.Poll.objects.get(pk=poll_id)
+        inst = models.Institution.objects.get(pk=institution_id)
+
+        try:
+            vote = models.Vote.objects.filter(institution=inst)
+        except models.Vote.DoesNotExist:
+            vote = False
+
+        return poll, inst, vote
+
+    else:
+        return None, None, False
+
+

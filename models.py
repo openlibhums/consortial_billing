@@ -96,10 +96,24 @@ class Poll(models.Model):
 class Option(models.Model):
     text = models.CharField(max_length=300)
 
+    def increase(self, institution):
+        try:
+            increase = IncreaseOptionBand.objects.get(banding=institution.banding, option=self)
+            return "{0} {1}".format(increase.price_increase, institution.banding.currency)
+        except IncreaseOptionBand.DoesNotExist:
+            return "No result found."
+
 
 class IncreaseOptionBand(models.Model):
     banding = models.ForeignKey(Banding)
     option = models.ForeignKey(Option)
     price_increase = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+
+class Vote(models.Model):
+    institution = models.ForeignKey(Institution)
+    poll = models.ForeignKey(Poll)
+    aye = models.ManyToManyField(Option, related_name="vote_aye")
+    no = models.ManyToManyField(Option, related_name="vote_no")
 
 

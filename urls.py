@@ -26,4 +26,7 @@ urlpatterns = [
     url(r'^polling/(?P<poll_id>\d+)/$', views.polling_manager, name='consortial_polling_id'),
     url(r'^polling/(?P<poll_id>\d+)/option/(?P<option_id>\d+)/$', views.polling_manager,
         name='consortial_polling_option'),
+
+    url(r'^polls/$', views.polls, name='consortial_polls'),
+    url(r'^polls/(?P<poll_id>\d+)/$', views.polls_vote, name='consortial_polls_vote'),
 ]
