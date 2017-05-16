@@ -306,7 +306,7 @@ def polling_manager(request, poll_id=None, option_id=None):
     banding_form = forms.Banding(option=option)
 
     if request.POST and 'poll' in request.POST:
-        form = forms.Poll(request.POST, instance=poll)
+        form = forms.Poll(request.POST, request.FILES, instance=poll)
         if form.is_valid():
             new_poll = form.save(commit=False)
             new_poll.staffer = request.user

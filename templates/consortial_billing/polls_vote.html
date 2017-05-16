@@ -13,6 +13,7 @@
                 {{ poll.text|safe }}
                 <p><strong>Opened: </strong>{{ poll.date_open }} | <strong>Closes: </strong>{{ poll.date_close }}
                 </p>
+                {% if poll.file %}<p>For more information on the journals being proposed, see our <a target="_blank" href="{{ poll.file.url }}">full report</a>.</p>{% endif %}
                 <p>You can check multiple boxes. Though if you select ALL you shouldn't select any others.</p>
                 <form method="POST">
                     {% csrf_token %}

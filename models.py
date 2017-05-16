@@ -1,6 +1,24 @@
+import uuid
+import os
+
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 
+from plugins.consortial_billing import plugin_settings
+
+
+fs = FileSystemStorage(location=settings.MEDIA_ROOT)
+
+def file_upload_path(instance, filename):
+    try:
+        filename = str(uuid.uuid4()) + '.' + str(filename.split('.')[1])
+    except IndexError:
+        filename = str(uuid.uuid4())
+
+    path = "plugins/{0}/".format(plugin_settings.SHORT_NAME)
+    return os.path.join(path, filename)
 
 class Banding(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True)
@@ -85,6 +103,7 @@ class Poll(models.Model):
     staffer = models.ForeignKey('core.Account')
     name = models.CharField(max_length=255)
     text = models.TextField(null=True)
+    file = models.FileField(upload_to=file_upload_path, null=True, blank=True, storage=fs)
 
     date_started = models.DateTimeField(default=timezone.now)
     date_open = models.DateTimeField()
