@@ -95,6 +95,7 @@ class Poll(models.Model):
 
 class Option(models.Model):
     text = models.CharField(max_length=300)
+    all = models.BooleanField(default=False)
 
     def increase(self, institution):
         try:
