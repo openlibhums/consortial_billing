@@ -60,7 +60,8 @@ def index(request):
     context = {'institutions': institutions,
                'renewals': near_renewals,
                'renewals_in_year': renewals_in_next_year,
-               'plugin': plugin_settings.SHORT_NAME}
+               'plugin': plugin_settings.SHORT_NAME,
+               'polls': models.Poll.objects.all()}
 
     return render(request, 'consortial_billing/admin.html', context)
 
@@ -289,8 +290,9 @@ def renewals_by_agent(request, billing_agent_id):
 def polling_manager(request, poll_id=None, option_id=None):
     if poll_id:
         poll = get_object_or_404(models.Poll, pk=poll_id)
+        vote_count, all_count = logic.vote_count(poll)
     else:
-        poll = None
+        poll, vote_count, all_count = None, None, None
 
     if option_id:
         option = get_object_or_404(models.Option, pk=option_id)
@@ -322,7 +324,6 @@ def polling_manager(request, poll_id=None, option_id=None):
             banding_form.save(option=new_option)
             return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
 
-    vote_count, all_count = logic.vote_count(poll)
 
     template = 'consortial_billing/polling_manager.html'
     context = {

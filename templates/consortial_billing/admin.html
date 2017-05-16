@@ -118,6 +118,36 @@
         </div>
     </div>
     {% endif %}
+    <div class="large-12 columns">
+        <div class="box">
+            <div class="title-area">
+                <h2>Polls</h2>
+                <a href="{% url 'consortial_polling' %}" class="button">Add New Poll</a>
+            </div>
+            <div class="content">
+                <table id="polls">
+                    <tr>
+                        <th>Name</th>
+                        <th>Votes</th>
+                        <th>Opens</th>
+                        <th>Closes</th>
+                        <th></th>
+                    </tr>
+                    <tbody>
+                    {% for poll in polls %}
+                        <tr>
+                            <td>{{ poll.name }}</td>
+                            <td>{{ poll.vote_set.all|length }} / {{ institutions|length }}</td>
+                            <td>{{ poll.date_open }}</td>
+                            <td>{{ poll.date_close }}</td>
+                            <td><a href="{% url 'consortial_polling_id' poll.pk %}">Edit</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock body %}
@@ -145,6 +175,7 @@
     });
 </script>
 
-{% include "elements/datatables.html" with target="#institutions" sort=3 %}
-{% include "elements/datatables.html" with target="#institutions_renewals" sort=3 order="asc" %}
+    {% include "elements/datatables.html" with target="#institutions" sort=3 %}
+    {% include "elements/datatables.html" with target="#institutions_renewals" sort=3 order="asc" %}
+    {% include "elements/datatables.html" with target="#polls" sort=3 %}
 {% endblock js %}
