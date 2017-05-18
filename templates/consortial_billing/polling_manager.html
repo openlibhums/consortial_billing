@@ -36,6 +36,7 @@
             <div class="box">
                 <div class="title-area">
                     <h2>Poll Details</h2>
+                    {% if not poll.processed %}<a href="{% url 'consortial_polling_summary' poll.pk %}" class="button">Process Poll</a>{% endif %}
                 </div>
                 <div class="content">
                     {% include "elements/forms/errors.html" with form=form %}
@@ -78,7 +79,7 @@
                 </div>
                 <div class="content">
                     {% for count in vote_count %}
-                        <strong>{{ count.text }}: </strong> {{ count.count }} {% with count.count as count %} (Total: {{ count|add:all_count }}) {% endwith %}<br />
+                        <strong>{{ count.text }}: </strong> {{ count.count }} {% with count.count as votingcount %}{% if not count.option.all %}(Total: {{ votingcount|add:all_count }}){% endif %}{% endwith %}<br />
                     {% endfor %}
                 </div>
             </div>

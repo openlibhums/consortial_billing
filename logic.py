@@ -166,6 +166,7 @@ def vote_count(poll):
         _dict = {
             'text': option.text,
             'count': count,
+            'option': option,
         }
 
         vote_list.append(_dict)
@@ -173,10 +174,35 @@ def vote_count(poll):
         if option.all:
             all_count = all_count + count
 
+    for _dict in vote_list:
+        if _dict['count'] + all_count > votes.count() / 2:
+            _dict['carried'] = True
+        else:
+            _dict['carried'] = False
+
     return vote_list, all_count
 
 
+def process_poll_increases(options):
+    renewals = models.Renewal.objects.filter(billing_complete=False)
+    bandings = models.Banding.objects.all()
 
+    for option in options:
+        for renewal in renewals:
+            increase = models.IncreaseOptionBand.objects.get(option=option, banding=renewal.institution.banding)
+            print("Increasing renewal for {0} [Band {1}] by {2} {3} for option {4}".format(renewal.institution,
+                                                                                    renewal.institution.banding.name,
+                                                                                    increase.price_increase,
+                                                                                    renewal.institution.banding.currency,
+                                                                                    option.text))
+            renewal.amount = float(renewal.amount) + float(increase.price_increase)
+            renewal.save()
 
-
-
+        for banding in bandings:
+            increase = models.IncreaseOptionBand.objects.get(option=option, banding=banding)
+            print("Increasing banding {0} by {1} {2} for option {3}".format(banding.name,
+                                                                            banding.currency,
+                                                                            increase.price_increase,
+                                                                            option.text))
+            banding.default_price = float(banding.default_price) + float(increase.price_increase)
+            banding.save()

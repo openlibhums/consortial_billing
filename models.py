@@ -108,6 +108,7 @@ class Poll(models.Model):
     date_started = models.DateTimeField(default=timezone.now)
     date_open = models.DateTimeField()
     date_close = models.DateTimeField()
+    processed = models.BooleanField(default=False)
 
     options = models.ManyToManyField('Option')
 

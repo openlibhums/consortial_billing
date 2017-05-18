@@ -20,7 +20,7 @@
                     {% for banding in bandings %}
                     <tr>
                         <td>{{ banding.name }}</td>
-                        <td>{{ banding_form|get:banding.pk }}</td>
+                        <td>{% if not poll.processed %}{{ banding_form|get:banding.pk }}{% else %}This poll has been processed.{% endif %}</td>
                         <td>{{ banding.currency }}</td>
                     </tr>
                     {% endfor %}

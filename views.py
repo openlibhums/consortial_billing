@@ -340,6 +340,30 @@ def polling_manager(request, poll_id=None, option_id=None):
     return render(request, template, context)
 
 
+def poll_summary(request, poll_id):
+    poll = get_object_or_404(models.Poll, pk=poll_id, date_close__lt=timezone.now(), processed=False)
+    increases = models.IncreaseOptionBand.objects.filter(option__in=poll.options.all())
+    vote_count, all_count = logic.vote_count(poll)
+
+    if request.POST:
+        options = request.POST.getlist('options')
+        options = models.Option.objects.filter(poll=poll, pk__in=options)
+        logic.process_poll_increases(options)
+        poll.processed = True
+        poll.save()
+        return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
+
+    template = 'consortial_billing/poll_summary.html'
+    context = {
+        'poll': poll,
+        'increases': increases,
+        'vote_count': vote_count,
+        'all_count': all_count,
+    }
+
+    return render(request, template, context)
+
+
 def polls(request):
     polls = models.Poll.objects.filter(
         date_open__lte=timezone.now(),
@@ -401,4 +425,3 @@ def polls_vote(request, poll_id):
     }
 
     return render(request, template, context)
-
