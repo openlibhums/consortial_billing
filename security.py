@@ -16,7 +16,7 @@ def billing_agent_required(func):
 
         agent_for = models.BillingAgent.objects.filter(users__id__exact=request.user.pk)
 
-        if not agent_for:
+        if not agent_for and not request.user.is_staff:
             raise PermissionDenied
 
         return func(request, *args, **kwargs)
