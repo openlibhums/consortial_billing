@@ -13,13 +13,13 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-       migrations.AddField(
+        migrations.AddField(
             model_name='institution',
             name='billing_agent',
             field=models.ForeignKey(blank=True, null=True, default='', on_delete=django.db.models.deletion.CASCADE, to='consortial_billing.BillingAgent'),
             preserve_default=False,
         ),
-	migrations.AddField(
+        migrations.AddField(
             model_name='institution',
             name='consortium',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='consortial_billing.Institution'),

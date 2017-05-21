@@ -39,8 +39,7 @@ def index(request):
                 institution, created = models.Institution.objects.get_or_create(name=row["Institution Name"],
                                                                                 country=row["Country"],
                                                                                 active=row["Active"],
-                                                                                consortial_billing=
-                                                                                row["Consortial Billing"],
+                                                                                consortial_billing=row["Consortial Billing"],
                                                                                 consortium=consortium,
                                                                                 banding=band,
                                                                                 billing_agent=billing_agent)
@@ -52,7 +51,6 @@ def index(request):
                                                         amount=renewal_amount,
                                                         institution=institution,
                                                         currency=row["Currency"])
-
 
     agent_for = logic.get_users_agencies(request)
     near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(agent_for)
@@ -87,7 +85,6 @@ def signup_stage_two(request):
             banding = None
             errors.append('No banding has been selected')
 
-
     context = {
         'bandings': bandings,
         'errors': errors,
@@ -112,6 +109,7 @@ def signup_stage_three(request, banding_id):
         if form.is_valid():
             institution = form.save(commit=False)
             institution.banding = banding
+            institution.billing_agent = banding.billing_agent
             institution.save()
 
             models.Renewal.objects.create(institution=institution,
@@ -121,7 +119,6 @@ def signup_stage_three(request, banding_id):
 
             logic.send_emails(institution, request)
             return redirect(reverse('consortial_complete'))
-
 
     context = {
         'banding': banding,
@@ -299,7 +296,7 @@ def polling_manager(request, poll_id=None, option_id=None):
     else:
         option = None
 
-    bandings =  models.Banding.objects.all()
+    bandings = models.Banding.objects.all()
 
     form = forms.Poll(instance=poll)
     option_form = forms.Option(instance=option)
@@ -323,7 +320,6 @@ def polling_manager(request, poll_id=None, option_id=None):
             poll.options.add(new_option)
             banding_form.save(option=new_option)
             return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
-
 
     template = 'consortial_billing/polling_manager.html'
     context = {

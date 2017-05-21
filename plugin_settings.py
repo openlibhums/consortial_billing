@@ -23,20 +23,19 @@ def options():
                                                                                   create=True, pretty='Preface Text'),
              'types': 'rich-text'},
             {'name': 'complete_text', 'object': setting_handler.get_plugin_setting(get_self(), 'complete_text', None,
-                                                                                  create=True, pretty='Complete Text'),
+                                                                                   create=True, pretty='Complete Text'),
              'types': 'rich-text'}
             ]
 
 
 def display_options():
-    return [{'name': 'organisation_short_name', 'object': setting_handler.get_plugin_setting(get_self(), 'organisation_short_name'
-                                                                                             , None,
+    return [{'name': 'organisation_short_name', 'object': setting_handler.get_plugin_setting(get_self(), 'organisation_short_name', None,
                                                                                              create=True,
                                                                                              pretty='Organisation Short Name'),
              'types': 'rich-text'},
             {'name': 'pre_text', 'object': setting_handler.get_plugin_setting(get_self(), 'pre_text', None,
-                                                                                  create=True,
-                                                                                  pretty='Text Before List of Institutions'),
+                                                                              create=True,
+                                                                              pretty='Text Before List of Institutions'),
              'types': 'rich-text'},
             {'name': 'post_text', 'object': setting_handler.get_plugin_setting(get_self(), 'post_text', None,
                                                                                create=True,
@@ -49,9 +48,9 @@ def currency_options():
     return [
         {'name': 'base_currency', 'object': setting_handler.get_plugin_setting(get_self(),
                                                                                'base_currency',
-                                                                                None,
-                                                                                create=True,
-                                                                                pretty='Press Base Currency'),
+                                                                               None,
+                                                                               create=True,
+                                                                               pretty='Press Base Currency'),
          'types': 'char'}
     ]
 

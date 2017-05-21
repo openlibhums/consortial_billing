@@ -30,8 +30,8 @@ class Command(BaseCommand):
             if currency_code != base_currency:
                 rate = api_call['rates'].get(currency_code)
                 value = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency_code),
-                                                            None,
-                                                            create=True,
-                                                            pretty='Ex Rate GBP',
-                                                            fallback='')
+                                                           None,
+                                                           create=True,
+                                                           pretty='Ex Rate GBP',
+                                                           fallback='')
                 setting_handler.save_plugin_setting(plugin, value.setting.name, rate, None)

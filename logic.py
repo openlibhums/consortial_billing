@@ -191,10 +191,10 @@ def process_poll_increases(options):
         for renewal in renewals:
             increase = models.IncreaseOptionBand.objects.get(option=option, banding=renewal.institution.banding)
             print("Increasing renewal for {0} [Band {1}] by {2} {3} for option {4}".format(renewal.institution,
-                                                                                    renewal.institution.banding.name,
-                                                                                    increase.price_increase,
-                                                                                    renewal.institution.banding.currency,
-                                                                                    option.text))
+                                                                                           renewal.institution.banding.name,
+                                                                                           increase.price_increase,
+                                                                                           renewal.institution.banding.currency,
+                                                                                           option.text))
             renewal.amount = float(renewal.amount) + float(increase.price_increase)
             renewal.save()
 

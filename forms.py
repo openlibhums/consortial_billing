@@ -47,7 +47,7 @@ class Option(forms.ModelForm):
 
 class Banding(forms.Form):
 
-    def __init__(self,  *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         option = kwargs.pop('option', None)
         super(Banding, self).__init__(*args, **kwargs)
 
