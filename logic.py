@@ -3,7 +3,7 @@ import datetime
 
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404
 
 from plugins.consortial_billing import models
@@ -74,18 +74,29 @@ def get_users_agencies(request):
 
 
 @function_cache.cache(120)
-def get_institutions_and_renewals(agent_for):
-    near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=31),
-                                                  institution__active=True,
-                                                  institution__billing_agent__in=agent_for,
-                                                  billing_complete=False).order_by('date')
+def get_institutions_and_renewals(is_staff, user):
+    if is_staff:
+        near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=31),
+                                                      institution__active=True,
+                                                      billing_complete=False).order_by('date')
+        renewals_in_next_year = models.Renewal.objects.filter(
+            date__lte=timezone.now().date() + datetime.timedelta(days=365),
+            institution__active=True,
+            billing_complete=False).values('currency').annotate(price=Sum('amount'))
+        institutions = models.Institution.objects.all()
+    else:
+        agent_for = models.BillingAgent.objects.filter(users__id__exact=user.pk)
+        near_renewals = models.Renewal.objects.filter(date__lte=timezone.now().date() + datetime.timedelta(days=31),
+                                                      institution__active=True,
+                                                      institution__billing_agent__in=agent_for,
+                                                      billing_complete=False).order_by('date')
 
-    renewals_in_next_year = models.Renewal.objects.filter(
-        date__lte=timezone.now().date() + datetime.timedelta(days=365),
-        institution__active=True,
-        institution__billing_agent__in=agent_for,
-        billing_complete=False).values('currency').annotate(price=Sum('amount'))
-    institutions = models.Institution.objects.filter(billing_agent__in=agent_for)
+        renewals_in_next_year = models.Renewal.objects.filter(
+            date__lte=timezone.now().date() + datetime.timedelta(days=365),
+            institution__active=True,
+            institution__billing_agent__in=agent_for,
+            billing_complete=False).values('currency').annotate(price=Sum('amount'))
+        institutions = models.Institution.objects.filter(billing_agent__in=agent_for)
 
     return near_renewals, renewals_in_next_year, institutions
 

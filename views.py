@@ -52,8 +52,8 @@ def index(request):
                                                         institution=institution,
                                                         currency=row["Currency"])
 
-    agent_for = logic.get_users_agencies(request)
-    near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(agent_for)
+    near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(request.user.is_staff,
+                                                                                             request.user)
 
     context = {'institutions': institutions,
                'renewals': near_renewals,
