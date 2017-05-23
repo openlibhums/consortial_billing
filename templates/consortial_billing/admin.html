@@ -66,8 +66,6 @@
         <div class="box">
             <div class="title-area">
                 <h2>All Institutions</h2>
-                <a class="button" href="{% url 'core_edit_plugin_settings_groups' plugin 'options' 0 %}?return=consortial_index"><i class="fa fa-pencil action-icon">&nbsp;</i>Configure signup system</a>
-                <a class="button" href="{% url 'core_edit_plugin_settings_groups' plugin 'display_options' 0 %}?return=consortial_index"><i class="fa fa-pencil action-icon">&nbsp;</i>Configure supporting institutions page</a>
                 <a class="button" href="{% url 'consortial_institution' %}"><i class="fa fa-plus">&nbsp;</i>Add New Institution</a>
             </div>
             <div class="content">
@@ -118,7 +116,7 @@
         </div>
     </div>
     {% endif %}
-    <div class="large-12 columns">
+    <div class="large-8 columns">
         <div class="box">
             <div class="title-area">
                 <h2>Polls</h2>
@@ -148,6 +146,24 @@
             </div>
         </div>
     </div>
+    {% if request.user.is_staff %}
+    <div class="large-4 columns">
+        <div class="box">
+            <div class="title-area">
+                <h2>Config Options</h2>
+            </div>
+            <div class="content">
+                <div class="stacked button-group">
+                    <a class="button" href="{% url 'core_edit_plugin_settings_groups' plugin 'options' 0 %}?return=consortial_index">Configure signup system</a>
+                    <a class="button" href="{% url 'core_edit_plugin_settings_groups' plugin 'display_options' 0 %}?return=consortial_index">Configure supporting institutions page</a>
+                    <a href="/admin/consortial_billing/banding/" class="button">Bandings</a>
+                    <a href="/admin/consortial_billing/billingagent/" class="button">Billing Agents</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock body %}
