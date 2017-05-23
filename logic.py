@@ -63,6 +63,7 @@ def send_emails(institution, request):
 
     if institution.banding.billing_agent:
         emails = [user.email for user in institution.banding.billing_agent.users.all()]
+        emails = emails + [user.email for user in core_models.Account.objects.filter(is_superuser=True)]
         notify_helpers.send_email_with_body_from_user(request, 'New Supporting Institution', emails, message)
 
 
