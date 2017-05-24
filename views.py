@@ -110,6 +110,7 @@ def signup_stage_three(request, banding_id):
             institution = form.save(commit=False)
             institution.banding = banding
             institution.billing_agent = banding.billing_agent
+            institution.active = False
             institution.save()
 
             models.Renewal.objects.create(institution=institution,
@@ -153,7 +154,7 @@ def non_funding_author_insts(request):
 
 
 def supporters(request):
-    institutions = models.Institution.objects.filter(display=True)
+    institutions = models.Institution.objects.filter(active=True, display=True)
 
     plugin = plugin_settings.get_self()
     pre_text = setting_handler.get_plugin_setting(plugin, 'pre_text', None)
