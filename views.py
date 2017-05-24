@@ -154,7 +154,7 @@ def non_funding_author_insts(request):
 
 
 def supporters(request):
-    institutions = models.Institution.objects.filter(active=True, display=True)
+    institutions = models.Institution.objects.filter(active=True, display=True).order_by('country')
 
     plugin = plugin_settings.get_self()
     pre_text = setting_handler.get_plugin_setting(plugin, 'pre_text', None)
