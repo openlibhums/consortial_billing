@@ -28,6 +28,7 @@ urlpatterns = [
         name='consortial_polling_option'),
     url(r'^polling/(?P<poll_id>\d+)/summary/$', views.poll_summary, name='consortial_polling_summary'),
     url(r'^polling/(?P<poll_id>\d+)/email/$', views.poll_email, name='consortial_polling_email'),
+    url(r'^polling/(?P<poll_id>\d+)/delete/$', views.poll_delete, name='consortial_polling_delete'),
 
     url(r'^polls/$', views.polls, name='consortial_polls'),
     url(r'^polls/(?P<poll_id>\d+)/$', views.polls_vote, name='consortial_polls_vote'),

@@ -1,0 +1,33 @@
+{% extends "admin/core/base.html" %}
+{% load foundation %}
+
+{% block title %}Consortial Billing{% endblock title %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    <li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+    <li>Polling Manager</li>
+{% endblock %}
+
+{% block title-section %}
+    Poll: {{ poll.name }}, Delete
+{% endblock title-section %}
+
+{% block body %}
+    <div class="row expanded">
+        <div class="medium-6 columns">
+            <div class="box">
+                <div class="title-area">
+                    <h2>Send Emails</h2>
+                </div>
+                <div class="content">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <p>Are you sure you want to delete poll: {{ poll.name }}.</p>
+                        <button type="submit" class="alert button">Delete Poll</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}

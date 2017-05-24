@@ -337,6 +337,7 @@ def polling_manager(request, poll_id=None, option_id=None):
     return render(request, template, context)
 
 
+@staff_member_required
 def poll_summary(request, poll_id):
     try:
         poll = models.Poll.objects.get(pk=poll_id, date_close__lt=timezone.now(), processed=False)
@@ -365,6 +366,7 @@ def poll_summary(request, poll_id):
     return render(request, template, context)
 
 
+@staff_member_required
 def poll_email(request, poll_id):
     institutions = get_list_or_404(models.Institution, email_address__isnull=False)
 
@@ -383,6 +385,20 @@ def poll_email(request, poll_id):
         'institutions': institutions,
         'sample': logic.get_poll_email_content(request, poll, institutions[0])
     }
+
+    return render(request, template, context)
+
+
+@staff_member_required
+def poll_delete(request, poll_id):
+    poll = get_object_or_404(models.Poll, pk=poll_id)
+
+    if request.POST:
+        poll.delete()
+        return redirect(reverse('consortial_index'))
+
+    template = 'consortial_billing/poll_delete.html'
+    context = {'poll': poll}
 
     return render(request, template, context)
 

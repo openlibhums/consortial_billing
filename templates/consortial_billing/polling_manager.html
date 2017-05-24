@@ -36,7 +36,10 @@
             <div class="box">
                 <div class="title-area">
                     <h2>Poll Details</h2>
-                    {% if poll and not poll.processed %}<a href="{% url 'consortial_polling_summary' poll.pk %}" class="button">Process Poll</a>{% endif %}
+                    {% if poll and not poll.processed %}
+                        <a href="{% url 'consortial_polling_summary' poll.pk %}" class="button">Process Poll</a>
+                        <a href="{% url 'consortial_polling_delete' poll.pk %}" class="button">Delete Poll</a>
+                    {% endif %}
                 </div>
                 <div class="content">
                     {% include "elements/forms/errors.html" with form=form %}
