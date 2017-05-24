@@ -6,10 +6,10 @@ from django.utils import timezone
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404
 
-from plugins.consortial_billing import models
+from plugins.consortial_billing import models, plugin_settings
 from submission import models as submission_models
 from core import models as core_models
-from utils import notify_helpers, function_cache
+from utils import notify_helpers, function_cache, setting_handler, render_template
 
 
 def get_authors():
@@ -218,3 +218,21 @@ def process_poll_increases(options):
                                                                             option.text))
             banding.default_price = float(banding.default_price) + float(increase.price_increase)
             banding.save()
+
+
+def get_poll_email_content(request, poll, institution):
+    plugin = plugin_settings.get_self()
+    short_name = setting_handler.get_plugin_setting(plugin, 'organisation_short_name', None).value
+    context = {'poll': poll, 'institution': institution, 'short_name': short_name}
+
+    return render_template.get_message_content(request, context, 'email_text', plugin=plugin)
+
+def email_poll_to_institutions(poll, request):
+    institutions = models.Institution.objects.filter(email_address__isnull=False)
+
+    for institution in institutions:
+        content = get_poll_email_content(request, poll, institution)
+        notify_helpers.send_email_with_body_from_user(request,
+                                                      'New Consortium Poll',
+                                                      institution.email_address,
+                                                      content)

@@ -112,6 +112,12 @@ class Poll(models.Model):
 
     options = models.ManyToManyField('Option')
 
+    @property
+    def open(self):
+        if self.date_open < timezone.now() and self.date_close > timezone.now():
+            return True
+        return False
+
 
 class Option(models.Model):
     text = models.CharField(max_length=300)

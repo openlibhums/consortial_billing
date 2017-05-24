@@ -40,7 +40,11 @@ def display_options():
             {'name': 'post_text', 'object': setting_handler.get_plugin_setting(get_self(), 'post_text', None,
                                                                                create=True,
                                                                                pretty='Text After List of Institutions'),
-             'types': 'rich-text'}
+             'types': 'rich-text'},
+            {'name': 'email_text', 'object': setting_handler.get_plugin_setting(get_self(), 'email_text', None,
+                                                                              create=True,
+                                                                              pretty='Text sent to institutions polling'),
+             'types': 'rich-text'},
             ]
 
 

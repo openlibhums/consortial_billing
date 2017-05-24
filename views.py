@@ -3,7 +3,7 @@ import io
 import distutils.util
 import datetime
 
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.core.urlresolvers import reverse
@@ -360,6 +360,28 @@ def poll_summary(request, poll_id):
         'increases': increases,
         'vote_count': vote_count,
         'all_count': all_count,
+    }
+
+    return render(request, template, context)
+
+
+def poll_email(request, poll_id):
+    institutions = get_list_or_404(models.Institution, email_address__isnull=False)
+
+    try:
+        poll = models.Poll.objects.get(pk=poll_id, date_close__gt=timezone.now(), processed=False)
+    except models.Poll.DoesNotExist:
+        messages.add_message(request, messages.INFO, 'This poll is either closed or has already been processed.')
+
+    if request.POST:
+        logic.email_poll_to_institutions(poll, request)
+        return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
+
+    template = 'consortial_billing/poll_email.html'
+    context = {
+        'poll': poll,
+        'institutions': institutions,
+        'sample': logic.get_poll_email_content(request, poll, institutions[0])
     }
 
     return render(request, template, context)

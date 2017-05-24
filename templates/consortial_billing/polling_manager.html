@@ -54,6 +54,7 @@
             <div class="box">
                 <div class="title-area">
                     <h2>Voting Record</h2>
+                    {% if poll.open %}<a href="{% url 'consortial_polling_email' poll.pk %}" class="button"><i class="fa fa-envelope-o">&nbsp;</i>Email Poll</a>{% endif %}
                 </div>
                 <div class="content">
                     <table>
