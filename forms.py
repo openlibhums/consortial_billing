@@ -47,7 +47,7 @@ class Renewal(forms.ModelForm):
 class Poll(forms.ModelForm):
     class Meta:
         model = models.Poll
-        exclude = ('staffer', 'date_started', 'options',)
+        exclude = ('staffer', 'date_started', 'options', 'processed')
 
 
 class Option(forms.ModelForm):
