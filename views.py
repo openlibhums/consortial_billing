@@ -338,7 +338,11 @@ def polling_manager(request, poll_id=None, option_id=None):
 
 
 def poll_summary(request, poll_id):
-    poll = get_object_or_404(models.Poll, pk=poll_id, date_close__lt=timezone.now(), processed=False)
+    try:
+        poll = models.Poll.objects.get(pk=poll_id, date_close__lt=timezone.now(), processed=False)
+    except models.Poll.DoesNotExist:
+        messages.add_message(request, messages.INFO, 'This poll is either still open or has already been processed.')
+        return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll_id}))
     increases = models.IncreaseOptionBand.objects.filter(option__in=poll.options.all())
     vote_count, all_count = logic.vote_count(poll)
 
