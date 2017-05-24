@@ -42,6 +42,7 @@
                     {% include "elements/forms/errors.html" with form=form %}
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
+                        {% if poll %}<p><strong>Poll Link: </strong>{{ request.press_base_url }}{% url 'consortial_polls_vote' poll.pk %}</p>{% endif %}
                         {{ form|foundation }}
                         <button type="submit" name="poll" class="success button">Submit</button>
                     </form>
