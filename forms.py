@@ -7,12 +7,23 @@ from plugins.consortial_billing import models
 
 
 class Institution(forms.ModelForm):
+
     class Meta:
         model = models.Institution
         fields = ('first_name', 'last_name', 'email_address', 'name', 'address', 'postal_code', 'country', 'display')
 
 
 class InstitutionForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super(InstitutionForm, self).__init__(*args, **kwargs)
+
+        self.fields['first_name'].required = False
+        self.fields['last_name'].required = False
+        self.fields['address'].required = False
+        self.fields['postal_code'].required = False
+        self.fields['email_address'].required = False
+
     class Meta:
         model = models.Institution
         exclude = ('',)
