@@ -72,8 +72,7 @@ def agent_for_billing_agent_required(func):
 
         if billing_agent_id:
             billing_agent = get_object_or_404(models.BillingAgent, pk=billing_agent_id)
-
-            if request.user.is_staff or request.user in billing_agent.users:
+            if request.user.is_staff or request.user in billing_agent.users.all():
                 return func(request, *args, **kwargs)
 
         raise PermissionDenied
