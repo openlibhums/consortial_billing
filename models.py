@@ -50,13 +50,13 @@ class Institution(models.Model):
     billing_agent = models.ForeignKey(BillingAgent, blank=True, null=True)
 
     # Personal signup details
-    first_name = models.CharField(max_length=255, null=True)
-    last_name = models.CharField(max_length=255, null=True)
+    first_name = models.CharField(max_length=255, null=True, blank=True)
+    last_name = models.CharField(max_length=255, null=True, blank=True)
     email_address = models.EmailField(max_length=255, null=True)
 
     # Address
-    address = models.TextField(max_length=255, null=True, verbose_name="Billing Address")
-    postal_code = models.CharField(max_length=255, null=True, verbose_name="Post/Zip Code")
+    address = models.TextField(max_length=255, null=True, blank=True, verbose_name="Billing Address")
+    postal_code = models.CharField(max_length=255, null=True, blank=True, verbose_name="Post/Zip Code")
 
     def __str__(self):
         return self.name
