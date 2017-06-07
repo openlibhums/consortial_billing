@@ -54,6 +54,7 @@
                 {% for item in renewals_in_year %}
                     <p>{{ item.currency }} {{ item.price}} | GBP {% convert item.price item.currency %}</p>
                 {% endfor %}
+                <strong>Total: </strong> {% convert_all renewals_in_year %}
 
                 <canvas id="myChart" width="400" height="400"></canvas>
             </div>

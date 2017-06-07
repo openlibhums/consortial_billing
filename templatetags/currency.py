@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django import template
 
@@ -25,3 +27,30 @@ def convert(value, currency, action="display"):
             return "{0} (ex rate {1})".format(intcomma(round((float(value) / float(ex_rate)), 2)), ex_rate)
         else:
             return round((float(value) / float(ex_rate)), 2)
+
+
+@register.simple_tag()
+def convert_all(dict):
+    plugin = plugin_settings.get_self()
+    base_currency = setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value
+    total_in_local_currency = Decimal()
+
+    for item in dict:
+        currency = item.get('currency')
+        price = item.get('price')
+
+        if currency == base_currency:
+            total_in_local_currency = total_in_local_currency + price
+
+        else:
+
+            ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency), None, create=False)
+
+            if ex_rate:
+                ex_rate = Decimal(ex_rate.value)
+
+                total_in_local_currency = total_in_local_currency + (price / ex_rate)
+
+    return round(total_in_local_currency, 2)
+
+
