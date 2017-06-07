@@ -1,6 +1,5 @@
 import csv
 import io
-import distutils.util
 import datetime
 
 from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
@@ -9,6 +8,7 @@ from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.core.cache import cache
+from django.core.management import call_command
 
 from utils import setting_handler
 from plugins.consortial_billing import models, logic, plugin_settings, forms, security
@@ -23,10 +23,11 @@ def index(request):
             csv_reader = csv.DictReader(io.StringIO(csv_import.read().decode('utf-8')))
 
             for row in csv_reader:
-                # get the band
-                band, created = models.Banding.objects.get_or_create(name=row["Banding"])
 
-                if distutils.util.strtobool(row["Consortial Billing"]):
+                dict_renewal_amount = row.get("2017 Local Currency")
+                renewal_amount = dict_renewal_amount if dict_renewal_amount != '' else 0.00
+
+                if bool(row["Consortium"]):
                     consortium, created = models.Institution.objects.get_or_create(name=row["Consortium"])
                 else:
                     consortium = None
@@ -36,21 +37,32 @@ def index(request):
                 else:
                     billing_agent = None
 
-                institution, created = models.Institution.objects.get_or_create(name=row["Institution Name"],
-                                                                                country=row["Country"],
-                                                                                active=row["Active"],
-                                                                                consortial_billing=row["Consortial Billing"],
-                                                                                consortium=consortium,
-                                                                                banding=band,
-                                                                                billing_agent=billing_agent)
+                if row["Band"] != '':
+                    banding_dict = {'currency': row['Local Currency'],
+                                    'default_price': renewal_amount}
+                    banding, create = models.Banding.objects.get_or_create(name=row['Band'],
+                                                                           billing_agent=billing_agent,
+                                                                           defaults=banding_dict)
+                else:
+                    banding = None
 
-                dict_renewal_amount = row.get("Renewal Amount")
-                renewal_amount = dict_renewal_amount if dict_renewal_amount != '' else 0.00
+
+                institution, created = models.Institution.objects.get_or_create(name=row["Institution"],
+                                                                                email_address=row['Email'],
+                                                                                country=row["Country"],
+                                                                                active=True,
+                                                                                consortial_billing=bool(row["Consortium"]),
+                                                                                consortium=consortium,
+                                                                                banding=banding,
+                                                                                billing_agent=billing_agent,
+                                                                                display=bool(row['Display']))
 
                 renewal = models.Renewal.objects.create(date=row["Renewal Date"],
                                                         amount=renewal_amount,
                                                         institution=institution,
-                                                        currency=row["Currency"])
+                                                        currency=row["Local Currency"])
+
+            call_command('fetch_fixer_ex_rates')
 
     near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(request.user.is_staff,
                                                                                              request.user)

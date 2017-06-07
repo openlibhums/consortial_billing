@@ -1,6 +1,6 @@
 from django.core.urlresolvers import reverse
 from utils import setting_handler
-from consortial_billing import plugin_settings
+from plugins.consortial_billing import plugin_settings
 
 
 def nav_hook(context):
