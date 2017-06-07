@@ -45,6 +45,11 @@ def display_options():
                                                                               create=True,
                                                                               pretty='Text sent to institutions polling'),
              'types': 'rich-text'},
+            {'name': 'display_nav', 'object': setting_handler.get_plugin_setting(get_self(), 'display_nav', None,
+                                                                                create=True,
+                                                                                pretty='Display nav item',
+                                                                                 types='boolean'),
+             'types': 'boolean'},
             ]
 
 
