@@ -71,7 +71,10 @@ def index(request):
                'renewals': near_renewals,
                'renewals_in_year': renewals_in_next_year,
                'plugin': plugin_settings.SHORT_NAME,
-               'polls': models.Poll.objects.all()}
+               'polls': models.Poll.objects.all(),
+               'base_currency': setting_handler.get_plugin_setting(plugin_settings.get_self(),
+                                                                   'base_currency', None).value,
+               }
 
     return render(request, 'consortial_billing/admin.html', context)
 
