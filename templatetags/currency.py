@@ -51,6 +51,6 @@ def convert_all(dict):
 
                 total_in_local_currency = total_in_local_currency + (price / ex_rate)
 
-    return round(total_in_local_currency, 2)
+    return intcomma(round(total_in_local_currency, 2))
 
 
