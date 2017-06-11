@@ -23,6 +23,7 @@ class InstitutionForm(forms.ModelForm):
         self.fields['address'].required = False
         self.fields['postal_code'].required = False
         self.fields['email_address'].required = False
+        self.fields['banding'].required = True
 
     class Meta:
         model = models.Institution
