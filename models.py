@@ -58,6 +58,9 @@ class Institution(models.Model):
     address = models.TextField(max_length=255, null=True, blank=True, verbose_name="Billing Address")
     postal_code = models.CharField(max_length=255, null=True, blank=True, verbose_name="Post/Zip Code")
 
+    class Meta:
+        ordering = ('country', 'name')
+
     def __str__(self):
         return self.name
 
