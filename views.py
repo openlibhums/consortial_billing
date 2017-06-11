@@ -261,8 +261,8 @@ def institution_manager(request, institution_id=None):
             institution = form.save()
             if not institution_id:
                 models.Renewal.objects.create(institution=institution,
-                                              currency=institution.currency,
-                                              amount=institution.default_price,
+                                              currency=institution.banding.currency,
+                                              amount=institution.banding.default_price,
                                               date=timezone.now())
 
             messages.add_message(request, messages.SUCCESS, '{0} has been saved.'.format(institution.name))
