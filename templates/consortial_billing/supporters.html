@@ -7,8 +7,9 @@
 <section id="content">
     <div class="row columns">
         <div>
-            </p>{{ pre_text.value|safe }}
+            {{ pre_text.value|safe }}
         </div>
+        <hr />
         {% regroup institutions by country as institutions_list %}
         {% for institution in institutions_list %}
         <h5>{{ institution.grouper }}</h5>
