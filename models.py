@@ -45,9 +45,9 @@ class Institution(models.Model):
     active = models.BooleanField(default=True)
     consortial_billing = models.BooleanField(default=False)
     display = models.BooleanField(default=True)
-    consortium = models.ForeignKey('self', blank=True, null=True)
-    banding = models.ForeignKey(Banding, blank=True, null=True)
-    billing_agent = models.ForeignKey(BillingAgent, blank=True, null=True)
+    consortium = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL)
+    banding = models.ForeignKey(Banding, blank=True, null=True, on_delete=models.SET_NULL)
+    billing_agent = models.ForeignKey(BillingAgent, blank=True, null=True, on_delete=models.SET_NULL)
 
     # Personal signup details
     first_name = models.CharField(max_length=255, null=True, blank=True)
@@ -81,6 +81,9 @@ class Renewal(models.Model):
     institution = models.ForeignKey(Institution)
     billing_complete = models.BooleanField(default=False)
     date_renewed = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return "Renewal for {0} due {1} for {2} {3}".format(self.institution.name, self.date, self.amount, self.currency)
 
 
 class ExcludedUser(models.Model):

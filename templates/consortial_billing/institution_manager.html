@@ -6,6 +6,7 @@
 {% block breadcrumbs %}
 {{ block.super }}
 <li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+    <li>{% if institution %}{{ institution.name }}{% else %}Add Institution{% endif %}</li>
 {% endblock %}
 
 
@@ -78,6 +79,24 @@
             </div>
         </div>
     </div>
+    {% if institution %}
+    <div class="large-12 columns">
+        <div class="box">
+            <div class="title-area">
+                <h2>Delete Institution</h2>
+            </div>
+            <div class="content">
+                <p>You can delete this institution, be warned that the following data will also be deleted:</p>
+                <ul>
+                {% for renewal in institution.renewal_set.all %}
+                    <li>{{ renewal }}</li>
+                {% endfor %}
+                </ul>
+                <button type="submit" name="delete" class="alert button">Delete</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </form>
 
 

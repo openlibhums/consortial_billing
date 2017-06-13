@@ -251,6 +251,13 @@ def institution_manager(request, institution_id=None):
         form = forms.InstitutionForm()
 
     if request.POST:
+
+        if 'delete' in request.POST and institution_id:
+            institution.delete()
+            messages.add_message(request, messages.WARNING, 'Institution deleted.')
+            cache.clear()
+            return redirect(reverse('consortial_index'))
+
         if institution_id:
             form = forms.InstitutionForm(request.POST, instance=institution)
         else:
