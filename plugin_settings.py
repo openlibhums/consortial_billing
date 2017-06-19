@@ -24,7 +24,12 @@ def options():
              'types': 'rich-text'},
             {'name': 'complete_text', 'object': setting_handler.get_plugin_setting(get_self(), 'complete_text', None,
                                                                                    create=True, pretty='Complete Text'),
-             'types': 'rich-text'}
+             'types': 'rich-text'},
+            {'name': 'new_signup_email', 'object': setting_handler.get_plugin_setting(get_self(), 'new_signup_email',
+                                                                                      None,
+                                                                                      create=True,
+                                                                                      pretty='Email sent on signup'),
+             'types': 'rich-text'},
             ]
 
 

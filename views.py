@@ -63,6 +63,8 @@ def index(request):
                                                         currency=row["Local Currency"])
 
             call_command('fetch_fixer_ex_rates')
+            cache.clear()
+
 
     near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(request.user.is_staff,
                                                                                              request.user)
@@ -133,7 +135,7 @@ def signup_stage_three(request, banding_id):
                                           amount=banding.default_price,
                                           date=timezone.now())
 
-            logic.send_emails(institution, request)
+            logic.send_emails(institution, banding.currency, banding.default_price, institution.display, request)
             return redirect(reverse('consortial_complete'))
 
     context = {

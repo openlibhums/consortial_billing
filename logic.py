@@ -55,15 +55,22 @@ def users_not_supporting(institutions, authors, editors):
     return authors_and_editors_output
 
 
-def send_emails(institution, request):
-    message = 'A new supporting institution has registered. <a href=\"{0}{1}\">View information</a>'.format(
-        settings.DEFAULT_HOST,
-        '/plugins/supporters/admin/'
-    )
+def get_signup_email_content(request, institution, currency, amount, host, url, display):
+    plugin = plugin_settings.get_self()
+    context = {'institution': institution, 'currency': currency, 'amount': amount, 'host': host, 'url': url,
+               'display':display}
+
+    return render_template.get_message_content(request, context, 'new_signup_email', plugin=plugin)
+
+
+def send_emails(institution, currency, amount, display, request):
 
     if institution.banding.billing_agent:
         emails = [user.email for user in institution.banding.billing_agent.users.all()]
         emails = emails + [user.email for user in core_models.Account.objects.filter(is_superuser=True)]
+
+        message = get_signup_email_content(request, institution, currency, amount, settings.DEFAULT_HOST,
+                                           '/plugins/supporters/admin/', display)
         notify_helpers.send_email_with_body_from_user(request, 'New Supporting Institution', emails, message)
 
 
