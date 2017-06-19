@@ -1,4 +1,7 @@
 from django.core.urlresolvers import reverse
+from django.shortcuts import render
+from django.template.loader import render_to_string
+
 from utils import setting_handler
 from plugins.consortial_billing import plugin_settings
 
@@ -14,9 +17,18 @@ def nav_hook(context):
                                                         pretty='Display nav item', types='boolean').processed_value
 
     if display_nav:
-        return '<li><a href="{0}">Support {1}</a>' \
-               '<ul class="dropdown menu" data-dropdown-menu>' \
-               '<li><a href="{0}">Library Sign Up</a></li>' \
-               '<li><a href="{2}">Supporting Institutions</a></li>' \
-               '</ul></li>'.format(signup_url, short_org_name.value, supporters_url)
+        item = {
+            'link_name': 'Support {0}'.format(short_org_name.value),
+            'link': '',
+            'has_sub_nav': True,
+            'sub_nav_items': [
+                {'link_name': 'Library Sign Up',
+                 'link': signup_url},
+                {'link_name': 'Supporting Institutions',
+                 'link': supporters_url}
+            ]
+        }
+        nav = render_to_string('elements/nav_element.html', {'item': item})
+
+        return nav
     return ''
