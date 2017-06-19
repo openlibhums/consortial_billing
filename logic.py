@@ -55,10 +55,10 @@ def users_not_supporting(institutions, authors, editors):
     return authors_and_editors_output
 
 
-def get_signup_email_content(request, institution, currency, amount, host, url, display):
+def get_signup_email_content(request, institution, currency, amount, host, url, display, user):
     plugin = plugin_settings.get_self()
     context = {'institution': institution, 'currency': currency, 'amount': amount, 'host': host, 'url': url,
-               'display':display}
+               'display': display, 'user': user}
 
     return render_template.get_message_content(request, context, 'new_signup_email', plugin=plugin)
 
@@ -66,12 +66,18 @@ def get_signup_email_content(request, institution, currency, amount, host, url, 
 def send_emails(institution, currency, amount, display, request):
 
     if institution.banding.billing_agent:
-        emails = [user.email for user in institution.banding.billing_agent.users.all()]
-        emails = emails + [user.email for user in core_models.Account.objects.filter(is_superuser=True)]
+        users = [user for user in institution.banding.billing_agent.users.all()]
+        users = users + [user for user in core_models.Account.objects.filter(is_superuser=True)]
 
-        message = get_signup_email_content(request, institution, currency, amount, settings.DEFAULT_HOST,
-                                           '/plugins/supporters/admin/', display)
-        notify_helpers.send_email_with_body_from_user(request, 'New Supporting Institution', emails, message)
+        if request.journal:
+            url = request.journal_base_url
+        else:
+            url = request.press_base_url
+
+        for user in users:
+            message = get_signup_email_content(request, institution, currency, amount, url,
+                                               '/plugins/supporters/admin/', display, user)
+            notify_helpers.send_email_with_body_from_user(request, 'New Supporting Institution', user.email, message)
 
 
 def get_users_agencies(request):
