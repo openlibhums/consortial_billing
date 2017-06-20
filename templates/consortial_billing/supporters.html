@@ -10,9 +10,9 @@
             {{ pre_text.value|safe }}
         </div>
         <br />
-        {% regroup institutions by country as institutions_list %}
+        {% regroup institutions by sort_country as institutions_list %}
         {% for institution in institutions_list %}
-        <h5>{{ institution.grouper }}</h5>
+        <h5>{{ institution.list.0.country }}</h5>
         <ul>
             {% for institution in institution.list %}
             <li>{{ institution }}</li>
