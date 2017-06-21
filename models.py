@@ -42,6 +42,7 @@ class BillingAgent(models.Model):
 class Institution(models.Model):
     name = models.CharField(max_length=255, blank=False, unique=True, verbose_name="Institution Name")
     country = models.CharField(max_length=255, blank=False)
+    sort_country = models.CharField(max_length=255, blank=True, default='')
     active = models.BooleanField(default=True)
     consortial_billing = models.BooleanField(default=False)
     display = models.BooleanField(default=True)
@@ -59,10 +60,16 @@ class Institution(models.Model):
     postal_code = models.CharField(max_length=255, null=True, blank=True, verbose_name="Post/Zip Code")
 
     class Meta:
-        ordering = ('country', 'name')
+        ordering = ('sort_country', 'name')
 
     def __str__(self):
         return self.name
+
+
+    def save(self, *args, **kwargs):
+        self.sort_country = self.country.replace('The ', '')
+        super(Institution, self).save(*args, **kwargs)
+
 
     @property
     def next_renewal(self):
