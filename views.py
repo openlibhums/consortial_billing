@@ -505,8 +505,9 @@ def display_journals(request):
                                                           create=True,
                                                           pretty='Journal Display',
                                                           ).value
-
-    journal_pks = [int(pk) for pk in journals_setting.split(',')]
+    journal_pks = []
+    if journals_setting:
+        journal_pks = [int(pk) for pk in journals_setting.split(',')]
 
     if request.POST:
         print(request.POST)

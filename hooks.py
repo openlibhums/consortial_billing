@@ -23,8 +23,9 @@ def nav_hook(context):
                                                           create=True,
                                                           pretty='Journal Display',
                                                           ).value
-
-    journal_pks = [int(pk) for pk in journals_setting.split(',')]
+    journal_pks = []
+    if journals_setting:
+        journal_pks = [int(pk) for pk in journals_setting.split(',')]
     if (request.journal and request.journal.id in journal_pks) or (not request.journal and request.press):
         item = {
             'link_name': 'Support {0}'.format(short_org_name.value),
