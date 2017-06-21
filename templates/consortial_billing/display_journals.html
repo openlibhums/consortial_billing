@@ -1,0 +1,27 @@
+{% extends "admin/core/base.html" %}
+{% load i18n %}
+{% block title %}Link Display{% endblock title %}
+{% block title-section %}Link Display{% endblock %}
+
+{% block body %}
+    <section id="content">
+        <div class="row expanded columns">
+            <div class="box">
+                <div class="title-area">
+                    <h2>Select which journals to display links on</h2>
+                </div>
+                <div class="content">
+                    <form method="POST">
+                        {% csrf_token %}
+                        {% for journal in journals %}
+                            <input type="checkbox" name="journal" value="{{ journal.pk }}" id="{{ journal.name }}" {% if journal.pk in journal_pks %}checked="checked"{% endif %}>
+                            <label for="{{ journal.name }}">{{ journal.name }}</label>
+                            <br/>
+                        {% endfor %}
+                        <button type="submit" class="button success">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock body %}

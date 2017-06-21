@@ -13,6 +13,7 @@ from django.core.management import call_command
 from utils import setting_handler
 from plugins.consortial_billing import models, logic, plugin_settings, forms, security
 from core import models as core_models
+from journal import models as journal_models
 
 @security.billing_agent_required
 def index(request):
@@ -487,4 +488,41 @@ def polls_vote(request, poll_id):
         'poll': poll,
     }
 
+    return render(request, template, context)
+
+
+def display_journals(request):
+    """
+    Determines which journals to display links on.
+    :param request: wsgi request object
+    :return: httpresponse
+    """
+
+    journals = journal_models.Journal.objects.all()
+    journals_setting = setting_handler.get_plugin_setting(plugin_settings.get_self(),
+                                                          'journal_display',
+                                                          None,
+                                                          create=True,
+                                                          pretty='Journal Display',
+                                                          ).value
+
+    journal_pks = [int(pk) for pk in journals_setting.split(',')]
+
+    if request.POST:
+        print(request.POST)
+        journal_pks = request.POST.getlist('journal')
+        print(journal_pks)
+        setting_handler.save_plugin_setting(plugin_settings.get_self(),
+                                            'journal_display',
+                                            ','.join(journal_pks),
+                                            None)
+        return redirect(reverse('consortial_display'))
+
+
+    template = 'consortial_billing/display_journals.html'
+    context = {
+        'journals': journals,
+        'journal_pks': journal_pks,
+
+    }
     return render(request, template, context)
