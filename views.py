@@ -91,7 +91,7 @@ def signup(request):
 
 
 def signup_stage_two(request):
-    bandings = models.Banding.objects.all().order_by('name', '-default_price')
+    bandings = models.Banding.objects.filter(display=True).order_by('name', '-default_price')
     errors = list()
 
     if request.POST:
