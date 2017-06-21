@@ -24,7 +24,7 @@ def nav_hook(context):
                                                           pretty='Journal Display',
                                                           ).value
     journal_pks = []
-    if journals_setting:
+    if journals_setting and journals_setting != ' ':
         journal_pks = [int(pk) for pk in journals_setting.split(',')]
     if (request.journal and request.journal.id in journal_pks) or (not request.journal and request.press):
         item = {
