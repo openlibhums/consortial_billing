@@ -178,7 +178,10 @@ def supporters(request):
     pre_text = setting_handler.get_plugin_setting(plugin, 'pre_text', None)
     post_text = setting_handler.get_plugin_setting(plugin, 'post_text', None)
 
-    template = 'consortial_billing/supporters.html'
+    if request.journal:
+        template = 'consortial_billing/supporters.html'
+    else:
+        template = 'consortial_billing/supporters_press.html'
     context = {
         'institutions': institutions,
         'pre_text': pre_text,

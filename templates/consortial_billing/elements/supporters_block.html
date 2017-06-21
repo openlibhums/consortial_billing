@@ -1,0 +1,18 @@
+<section id="content">
+    <div class="row columns">
+        <div>
+            {{ pre_text.value|safe }}
+        </div>
+        <br />
+        {% regroup institutions by sort_country as institutions_list %}
+        {% for institution in institutions_list %}
+        <h5>{{ institution.list.0.country }}</h5>
+        <ul>
+            {% for institution in institution.list %}
+            <li>{{ institution }}</li>
+            {% endfor %}
+        </ul>
+        {% endfor %}
+        {{ post_text.value|safe }}
+    </div>
+</section>
