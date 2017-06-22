@@ -26,6 +26,7 @@ class Banding(models.Model):
     default_price = models.IntegerField(blank=True, null=True, default=0)
     billing_agent = models.ForeignKey('BillingAgent', null=True, blank=True)
     display = models.BooleanField(default=True)
+    redirect_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return '{0}: {1} {2}'.format(self.name, self.default_price, self.currency if self.currency else '')
