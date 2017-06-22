@@ -98,6 +98,8 @@ def signup_stage_two(request):
         banding_id = request.POST.get('banding')
         if banding_id:
             banding = get_object_or_404(models.Banding, pk=banding_id)
+            if banding.redirect_url:
+                return redirect(banding.redirect_url)
             return redirect(reverse('consortial_detail', kwargs={'banding_id': banding.pk}))
         else:
             banding = None

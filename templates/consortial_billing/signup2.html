@@ -12,7 +12,7 @@
         {% include "elements/forms/generic_errors.html" with errors=errors %}
         <form method="POST">
             {% csrf_token %}
-            <p>Please select your banding/price:</p>
+            <p>Please select your banding/price. Please note, some bandings may be handled externally and you will be redirected.</p>
             <table>
                 <tr>
                     <th>Select</th>
