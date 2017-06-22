@@ -77,7 +77,9 @@ def send_emails(institution, currency, amount, display, request):
         for user in users:
             message = get_signup_email_content(request, institution, currency, amount, url,
                                                '/plugins/supporters/admin/', display, user)
-            notify_helpers.send_email_with_body_from_user(request, 'New Supporting Institution', user.email, message)
+            notify_helpers.send_email_with_body_from_user(request,
+                                                          'New Supporting Institution for {0}'.format(request.press.name),
+                                                          user.email, message)
 
 
 def get_users_agencies(request):
