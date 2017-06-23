@@ -14,7 +14,8 @@ def get_self():
     new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME,
                                                               display_name=DISPLAY_NAME,
                                                               version=VERSION,
-                                                              enabled=True)
+                                                              enabled=True,
+                                                              press_wide=True)
     return new_plugin
 
 
@@ -73,7 +74,8 @@ def install():
     new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME,
                                                               display_name=DISPLAY_NAME,
                                                               version=VERSION,
-                                                              enabled=True)
+                                                              enabled=True,
+                                                              press_wide=True)
 
     if created:
         print('Plugin {0} installed.'.format(PLUGIN_NAME))

@@ -66,7 +66,7 @@
 <div class="large-{% if institutions|length > 0 %}12{% else %}8{% endif %} columns {% if institutions|length > 0 %}end{% endif %}">
         <div class="box">
             <div class="title-area">
-                <h2>All Institutions</h2>
+                <h2>All Institutions ({{ institutions|length }})</h2>
                 <a class="button" href="{% url 'consortial_institution' %}"><i class="fa fa-plus">&nbsp;</i>Add New Institution</a>
             </div>
             <div class="content">
