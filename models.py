@@ -20,8 +20,9 @@ def file_upload_path(instance, filename):
     path = "plugins/{0}/".format(plugin_settings.SHORT_NAME)
     return os.path.join(path, filename)
 
+
 class Banding(models.Model):
-    name = models.CharField(max_length=255, blank=False, unique=True)
+    name = models.CharField(max_length=200, blank=False, unique=True)
     currency = models.CharField(max_length=255, blank=True, null=True)
     default_price = models.IntegerField(blank=True, null=True, default=0)
     billing_agent = models.ForeignKey('BillingAgent', null=True, blank=True)
@@ -41,7 +42,7 @@ class BillingAgent(models.Model):
 
 
 class Institution(models.Model):
-    name = models.CharField(max_length=255, blank=False, unique=True, verbose_name="Institution Name")
+    name = models.CharField(max_length=200, blank=False, unique=True, verbose_name="Institution Name")
     country = models.CharField(max_length=255, blank=False)
     sort_country = models.CharField(max_length=255, blank=True, default='')
     active = models.BooleanField(default=True)
