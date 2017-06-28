@@ -108,6 +108,7 @@ def signup_stage_two(request):
     context = {
         'bandings': bandings,
         'errors': errors,
+        'banding_text': setting_handler.get_plugin_setting(plugin_settings.get_self(), 'banding_pre_text', None).value
     }
 
     return render(request, 'consortial_billing/signup2.html', context)

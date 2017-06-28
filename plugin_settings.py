@@ -1,6 +1,5 @@
 from utils import models, setting_handler
 
-
 PLUGIN_NAME = 'Consortial Billing'
 DESCRIPTION = 'This is a plugin to handle consortial billing.'
 AUTHOR = 'Martin Paul Eve'
@@ -35,9 +34,10 @@ def options():
 
 
 def display_options():
-    return [{'name': 'organisation_short_name', 'object': setting_handler.get_plugin_setting(get_self(), 'organisation_short_name', None,
-                                                                                             create=True,
-                                                                                             pretty='Organisation Short Name'),
+    return [{'name': 'organisation_short_name',
+             'object': setting_handler.get_plugin_setting(get_self(), 'organisation_short_name', None,
+                                                          create=True,
+                                                          pretty='Organisation Short Name'),
              'types': 'rich-text'},
             {'name': 'pre_text', 'object': setting_handler.get_plugin_setting(get_self(), 'pre_text', None,
                                                                               create=True,
@@ -48,14 +48,19 @@ def display_options():
                                                                                pretty='Text After List of Institutions'),
              'types': 'rich-text'},
             {'name': 'email_text', 'object': setting_handler.get_plugin_setting(get_self(), 'email_text', None,
-                                                                              create=True,
-                                                                              pretty='Text sent to institutions polling'),
+                                                                                create=True,
+                                                                                pretty='Text sent to institutions polling'),
              'types': 'rich-text'},
             {'name': 'display_nav', 'object': setting_handler.get_plugin_setting(get_self(), 'display_nav', None,
-                                                                                create=True,
-                                                                                pretty='Display nav item',
+                                                                                 create=True,
+                                                                                 pretty='Display nav item',
                                                                                  types='boolean'),
              'types': 'boolean'},
+            {'name': 'banding_pre_text',
+             'object': setting_handler.get_plugin_setting(get_self(), 'banding_pre_text', None,
+                                                          create=True,
+                                                          pretty='Text Before List of Institutions'),
+             'types': 'rich-text'},
             ]
 
 
