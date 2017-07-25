@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.core.management import call_command
 
-from utils import setting_handler
+from utils import setting_handler, models as util_models
 from plugins.consortial_billing import models, logic, plugin_settings, forms, security
 from core import models as core_models
 from journal import models as journal_models
@@ -70,13 +70,22 @@ def index(request):
     near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(request.user.is_staff,
                                                                                              request.user)
 
+    try:
+        base_currency = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'base_currency', None).value
+    except util_models.PluginSetting.DoesNotExist:
+        kwargs = {
+            'plugin': 'consortial_billing',
+            'setting_group_name': 'currency_options',
+            'journal': 0,
+        }
+        reversal = '{0}??return=consortial_index'.format(reverse('core_edit_plugin_settings_groups', kwargs=kwargs))
+        return redirect(reversal)
     context = {'institutions': institutions,
                'renewals': near_renewals,
                'renewals_in_year': renewals_in_next_year,
                'plugin': plugin_settings.SHORT_NAME,
                'polls': models.Poll.objects.all(),
-               'base_currency': setting_handler.get_plugin_setting(plugin_settings.get_self(),
-                                                                   'base_currency', None).value,
+               'base_currency': base_currency,
                }
 
     return render(request, 'consortial_billing/admin.html', context)
