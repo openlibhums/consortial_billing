@@ -552,7 +552,7 @@ def modeller(request, increase=0):
     :param currency: a curreny shortcode eg GBP or USD
     :return: an HTTPResponse
     """
-    institutions = models.Institution.objects.all()
+    institutions = models.Institution.objects.filter(active=True)
     plugin = plugin_settings.get_self()
 
     template = 'consortial_billing/modeller.html'
@@ -560,6 +560,7 @@ def modeller(request, increase=0):
         'institutions': institutions,
         'increase': increase,
         'base_currency': setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value,
+        'renewals': logic.get_model_renewals(institutions),
     }
 
     return render(request, template, context)

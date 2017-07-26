@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404
 
-from plugins.consortial_billing import models, plugin_settings
+from plugins.consortial_billing import models, plugin_settings, templatetags
 from submission import models as submission_models
 from core import models as core_models
 from utils import notify_helpers, function_cache, setting_handler, render_template
@@ -251,3 +251,32 @@ def email_poll_to_institutions(poll, request):
                                                       'New Consortium Poll',
                                                       institution.email_address,
                                                       content)
+
+@function_cache.cache(120)
+def get_model_renewals(institutions):
+
+    projected_currency = {}
+
+    for institution in institutions:
+        if projected_currency.get(institution.banding.currency):
+            projected_currency[institution.banding.currency] = projected_currency[institution.banding.currency] + \
+                                                               templatetags.currency.convert_multiplier(
+                                                                   value=institution.banding.default_price,
+                                                                   currency=institution.banding.currency,
+                                                                   multiplier=institution.multiplier
+                                                               )
+        else:
+            projected_currency[institution.banding.currency] = templatetags.currency.convert_multiplier(
+                                                                   value=institution.banding.default_price,
+                                                                   currency=institution.banding.currency,
+                                                                   multiplier=institution.multiplier
+                                                               )
+
+    total = 0
+    for k, v in projected_currency.items():
+        total = total + v
+
+    projected_currency['total'] = total
+
+    print(projected_currency)
+    return projected_currency
