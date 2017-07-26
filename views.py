@@ -289,6 +289,7 @@ def institution_manager(request, institution_id=None):
                                               currency=institution.banding.currency,
                                               amount=institution.banding.default_price,
                                               date=timezone.now())
+                call_command('fetch_fixer_ex_rates')
 
             messages.add_message(request, messages.SUCCESS, '{0} has been saved.'.format(institution.name))
             return redirect(reverse('consortial_index'))
