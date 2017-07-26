@@ -54,3 +54,13 @@ def convert_all(dict):
     return intcomma(round(total_in_local_currency, 2))
 
 
+@register.simple_tag()
+def convert_multiplier(value, currency, multiplier):
+    conversion = convert(value, currency, 'multiplication')
+
+    return (conversion * float(multiplier) + conversion)
+
+
+@register.simple_tag()
+def multiply(value, multiplier):
+    return (value * float(multiplier)) + value

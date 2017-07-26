@@ -33,4 +33,6 @@ urlpatterns = [
     url(r'^polls/$', views.polls, name='consortial_polls'),
     url(r'^polls/(?P<poll_id>\d+)/$', views.polls_vote, name='consortial_polls_vote'),
     url(r'^display/$', views.display_journals, name='consortial_display'),
+
+    url(r'^modeller/(?P<increase>\d+)/$', views.modeller, name='consortial_modeller'),
 ]

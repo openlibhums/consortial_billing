@@ -527,9 +527,7 @@ def display_journals(request):
         journal_pks = [int(pk) for pk in journals_setting.split(',')]
 
     if request.POST:
-        print(request.POST)
         journal_pks = request.POST.getlist('journal')
-        print(journal_pks)
         setting_handler.save_plugin_setting(plugin_settings.get_self(),
                                             'journal_display',
                                             ','.join(journal_pks),
@@ -543,4 +541,25 @@ def display_journals(request):
         'journal_pks': journal_pks,
 
     }
+    return render(request, template, context)
+
+
+def modeller(request, increase=0):
+    """
+    Allows a user to model out a price increase.
+    :param request: HTTPRequest object
+    :param increase: an integer
+    :param currency: a curreny shortcode eg GBP or USD
+    :return: an HTTPResponse
+    """
+    institutions = models.Institution.objects.all()
+    plugin = plugin_settings.get_self()
+
+    template = 'consortial_billing/modeller.html'
+    context = {
+        'institutions': institutions,
+        'increase': increase,
+        'base_currency': setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value,
+    }
+
     return render(request, template, context)
