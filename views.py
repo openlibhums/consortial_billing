@@ -506,6 +506,7 @@ def polls_vote(request, poll_id):
     return render(request, template, context)
 
 
+@staff_member_required
 def display_journals(request):
     """
     Determines which journals to display links on.
