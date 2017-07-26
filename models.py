@@ -61,6 +61,8 @@ class Institution(models.Model):
     address = models.TextField(max_length=255, null=True, blank=True, verbose_name="Billing Address")
     postal_code = models.CharField(max_length=255, null=True, blank=True, verbose_name="Post/Zip Code")
 
+    multiplier = models.DecimalField(decimal_places=2, max_digits=3, default=1.0)
+
     class Meta:
         ordering = ('sort_country', 'name')
 
