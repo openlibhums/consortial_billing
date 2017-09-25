@@ -11,6 +11,7 @@ from plugins.consortial_billing import plugin_settings
 
 fs = FileSystemStorage(location=settings.MEDIA_ROOT)
 
+
 def file_upload_path(instance, filename):
     try:
         filename = str(uuid.uuid4()) + '.' + str(filename.split('.')[1])

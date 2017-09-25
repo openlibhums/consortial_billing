@@ -564,3 +564,33 @@ def modeller(request, increase=0):
     }
 
     return render(request, template, context)
+
+
+#### API
+
+from api import permissions as api_permissions
+from plugins.consortial_billing import serializers
+from rest_framework import viewsets, generics
+from rest_framework.decorators import permission_classes
+
+
+@permission_classes((api_permissions.IsEditor, ))
+class InstitutionView(viewsets.ModelViewSet):
+    """
+    API endpoint that allows user roles to be viewed or edited.
+    """
+    def get_queryset(self):
+        """
+        Optionally allows to filter on domain of email.
+        :return: a queryset
+        """
+
+        queryset = models.Institution.objects.all()
+        domain = self.request.query_params.get('domain', None)
+
+        if domain is not None:
+            queryset = queryset.filter(email_address__icontains=domain)
+
+        return queryset
+
+    serializer_class = serializers.InstitutionSerializer
