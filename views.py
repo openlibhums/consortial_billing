@@ -587,9 +587,17 @@ class InstitutionView(viewsets.ModelViewSet):
 
         queryset = models.Institution.objects.all()
         domain = self.request.query_params.get('domain', None)
-
+        name = self.request.query_params.get('name', None)
+        banding = self.request.query_params.get('banding', None)
+        
         if domain is not None:
             queryset = queryset.filter(email_address__icontains=domain)
+
+        if name is not None:
+            queryset = queryset.filter(name__icontains=name)
+
+        if banding is not None:
+            queryset = queryset.filter(banding__name=banding)
 
         return queryset
 
