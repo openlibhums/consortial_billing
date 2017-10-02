@@ -3,16 +3,45 @@
         <div>
             {{ pre_text.value|safe }}
         </div>
-        <br />
-        {% regroup institutions by sort_country as institutions_list %}
-        {% for institution in institutions_list %}
-        <h5>{{ institution.list.0.country }}</h5>
-        <ul>
-            {% for institution in institution.list %}
-            <li>{{ institution }}</li>
+        <br/>
+
+        {% if levels %}
+            {% for level in institutions %}
+                {% for k, v in level.items %}
+                    {% if k.name %}
+                    <h3>{{ k.name }}</h3>
+                    <p>{{ k.description }}</p>
+                    {% else %}
+                        <h3>{{ k }}</h3>
+                        <p>The following are our regular supporters.</p>
+                    {% endif %}
+
+
+                    {% regroup v by sort_country as institutions_list %}
+                    {% for institution in institutions_list %}
+                        <h5>{{ institution.list.0.country }}</h5>
+                        <ul>
+                            {% for institution in institution.list %}
+                                <li>{{ institution }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endfor %}
+
+
+                {% endfor %}
             {% endfor %}
-        </ul>
-        {% endfor %}
+        {% else %}
+            {% regroup institutions by sort_country as institutions_list %}
+            {% for institution in institutions_list %}
+                <h5>{{ institution.list.0.country }}</h5>
+                <ul>
+                    {% for institution in institution.list %}
+                        <li>{{ institution }}</li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        {% endif %}
+    <br />
         {{ post_text.value|safe }}
     </div>
 </section>

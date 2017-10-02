@@ -242,6 +242,7 @@ def get_poll_email_content(request, poll, institution):
 
     return render_template.get_message_content(request, context, 'email_text', plugin=plugin)
 
+
 def email_poll_to_institutions(poll, request):
     institutions = models.Institution.objects.filter(email_address__isnull=False)
 
@@ -252,6 +253,7 @@ def email_poll_to_institutions(poll, request):
                                                       institution.email_address,
                                                       content)
 
+
 @function_cache.cache(120)
 def get_model_renewals(institutions):
 
@@ -260,17 +262,17 @@ def get_model_renewals(institutions):
     for institution in institutions:
         if projected_currency.get(institution.banding.currency):
             projected_currency[institution.banding.currency] = projected_currency[institution.banding.currency] + \
-                                                               templatetags.currency.convert_multiplier(
-                                                                   value=institution.banding.default_price,
-                                                                   currency=institution.banding.currency,
-                                                                   multiplier=institution.multiplier
-                                                               )
+                templatetags.currency.convert_multiplier(
+                value=institution.banding.default_price,
+                currency=institution.banding.currency,
+                multiplier=institution.multiplier
+            )
         else:
             projected_currency[institution.banding.currency] = templatetags.currency.convert_multiplier(
-                                                                   value=institution.banding.default_price,
-                                                                   currency=institution.banding.currency,
-                                                                   multiplier=institution.multiplier
-                                                               )
+                value=institution.banding.default_price,
+                currency=institution.banding.currency,
+                multiplier=institution.multiplier
+            )
 
     total = 0
     for k, v in projected_currency.items():

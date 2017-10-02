@@ -15,7 +15,7 @@ def nav_hook(context):
     short_org_name = setting_handler.get_plugin_setting(plugin, 'organisation_short_name', None, create=True,
                                                         pretty='Organisation Short Name')
     display_nav = setting_handler.get_plugin_setting(plugin, 'display_nav', None, create=True,
-                                                        pretty='Display nav item', types='boolean').processed_value
+                                                     pretty='Display nav item', types='boolean').processed_value
 
     journals_setting = setting_handler.get_plugin_setting(plugin_settings.get_self(),
                                                           'journal_display',

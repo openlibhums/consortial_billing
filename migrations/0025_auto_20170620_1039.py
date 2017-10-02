@@ -11,14 +11,13 @@ import plugins.consortial_billing.models
 class Migration(migrations.Migration):
 
     def forward_func(apps, schema_editor):
-        #plugins.consortial_billing.models.Institution
+        # plugins.consortial_billing.models.Institution
         Institution = apps.get_model('consortial_billing', 'Institution')
         db_alias = schema_editor.connection.alias
 
         for institution in Institution.objects.using(db_alias).all():
             institution.sort_country = institution.country.replace('The ', '')
             institution.save()
-
 
     def reverse_func(apps, schema_editor):
         pass

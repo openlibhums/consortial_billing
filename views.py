@@ -15,6 +15,7 @@ from plugins.consortial_billing import models, logic, plugin_settings, forms, se
 from core import models as core_models
 from journal import models as journal_models
 
+
 @security.billing_agent_required
 def index(request):
     if request.POST:
@@ -47,7 +48,6 @@ def index(request):
                 else:
                     banding = None
 
-
                 institution, created = models.Institution.objects.get_or_create(name=row["Institution"],
                                                                                 email_address=row['Email'],
                                                                                 country=row["Country"],
@@ -65,7 +65,6 @@ def index(request):
 
             call_command('fetch_fixer_ex_rates')
             cache.clear()
-
 
     near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(request.user.is_staff,
                                                                                              request.user)
@@ -130,6 +129,7 @@ def signup_complete(request):
 
     return render(request, 'consortial_billing/complete.html', context)
 
+
 def signup_stage_three(request, banding_id):
     banding = get_object_or_404(models.Banding, pk=banding_id)
     form = forms.Institution()
@@ -184,7 +184,18 @@ def non_funding_author_insts(request):
 
 
 def supporters(request):
-    institutions = models.Institution.objects.filter(active=True, display=True)
+    levels = models.SupportLevel.objects.all()
+
+    if levels:
+        institutions = []
+        for level in levels:
+            insts_in_level = models.Institution.objects.filter(active=True, display=True, supporter_level=level)
+            institutions.append({level: insts_in_level})
+
+        insts_with_no_level = models.Institution.objects.filter(active=True, display=True, supporter_level__isnull=True)
+        institutions.append({'Regular Supporters': insts_with_no_level})
+    else:
+        institutions = models.Institution.objects.filter(active=True, display=True)
 
     plugin = plugin_settings.get_self()
     pre_text = setting_handler.get_plugin_setting(plugin, 'pre_text', None)
@@ -194,7 +205,9 @@ def supporters(request):
         template = 'consortial_billing/supporters.html'
     else:
         template = 'consortial_billing/supporters_press.html'
+
     context = {
+        'levels': levels,
         'institutions': institutions,
         'pre_text': pre_text,
         'post_text': post_text
@@ -534,7 +547,6 @@ def display_journals(request):
                                             None)
         return redirect(reverse('consortial_display'))
 
-
     template = 'consortial_billing/display_journals.html'
     context = {
         'journals': journals,
@@ -566,7 +578,7 @@ def modeller(request, increase=0):
     return render(request, template, context)
 
 
-#### API
+# API
 
 from api import permissions as api_permissions
 from plugins.consortial_billing import serializers
@@ -579,6 +591,7 @@ class InstitutionView(viewsets.ModelViewSet):
     """
     API endpoint that allows user roles to be viewed or edited.
     """
+
     def get_queryset(self):
         """
         Optionally allows to filter on domain of email.
@@ -589,7 +602,7 @@ class InstitutionView(viewsets.ModelViewSet):
         domain = self.request.query_params.get('domain', None)
         name = self.request.query_params.get('name', None)
         banding = self.request.query_params.get('banding', None)
-        
+
         if domain is not None:
             queryset = queryset.filter(email_address__icontains=domain)
 

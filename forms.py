@@ -29,6 +29,7 @@ class InstitutionForm(forms.ModelForm):
         model = models.Institution
         exclude = ('',)
 
+
 class Renewal(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):

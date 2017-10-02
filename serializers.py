@@ -26,4 +26,3 @@ class InstitutionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = models.Institution
         fields = ('pk', 'name', 'first_name', 'last_name', 'email_address', 'active', 'display', 'banding')
-

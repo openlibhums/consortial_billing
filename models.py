@@ -42,6 +42,25 @@ class BillingAgent(models.Model):
         return self.name
 
 
+def supporter_level():
+    return (
+        ('top', 'Top-Tier Supporters'),
+        ('regular', 'Regular Supporters'),
+    )
+
+
+class SupportLevel(models.Model):
+    name = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True)
+    order = models.PositiveIntegerField(default=99)
+
+    class Meta:
+        ordering = ('order', 'name')
+
+    def __str__(self):
+        return self.name
+
+
 class Institution(models.Model):
     name = models.CharField(max_length=200, blank=False, unique=True, verbose_name="Institution Name")
     country = models.CharField(max_length=255, blank=False)
@@ -64,17 +83,17 @@ class Institution(models.Model):
 
     multiplier = models.DecimalField(decimal_places=2, max_digits=3, default=1.0)
 
+    supporter_level = models.ForeignKey(SupportLevel, blank=True, null=True)
+
     class Meta:
         ordering = ('sort_country', 'name')
 
     def __str__(self):
         return self.name
 
-
     def save(self, *args, **kwargs):
         self.sort_country = self.country.replace('The ', '')
         super(Institution, self).save(*args, **kwargs)
-
 
     @property
     def next_renewal(self):

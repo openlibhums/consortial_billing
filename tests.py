@@ -95,7 +95,6 @@ class TestPluginSecurity(TestCase):
         with self.assertRaises(PermissionDenied):
             decorated_func(request, **kwargs)
 
-
     @staticmethod
     def create_user(username, roles=None, journal=None):
         """

@@ -25,6 +25,7 @@ admin_list = [
     (Option,),
     (IncreaseOptionBand,),
     (Vote,),
+    (SupportLevel,),
 ]
 
 [admin.site.register(*t) for t in admin_list]
