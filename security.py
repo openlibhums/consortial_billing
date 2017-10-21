@@ -1,5 +1,6 @@
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 
 from security.decorators import base_check
 from plugins.consortial_billing import models
@@ -12,7 +13,9 @@ def billing_agent_required(func):
     """
 
     def wrapper(request, *args, **kwargs):
-        base_check(request)
+
+        if not base_check(request):
+            return redirect('{0}?next={1}'.format(reverse('core_login'), request.path))
 
         agent_for = models.BillingAgent.objects.filter(users__id__exact=request.user.pk)
 
@@ -32,7 +35,8 @@ def billing_agent_for_institution_required(func):
     """
 
     def wrapper(request, *args, **kwargs):
-        base_check(request)
+        if not base_check(request):
+            return redirect('{0}?next={1}'.format(reverse('core_login'), request.path))
 
         agent_for = models.BillingAgent.objects.filter(users__id__exact=request.user.pk)
 
@@ -66,7 +70,8 @@ def agent_for_billing_agent_required(func):
     """
 
     def wrapper(request, *args, **kwargs):
-        base_check(request)
+        if not base_check(request):
+            return redirect('{0}?next={1}'.format(reverse('core_login'), request.path))
 
         billing_agent_id = kwargs.get('billing_agent_id', None)
 
