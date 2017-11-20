@@ -1,10 +1,10 @@
 import re
 import datetime
 
-from django.conf import settings
 from django.utils import timezone
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 
 from plugins.consortial_billing import models, plugin_settings, templatetags
 from submission import models as submission_models
@@ -70,13 +70,14 @@ def send_emails(institution, currency, amount, display, request):
         users = users + [user for user in core_models.Account.objects.filter(is_superuser=True)]
 
         if request.journal:
-            url = request.journal_base_url
+            host = request.journal_base_url
         else:
-            url = request.press_base_url
+            host = request.press_base_url
+
+        url = reverse('consortial_institution_id', kwargs={'institution_id': institution.pk})
 
         for user in users:
-            message = get_signup_email_content(request, institution, currency, amount, url,
-                                               '/plugins/supporters/admin/', display, user)
+            message = get_signup_email_content(request, institution, currency, amount, host, url, display, user)
             notify_helpers.send_email_with_body_from_user(request,
                                                           'New Supporting Institution for {0}'.format(request.press.name),
                                                           user.email, message)
@@ -280,5 +281,4 @@ def get_model_renewals(institutions):
 
     projected_currency['total'] = total
 
-    print(projected_currency)
     return projected_currency
