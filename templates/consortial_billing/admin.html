@@ -34,7 +34,7 @@
                         <td><a href="{% url 'consortial_institution_id' renewal.institution.pk %}">{{ renewal.institution.name }}</a></td>
                         <td>{{ renewal.institution.country }}</td>
                         <td>{% if renewal.institution.billing_agent %}<a href="{% url 'consortial_renewals_agent' renewal.institution.billing_agent.pk %}">{{ renewal.institution.billing_agent }}</a>{% endif %}</td>
-                        <td><a href="{% url 'consortial_process_renewal' renewal.institution.next_renewal.id %}">{{ renewal.institution.next_renewal.date }}</a></td>
+                        <td><a href="{% url 'consortial_process_renewal' renewal.institution.next_renewal.id %}">{{ renewal.institution.next_renewal.date|date:"Y-m-d" }}</a></td>
                     </tr>
                     {% empty %}
                     {% endfor %}
@@ -89,7 +89,7 @@
                         <td>{% if institution.billing_agent %}<a href="{% url 'consortial_renewals_agent' institution.billing_agent.pk %}">{{ institution.billing_agent }}</a>{% endif %}</td>
                         <td>{% if institution.active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
                         <td>{% if institution.display %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
-                        <td>{{ institution.next_renewal.date }}</td>
+                        <td>{{ institution.next_renewal.date|date:"Y-m-d" }}</td>
                     </tr>
                     {% empty %}
                     {% endfor %}
