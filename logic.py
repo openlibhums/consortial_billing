@@ -2,6 +2,7 @@ import re
 import datetime
 import csv
 import os
+from decimal import Decimal
 
 from django.utils import timezone
 from django.db.models import Sum, Q
@@ -296,9 +297,9 @@ def count_renewals_by_month(year):
         gbp_amount = convert(renewal.amount, renewal.currency, action='number')
 
         if by_month.get(renewal.date.month, None):
-            by_month[renewal.date.month] = by_month[renewal.date.month] + gbp_amount
+            by_month[renewal.date.month] = by_month[renewal.date.month] + float(gbp_amount)
         else:
-            by_month[renewal.date.month] = gbp_amount
+            by_month[renewal.date.month] = float(gbp_amount)
 
     return by_month
 
