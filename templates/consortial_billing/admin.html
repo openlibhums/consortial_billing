@@ -57,6 +57,8 @@
                 <strong>Total: </strong> {{ base_currency }} {% convert_all renewals_in_year %}
 
                 <canvas id="myChart" width="400" height="400"></canvas>
+
+                <a href="{% url 'monthly_revenue' %}">View revenue by month >></a>
             </div>
         </div>
     </div>
