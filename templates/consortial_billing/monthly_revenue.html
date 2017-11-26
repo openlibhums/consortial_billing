@@ -1,0 +1,57 @@
+{% extends "admin/core/base.html" %}
+{% load foundation %}
+
+{% block title %}Consortial Billing{% endblock title %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    <li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+    <li>Revenue by Month for Year {{ year }}</li>
+{% endblock %}
+
+{% block title-section %}
+    {% if poll %}Poll: {{ poll.name }}{% else %}New Poll{% endif %}
+{% endblock title-section %}
+
+{% block body %}
+    <div class="row expanded">
+        <div class="large-9 columns">
+            <div class="box">
+                <div class="title-area">
+                    <h2>Revenue by Month for Year {{ year }}</h2>
+                    <a href="{% url 'monthly_revenue_year' year %}?export=csv" class="button"><i class="fa fa-download"></i>    Export to CSV</a>
+                </div>
+                <div class="content">
+                    <table>
+                        <tr>
+                            <th>Month</th>
+                            <th>Expected Revenue ({{ base_currency }})</th>
+                        </tr>
+                        {% for month, revenue in revenue_by_month.items %}
+                        <tr>
+                            <td>{{ month }}</td>
+                            <td>{{ revenue }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="large-3 columns">
+            <div class="box">
+                <div class="title-area">
+                    <h2>Select a Year</h2>
+                </div>
+                <div class="content">
+                    <ul>
+                        <li> <a href="{% url 'monthly_revenue_year' 2015 %}">2015</a></li>
+                        <li> <a href="{% url 'monthly_revenue_year' 2016 %}">2016</a></li>
+                        <li> <a href="{% url 'monthly_revenue_year' 2017 %}">2017</a></li>
+                        <li> <a href="{% url 'monthly_revenue_year' 2018 %}">2018</a></li>
+                        <li> <a href="{% url 'monthly_revenue_year' 2019 %}">2019</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}

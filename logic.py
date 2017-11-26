@@ -1,14 +1,17 @@
 import re
 import datetime
+import csv
+import os
 
 from django.utils import timezone
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.conf import settings
 
 from plugins.consortial_billing import models, plugin_settings, templatetags
 from submission import models as submission_models
-from core import models as core_models
+from core import models as core_models, files
 from utils import notify_helpers, function_cache, setting_handler, render_template
 
 
@@ -282,3 +285,31 @@ def get_model_renewals(institutions):
     projected_currency['total'] = total
 
     return projected_currency
+
+
+def count_renewals_by_month(year):
+    from plugins.consortial_billing.templatetags.currency import convert
+    renewals = models.Renewal.objects.filter(date__year=year)
+    by_month = dict()
+
+    for renewal in renewals:
+        gbp_amount = convert(renewal.amount, renewal.currency, action='number')
+
+        if by_month.get(renewal.date.month, None):
+            by_month[renewal.date.month] = by_month[renewal.date.month] + gbp_amount
+        else:
+            by_month[renewal.date.month] = gbp_amount
+
+    return by_month
+
+
+def serve_csv_file(revenue_by_month):
+    filename = '{0}.csv'.format(datetime.datetime.now())
+    full_path = os.path.join(settings.BASE_DIR, 'files', 'temp', filename)
+    with open(full_path, 'w') as csvfile:
+        csv_writer = csv.writer(csvfile, delimiter=',')
+
+        for month, value in revenue_by_month.items():
+            csv_writer.writerow([month, value])
+
+    return files.serve_temp_file(full_path, filename)

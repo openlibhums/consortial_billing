@@ -578,6 +578,31 @@ def modeller(request, increase=0):
     return render(request, template, context)
 
 
+def monthly_revenue(request, year=None):
+    """
+    Displays revenue by month for a given year.
+    :param request: HttpRequest
+    :param year: A year in format XXXX
+    :return: HttpResponse
+    """
+    if not year:
+        year = timezone.now().year
+
+    revenue_by_month = logic.count_renewals_by_month(year)
+
+    if request.GET.get('export'):
+        return logic.serve_csv_file(revenue_by_month)
+
+    template = 'consortial_billing/monthly_revenue.html'
+    context = {
+        'revenue_by_month': revenue_by_month,
+        'year': year,
+        'base_currency': setting_handler.get_plugin_setting(plugin_settings.get_self(), 'base_currency', None).value
+    }
+
+    return render(request, template, context)
+
+
 # API
 
 from api import permissions as api_permissions

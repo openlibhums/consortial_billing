@@ -42,5 +42,8 @@ urlpatterns = [
 
     url(r'^modeller/(?P<increase>\d+)/$', views.modeller, name='consortial_modeller'),
 
+    url(r'^modeller/monthly/$', views.monthly_revenue, name='monthly_revenue'),
+    url(r'^modeller/monthly/(?P<year>\d+)/$', views.monthly_revenue, name='monthly_revenue_year'),
+
     url(r'^api/', include(router.urls)),
 ]
