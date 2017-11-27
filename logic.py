@@ -301,6 +301,11 @@ def count_renewals_by_month(year):
         else:
             by_month[renewal.date.month] = float(gbp_amount)
 
+    for x in range(1, 13):
+        if not by_month.get(x, None):
+            by_month[x] = 0.00
+
+
     return by_month
 
 
