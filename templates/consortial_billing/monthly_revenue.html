@@ -1,5 +1,6 @@
 {% extends "admin/core/base.html" %}
 {% load foundation %}
+{% load humanize %}
 
 {% block title %}Consortial Billing{% endblock title %}
 
@@ -30,7 +31,7 @@
                         {% for month, revenue in revenue_by_month.items %}
                         <tr>
                             <td>{{ month }}</td>
-                            <td>{{ revenue }}</td>
+                            <td>{{ revenue|floatformat:"2"|intcomma }}</td>
                         </tr>
                         {% endfor %}
                     </table>
