@@ -309,6 +309,15 @@ def count_renewals_by_month(year):
     return by_month
 
 
+def get_total_revenue(revenue_by_month):
+    total = 0.00
+
+    for k, v in revenue_by_month.items():
+        total = total + v
+
+    return total
+
+
 def serve_csv_file(revenue_by_month):
     filename = '{0}.csv'.format(datetime.datetime.now())
     full_path = os.path.join(settings.BASE_DIR, 'files', 'temp', filename)

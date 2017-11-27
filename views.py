@@ -597,7 +597,8 @@ def monthly_revenue(request, year=None):
     context = {
         'revenue_by_month': revenue_by_month,
         'year': year,
-        'base_currency': setting_handler.get_plugin_setting(plugin_settings.get_self(), 'base_currency', None).value
+        'base_currency': setting_handler.get_plugin_setting(plugin_settings.get_self(), 'base_currency', None).value,
+        'total_revenue': logic.get_total_revenue(revenue_by_month)
     }
 
     return render(request, template, context)
