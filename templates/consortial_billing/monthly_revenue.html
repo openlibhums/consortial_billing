@@ -36,7 +36,7 @@
                         {% endfor %}
                         <tr>
                             <td><strong>Total Revenue for Year</strong></td>
-                            <td>{{ total_revenue }}</td>
+                            <td>{{ total_revenue|floatformat:"2"|intcomma }}</td>
                         </tr>
                     </table>
                 </div>
