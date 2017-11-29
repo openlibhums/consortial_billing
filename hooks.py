@@ -42,3 +42,7 @@ def nav_hook(context):
 
         return nav
     return ''
+
+
+def admin_hook(context):
+    return '<li><a href="{url}"><i class="fa fa-money"></i> Consortial Billing</a></li>'.format(url=reverse('consortial_index'))

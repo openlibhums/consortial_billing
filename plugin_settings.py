@@ -91,4 +91,8 @@ def install():
 def hook_registry():
     # On site load, the load function is run for each installed plugin to generate
     # a list of hooks.
-    return {'nav_block': {'module': 'plugins.consortial_billing.hooks', 'function': 'nav_hook'}}
+    return {
+        'nav_block': {'module': 'plugins.consortial_billing.hooks', 'function': 'nav_hook'},
+        'press_admin_nav_block': {'module': 'plugins.consortial_billing.hooks', 'function': 'admin_hook'},
+        'journal_admin_nav_block': {'module': 'plugins.consortial_billing.hooks', 'function': 'admin_hook'}
+    }
