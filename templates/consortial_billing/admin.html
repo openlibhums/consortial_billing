@@ -15,7 +15,7 @@
     <div class="{% if request.user.is_staff %}large-8{% else %}large-12{% endif %} columns">
         <div class="box">
             <div class="title-area">
-                <h2>Renewals Due in Next 30 Days</h2>
+                <h2>Renewals Due</h2>
                 {% if request.user.is_staff %}<a class="float-right small button success" href="{% url 'consortial_non_funding_author_insts' %}"><i class="fa fa-eye action-icon">&nbsp;</i>Show free riders</a>{% endif %}
             </div>
             <div class="content">

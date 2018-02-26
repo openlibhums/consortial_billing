@@ -58,9 +58,9 @@ def convert_all(dict):
 def convert_multiplier(value, currency, multiplier):
     conversion = convert(value, currency, 'multiplication')
 
-    return (conversion * float(multiplier) + conversion)
+    return float(conversion) * float(multiplier)
 
 
 @register.simple_tag()
 def multiply(value, multiplier):
-    return (value * float(multiplier)) + value
+    return float(value) * float(multiplier)

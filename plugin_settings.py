@@ -30,6 +30,18 @@ def options():
                                                                                       create=True,
                                                                                       pretty='Email sent on signup'),
              'types': 'rich-text'},
+            {'name': 'referrer_discount',
+             'object': setting_handler.get_plugin_setting(get_self(), 'referrer_discount', None,
+                                                          create=True,
+                                                          pretty='Referrer Discount %',
+                                                          types='number'),
+             'types': 'number'},
+            {'name': 'referent_discount',
+             'object': setting_handler.get_plugin_setting(get_self(), 'referent_discount', None,
+                                                          create=True,
+                                                          pretty='Referent Discount %',
+                                                          types='number'),
+             'types': 'number'},
             ]
 
 

@@ -300,7 +300,7 @@ def institution_manager(request, institution_id=None):
             if not institution_id:
                 models.Renewal.objects.create(institution=institution,
                                               currency=institution.banding.currency,
-                                              amount=institution.banding.default_price,
+                                              amount=institution.banding.default_price * institution.multiplier,
                                               date=timezone.now())
                 call_command('fetch_fixer_ex_rates')
 

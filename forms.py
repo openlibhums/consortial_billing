@@ -38,7 +38,7 @@ class Renewal(forms.ModelForm):
 
         if institution:
             self.fields['date'].initial = timezone.now() + timedelta(days=365)
-            self.fields['amount'].initial = institution.banding.default_price
+            self.fields['amount'].initial = institution.banding.default_price * institution.multiplier
             self.fields['currency'].initial = institution.banding.currency
 
     class Meta:
