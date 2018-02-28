@@ -170,6 +170,43 @@
             </div>
         </div>
     </div>
+        <div class="large-12 columns">
+            <div class="box">
+                <div class="title-area">
+                    <h2>Referrals</h2>
+                </div>
+                <div class="content">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Referrer</th>
+                            <th>Referent</th>
+                            <th>Date</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for referral in referrals %}
+                            <tr>
+                                <td>
+                                    {{ referral.referring_institution }}
+                                </td>
+                                <td>
+                                    {{ referral.new_institution }}
+                                </td>
+                                <td>
+                                    {{ referral.datetime }}
+                                </td>
+                                <td>
+                                    <a href="{% url 'referral_info' referral.pk %}">View Referral</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     {% endif %}
 </div>
 

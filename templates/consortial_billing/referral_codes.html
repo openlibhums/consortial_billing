@@ -1,0 +1,35 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block title %}Get Institution Referral Code{% endblock title %}
+
+
+{% block body %}
+    <section id="content">
+        <div class="row columns">
+            <h4>Select Your Institution</h4>
+            <p>If an organisation signs up to be a supporter using your referral code you will both receive a discount for 1 year. If multiple organisations use your code, the discount will be applied until your next renewal reaches 0 due.</p>
+            <table id="institutions">
+                <thead>
+                <tr>
+                    <th>Institution</th>
+                    <th>Agent</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for institution in active_institutions %}
+                    <tr>
+                        <td>{{ institution.name }}</td>
+                        <td>{{ institution.billing_agent.name }}</td>
+                        <td><a href="{% url 'referral_code' institution.referral_code %}" class="">Get Referral Code</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+{% endblock body %}
+
+{% block js %}
+    {% include "admin/elements/datatables.html" with target='#institutions' %}
+{% endblock %}

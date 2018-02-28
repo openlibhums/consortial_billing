@@ -27,7 +27,7 @@ class InstitutionForm(forms.ModelForm):
 
     class Meta:
         model = models.Institution
-        exclude = ('',)
+        exclude = ('referral_code',)
 
 
 class Renewal(forms.ModelForm):

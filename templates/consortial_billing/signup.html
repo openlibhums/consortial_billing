@@ -8,7 +8,7 @@
     <div class="row columns">
         <h2>Step One</h2>
         {{ signup_text.value|safe }}
-        <a href="{% url 'consortial_banding' %}" class="success button pull-right" type="submit" name="start_submission"><i
+        <a href="{% url 'consortial_banding' %}{% if referent %}?referent={{ referent }}{% endif %}" class="success button pull-right" type="submit" name="start_submission"><i
                 class="fa fa-check">&nbsp;</i>{% trans "Agree and Continue" %}
         </a>
     </div>

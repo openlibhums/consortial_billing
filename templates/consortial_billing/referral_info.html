@@ -1,0 +1,77 @@
+{% extends "admin/core/base.html" %}
+{% load foundation %}
+
+{% block title %}Referral #{{ referral.pk }}{% endblock title %}
+
+{% block breadcrumbs %}
+    {{ block.super }}
+    <li><a href="{% url 'consortial_index' %}">Consortial Billing</a></li>
+    <li>Referral #{{ referral.pk }}</li>
+{% endblock %}
+
+{% block title-section %}
+    Referral #{{ referral.pk }}
+{% endblock title-section %}
+
+{% block body %}
+    <div class="row expanded">
+        <div class="large-8 columns">
+            <div class="box">
+                <div class="title-area">
+                    <h2>Referral Details</h2>
+                </div>
+                <div class="content">
+                    <table>
+                        <tr>
+                            <th>Referral Date</th>
+                            <td>{{ referral.datetime }}</td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <th>Referrer</th>
+                            <th>Next Renewal Amount</th>
+                            <th>Renewal Date</th>
+                        </tr>
+                        <tr>
+                            <td>{{ referral.referring_institution.name }}</td>
+                            <td>{{ referral.referring_institution.next_renewal.amount }} {{ referral.referring_institution.next_renewal.currency }}</td>
+                            <td>{{ referral.referring_institution.next_renewal.date }}</td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <th>Referent</th>
+                            <th>Next Renewal Amount</th>
+                            <th>Renewal Date</th>
+                        </tr>
+                        <tr>
+                            <td>{{ referral.new_institution.name }}</td>
+                            <td>{{ referral.new_institution.next_renewal.amount }} {{ referral.new_institution.next_renewal.currency }}</td>
+                            <td>{{ referral.new_institution.next_renewal.date }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="large-4 columns">
+            <div class="box">
+                <div class="title-area">
+                    <h2>Reverse</h2>
+                </div>
+                <div class="content">
+                    <p>Reversing this referral will cause the following to occur:</p>
+                    <ul>
+                        <li>Add {{ referral.referring_discount }} {{ referral.referring_institution.next_renewal.currency }} to Referrer renewal</li>
+                        <li>Add {{ referral.referent_discount }} {{ referral.new_institution.next_renewal.currency }} to Referent renewal</li>
+                        <li>Delete the record of this renewal.</li>
+                    </ul>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button name="reverse" class="success button">Reverse Referral</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock body %}

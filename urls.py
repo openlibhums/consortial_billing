@@ -45,5 +45,9 @@ urlpatterns = [
     url(r'^modeller/monthly/$', views.monthly_revenue, name='monthly_revenue'),
     url(r'^modeller/monthly/(?P<year>\d+)/$', views.monthly_revenue, name='monthly_revenue_year'),
 
+    url(r'^referrals/codes/$', views.referral_codes, name='referral_codes'),
+    url(r'^referrals/code/(?P<code>[0-9a-f-]+)$', views.referral_code, name='referral_code'),
+    url(r'^referrals/(?P<referral_id>\d+)/infp/$', views.referral_info, name='referral_info'),
+
     url(r'^api/', include(router.urls)),
 ]

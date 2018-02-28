@@ -85,6 +85,8 @@ class Institution(models.Model):
 
     supporter_level = models.ForeignKey(SupportLevel, blank=True, null=True)
 
+    referral_code = models.UUIDField(default=uuid.uuid4)
+
     class Meta:
         ordering = ('sort_country', 'name')
 
@@ -180,3 +182,17 @@ class Vote(models.Model):
     poll = models.ForeignKey(Poll)
     aye = models.ManyToManyField(Option, related_name="vote_aye")
     no = models.ManyToManyField(Option, related_name="vote_no")
+
+
+class Referral(models.Model):
+    referring_institution = models.ForeignKey(Institution, related_name='referring_institution')
+    new_institution = models.ForeignKey(Institution, related_name='new_institution')
+    referring_discount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True)
+    referent_discount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True)
+    datetime = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ('datetime',)
+
+    def reverse(self, request):
+        pass

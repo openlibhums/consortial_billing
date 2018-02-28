@@ -85,21 +85,26 @@ def index(request):
                'plugin': plugin_settings.SHORT_NAME,
                'polls': models.Poll.objects.all(),
                'base_currency': base_currency,
+               'referrals': models.Referral.objects.all()
                }
 
     return render(request, 'consortial_billing/admin.html', context)
 
 
 def signup(request):
+    referent = request.GET.get('referent', None)
     signup_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'preface_text', None)
 
-    context = {'signup_text': signup_text}
+    context = {'signup_text': signup_text, 'referent': referent}
 
     return render(request, 'consortial_billing/signup.html', context)
 
 
 def signup_stage_two(request):
+    referent = request.GET.get('referent', None)
     bandings = models.Banding.objects.filter(display=True).order_by('name', '-default_price')
+    referent_discount = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'referent_discount', None)
+
     errors = list()
 
     if request.POST:
@@ -108,7 +113,8 @@ def signup_stage_two(request):
             banding = get_object_or_404(models.Banding, pk=banding_id)
             if banding.redirect_url:
                 return redirect(banding.redirect_url)
-            return redirect(reverse('consortial_detail', kwargs={'banding_id': banding.pk}))
+            reversal = reverse('consortial_detail', kwargs={'banding_id': banding.pk})
+            return redirect('{0}{1}'.format(reversal, '?referent={0}'.format(referent) if referent else ''))
         else:
             banding = None
             errors.append('No banding has been selected')
@@ -116,7 +122,9 @@ def signup_stage_two(request):
     context = {
         'bandings': bandings,
         'errors': errors,
-        'banding_text': setting_handler.get_plugin_setting(plugin_settings.get_self(), 'banding_pre_text', None).value
+        'banding_text': setting_handler.get_plugin_setting(plugin_settings.get_self(), 'banding_pre_text', None).value,
+        'referent': referent,
+        'referent_discount': referent_discount.value,
     }
 
     return render(request, 'consortial_billing/signup2.html', context)
@@ -131,6 +139,8 @@ def signup_complete(request):
 
 
 def signup_stage_three(request, banding_id):
+    referent = request.GET.get('referent', None)
+    discount = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'referent_discount', None).value
     banding = get_object_or_404(models.Banding, pk=banding_id)
     form = forms.Institution()
 
@@ -143,10 +153,24 @@ def signup_stage_three(request, banding_id):
             institution.active = False
             institution.save()
 
+            if referent:
+                price = logic.calc_discount(banding.default_price, discount)
+                discount_amount = float(banding.default_price) - float(price)
+            else:
+                price = banding.default_price
+                discount_amount = 0
+
             models.Renewal.objects.create(institution=institution,
                                           currency=banding.currency,
-                                          amount=banding.default_price,
+                                          amount=price,
                                           date=timezone.now())
+
+            if referent:
+                try:
+                    logic.record_referral(referent, institution, discount_amount)
+                except BaseException:
+                    # This except is wide, but we dont want this process to stop the recording of a new institution.
+                    pass
 
             logic.send_emails(institution, banding.currency, banding.default_price, institution.display, request)
             return redirect(reverse('consortial_complete'))
@@ -154,6 +178,8 @@ def signup_stage_three(request, banding_id):
     context = {
         'banding': banding,
         'form': form,
+        'referent': referent,
+        'discount': discount,
     }
 
     return render(request, 'consortial_billing/signup3.html', context)
@@ -603,6 +629,41 @@ def monthly_revenue(request, year=None):
 
     return render(request, template, context)
 
+
+def referral_codes(request):
+    active_institutions = models.Institution.objects.filter(active=True)
+
+    template = 'consortial_billing/referral_codes.html'
+    context = {
+        'active_institutions': active_institutions,
+    }
+
+    return render(request, template, context)
+
+
+def referral_code(request, code):
+    institution = get_object_or_404(models.Institution, referral_code=code, active=True)
+
+    template = 'consortial_billing/referral_code.html'
+    context = {
+        'institution': institution,
+    }
+
+    return render(request, template, context)
+
+
+def referral_info(request, referral_id):
+    referral = get_object_or_404(models.Referral, pk=referral_id)
+
+    if request.POST:
+        referral.reverse(request)
+
+    template = 'consortial_billing/referral_info.html'
+    context = {
+        'referral': referral,
+    }
+
+    return render(request, template, context)
 
 # API
 

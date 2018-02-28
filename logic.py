@@ -327,3 +327,32 @@ def serve_csv_file(revenue_by_month):
             csv_writer.writerow([month, value])
 
     return files.serve_temp_file(full_path, filename)
+
+
+def calc_discount(value, discount):
+    discount = round(float(value) - (float(value) * float(discount) / 100), 2)
+    return discount
+
+
+def record_referral(referent, institution, referent_discount):
+    discount = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'referrer_discount', None).value
+    referring_institution = models.Institution.objects.get(referral_code=referent)
+    new_rate = calc_discount(referring_institution.next_renewal.amount, discount)
+
+    if new_rate < 0:
+        new_rate = 0
+
+    referring_institution.next_renewal.amount = new_rate
+    referring_institution.next_renewal.save()
+
+    renewal = models.Renewal.objects.get(pk=referring_institution.next_renewal.pk)
+    referrer_discount = float(renewal.amount) - float(new_rate)
+    renewal.amount = new_rate
+    renewal.save()
+
+    referral = models.Referral.objects.create(referring_institution=referring_institution,
+                                              new_institution=institution,
+                                              referring_discount=referrer_discount,
+                                              referent_discount=referent_discount)
+
+    return referral

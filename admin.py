@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from plugins.consortial_billing.models import *
-from core import models as core_models
 
 
 class BillingAgentAdmin(admin.ModelAdmin):
@@ -15,6 +14,11 @@ class BandingAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+class ReferralAdmin(admin.ModelAdmin):
+    list_display = ('pk', 'referring_institution', 'new_institution', 'datetime')
+    list_filter = ('referring_institution',)
+
+
 admin_list = [
     (Institution, ),
     (Banding, BandingAdmin),
@@ -26,6 +30,8 @@ admin_list = [
     (IncreaseOptionBand,),
     (Vote,),
     (SupportLevel,),
+    (Referral, ReferralAdmin),
 ]
+
 
 [admin.site.register(*t) for t in admin_list]

@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load foundation %}
 {% load humanize %}
+{% load currency %}
 {% block title %}Support the Open Library of Humanities{% endblock title %}
 
 
@@ -23,7 +24,7 @@
                 <tr>
                     <td><input name="banding" type="radio" value="{{ banding.pk }}"></td>
                     <td>{{ banding.name}}</td>
-                    <td>{{ banding.currency}} {{ banding.default_price|intcomma }}</td>
+                    <td>{{ banding.currency}} {% if referent %}{% discount banding.default_price referent_discount %}{% else %}{{ banding.default_price|intcomma }}{% endif %}</td>
                 </tr>
                 {% endfor %}
             </table>

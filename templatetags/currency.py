@@ -64,3 +64,13 @@ def convert_multiplier(value, currency, multiplier):
 @register.simple_tag()
 def multiply(value, multiplier):
     return float(value) * float(multiplier)
+
+
+@register.simple_tag()
+def discount(value, discount):
+    return intcomma(round(value - (float(value) * float(discount) / 100)), 2)
+
+
+@register.simple_tag()
+def reverse_discount(value, discount):
+    return intcomma(round(value + (float(value) * float(discount) / 100)), 2)

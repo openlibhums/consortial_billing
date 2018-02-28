@@ -1,0 +1,29 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block title %}Get Institution Referral Code{% endblock title %}
+
+
+{% block body %}
+    <section id="content">
+        <div class="row columns">
+            <h4>Referral Code for {{ institution.name }}</h4>
+            <p>Referral Code: {{ institution.referral_code }}</p>
+            <p>Referral Link:
+                <span id="link">{{ request.press_base_url }}{% url 'consortial_signup' %}?referent={{ institution.referral_code }}</span>
+            </p>
+            <button class="button" onclick="copyToClipboard('#link')">Copy Referral Link</button>
+        </div>
+    </section>
+{% endblock body %}
+
+{% block js %}
+    <script>
+        function copyToClipboard(element) {
+            var $temp = $("<input>");
+            $("body").append($temp);
+            $temp.val($(element).text()).select();
+            document.execCommand("copy");
+            $temp.remove();
+        }
+    </script>
+{% endblock %}
