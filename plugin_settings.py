@@ -30,6 +30,14 @@ def options():
                                                                                       create=True,
                                                                                       pretty='Email sent on signup'),
              'types': 'rich-text'},
+            {'name': 'display_referral',
+             'object': setting_handler.get_plugin_setting(get_self(), 'display_referral', None,
+                                                          create=True, pretty='Referral Display',
+                                                          types='boolean'),
+             'types': 'boolean'},
+            {'name': 'referral_text', 'object': setting_handler.get_plugin_setting(get_self(), 'referral_text', None,
+                                                                                   create=True, pretty='Referral Text'),
+             'types': 'rich-text'},
             {'name': 'referrer_discount',
              'object': setting_handler.get_plugin_setting(get_self(), 'referrer_discount', None,
                                                           create=True,
@@ -42,6 +50,11 @@ def options():
                                                           pretty='Referent Discount %',
                                                           types='number'),
              'types': 'number'},
+            {'name': 'leader_board', 'object': setting_handler.get_plugin_setting(get_self(), 'leader_board', None,
+                                                                                 create=True,
+                                                                                 pretty='Display leader board',
+                                                                                 types='boolean'),
+             'types': 'boolean'},
             ]
 
 

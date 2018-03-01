@@ -6,23 +6,25 @@
 {% block body %}
     {% regroup referrals by referring_institution as inst_list %}
     <section id="content">
-        <h4>Referral Leader Board</h4>
-        <table id="table">
-            <thead>
-            <tr>
-                <th>Institution</th>
-                <th>Number of Referrals</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for institution in inst_list %}
+        <div class="row columns">
+            <h4>Referral Leader Board</h4>
+            <table id="table">
+                <thead>
                 <tr>
-                    <td>{{ institution.grouper.name }}</td>
-                    <td>{{ institution.list|length }}</td>
+                    <th>Institution</th>
+                    <th>Number of Referrals</th>
                 </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                {% for institution in inst_list %}
+                    <tr>
+                        <td>{{ institution.grouper.name }}</td>
+                        <td>{{ institution.list|length }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </section>
 {% endblock body %}
 

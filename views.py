@@ -633,10 +633,11 @@ def monthly_revenue(request, year=None):
 
 def referral_codes(request):
     active_institutions = models.Institution.objects.filter(active=True)
-
+    referral_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'referral_text', None)
     template = 'consortial_billing/referral_codes.html'
     context = {
         'active_institutions': active_institutions,
+        'referral_text': referral_text,
     }
 
     return render(request, template, context)
