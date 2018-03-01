@@ -583,6 +583,7 @@ def display_journals(request):
     return render(request, template, context)
 
 
+@staff_member_required
 def modeller(request, increase=0):
     """
     Allows a user to model out a price increase.
@@ -605,6 +606,7 @@ def modeller(request, increase=0):
     return render(request, template, context)
 
 
+@staff_member_required
 def monthly_revenue(request, year=None):
     """
     Displays revenue by month for a given year.
