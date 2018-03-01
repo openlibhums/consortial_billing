@@ -12,7 +12,6 @@
                 <thead>
                 <tr>
                     <th>Institution</th>
-                    <th>Agent</th>
                     <th></th>
                 </tr>
                 </thead>
@@ -20,7 +19,6 @@
                 {% for institution in active_institutions %}
                     <tr>
                         <td>{{ institution.name }}</td>
-                        <td>{{ institution.billing_agent.name }}</td>
                         <td><a href="{% url 'referral_code' institution.referral_code %}" class="">Get Referral Code</a></td>
                     </tr>
                 {% endfor %}
