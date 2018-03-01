@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.core.cache import cache
 from django.core.management import call_command
+from django.db.models import Count
 
 from utils import setting_handler, models as util_models
 from plugins.consortial_billing import models, logic, plugin_settings, forms, security
@@ -670,7 +671,14 @@ def referral_info(request, referral_id):
 
 
 def referral_leadership_board(request):
-    referrals
+    referrals = models.Referral.objects.all()
+
+    template = 'consortial_billing/leader_board.html'
+    context = {
+        'referrals': referrals,
+    }
+
+    return render(request, template, context)
 
 
 # API

@@ -47,7 +47,8 @@ urlpatterns = [
 
     url(r'^referrals/codes/$', views.referral_codes, name='referral_codes'),
     url(r'^referrals/code/(?P<code>[0-9a-f-]+)$', views.referral_code, name='referral_code'),
-    url(r'^referrals/(?P<referral_id>\d+)/infp/$', views.referral_info, name='referral_info'),
+    url(r'^referrals/(?P<referral_id>\d+)/info/$', views.referral_info, name='referral_info'),
+    url(r'^referrals/leaders/$', views.referral_leadership_board, name='referral_leadership_board'),
 
     url(r'^api/', include(router.urls)),
 ]

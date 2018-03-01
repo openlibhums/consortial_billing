@@ -1,0 +1,31 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block title %}Referral Leader Board{% endblock title %}
+
+
+{% block body %}
+    {% regroup referrals by referring_institution as inst_list %}
+    <section id="content">
+        <h4>Referral Leader Board</h4>
+        <table id="table">
+            <thead>
+            <tr>
+                <th>Institution</th>
+                <th>Number of Referrals</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for institution in inst_list %}
+                <tr>
+                    <td>{{ institution.grouper.name }}</td>
+                    <td>{{ institution.list|length }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+{% endblock body %}
+
+{% block js %}
+    {% include "elements/datatables.html" with target="#table" sort="1" %}
+{% endblock %}
