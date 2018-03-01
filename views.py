@@ -652,11 +652,14 @@ def referral_code(request, code):
     return render(request, template, context)
 
 
+@staff_member_required
 def referral_info(request, referral_id):
     referral = get_object_or_404(models.Referral, pk=referral_id)
 
     if request.POST:
-        referral.reverse(request)
+        referral.reverse()
+        messages.add_message(request, messages.SUCCESS, 'Referral reversed.')
+        return redirect(reverse('consortial_index'))
 
     template = 'consortial_billing/referral_info.html'
     context = {
@@ -664,6 +667,11 @@ def referral_info(request, referral_id):
     }
 
     return render(request, template, context)
+
+
+def referral_leadership_board(request):
+    referrals
+
 
 # API
 

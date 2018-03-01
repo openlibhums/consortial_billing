@@ -194,5 +194,14 @@ class Referral(models.Model):
     class Meta:
         ordering = ('datetime',)
 
-    def reverse(self, request):
-        pass
+    def reverse(self):
+        referring_renewal = Renewal.objects.get(pk=self.referring_institution.next_renewal.pk)
+        referent_renewal = Renewal.objects.get(pk=self.new_institution.next_renewal.pk)
+
+        referring_renewal.amount = referring_renewal.amount + self.referring_discount
+        referent_renewal.amount = referent_renewal.amount + self.referent_discount
+
+        referring_renewal.save()
+        referent_renewal.save()
+
+        self.delete()
