@@ -51,9 +51,9 @@ def options():
                                                           types='number'),
              'types': 'number'},
             {'name': 'leader_board', 'object': setting_handler.get_plugin_setting(get_self(), 'leader_board', None,
-                                                                                 create=True,
-                                                                                 pretty='Display leader board',
-                                                                                 types='boolean'),
+                                                                                  create=True,
+                                                                                  pretty='Display leader board',
+                                                                                  types='boolean'),
              'types': 'boolean'},
             ]
 
