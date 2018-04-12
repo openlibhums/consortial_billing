@@ -369,9 +369,9 @@ def renewals_by_agent(request, billing_agent_id):
 def polling_manager(request, poll_id=None, option_id=None):
     if poll_id:
         poll = get_object_or_404(models.Poll, pk=poll_id)
-        vote_count, all_count = logic.vote_count(poll)
+        vote_count, all_count, no_count = logic.vote_count(poll)
     else:
-        poll, vote_count, all_count = None, None, None
+        poll, vote_count, all_count, no_count = None, None, None, None
 
     if option_id:
         option = get_object_or_404(models.Option, pk=option_id)
@@ -413,6 +413,7 @@ def polling_manager(request, poll_id=None, option_id=None):
         'banding_form': banding_form,
         'vote_count': vote_count,
         'all_count': all_count,
+        'no_count': no_count,
     }
 
     return render(request, template, context)
@@ -499,7 +500,7 @@ def polls(request):
         elif not poll:
             messages.add_message(request, messages.WARNING, 'No active poll with that ID found.')
             return redirect(reverse('consortial_polls'))
-        elif complete:
+        elif len(complete) > 0:
             messages.add_message(request, messages.WARNING, 'Institution with that email address has already voted.')
             return redirect(reverse('consortial_polls'))
         else:
@@ -517,7 +518,7 @@ def polls(request):
 def polls_vote(request, poll_id):
     poll, institution, complete = logic.get_inst_and_poll_from_session(request)
 
-    if not poll or not institution or complete:
+    if not poll or not institution or len(complete) > 0:
         messages.add_message(request, messages.WARNING, 'You do not have permission to access this poll.')
         return redirect(reverse('consortial_polls'))
 

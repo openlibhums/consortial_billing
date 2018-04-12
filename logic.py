@@ -152,8 +152,10 @@ def handle_polls_post(request, polls):
     except (models.Institution.DoesNotExist, models.Institution.MultipleObjectsReturned):
         institution = None
 
+    print(institution)
+
     try:
-        vote = models.Vote.objects.filter(institution=institution)
+        vote = models.Vote.objects.filter(poll=poll, institution=institution)
     except models.Vote.DoesNotExist:
         vote = False
 
@@ -174,7 +176,7 @@ def get_inst_and_poll_from_session(request):
         inst = models.Institution.objects.get(pk=institution_id)
 
         try:
-            vote = models.Vote.objects.filter(institution=inst)
+            vote = models.Vote.objects.filter(poll=poll, institution=inst)
         except models.Vote.DoesNotExist:
             vote = False
 
@@ -189,11 +191,14 @@ def vote_count(poll):
     votes = models.Vote.objects.filter(poll=poll)
     vote_list = list()
     all_count = 0
+    no_count = 0
 
     for option in poll.options.all():
         count = 0
         for vote in votes:
             count = count + vote.aye.filter(text=option.text).count()
+            if count == 0:
+                no_count = no_count + 1
 
         _dict = {
             'text': option.text,
@@ -212,7 +217,7 @@ def vote_count(poll):
         else:
             _dict['carried'] = False
 
-    return vote_list, all_count
+    return vote_list, all_count, no_count
 
 
 def process_poll_increases(options):
