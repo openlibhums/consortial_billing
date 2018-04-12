@@ -197,8 +197,9 @@ def vote_count(poll):
         count = 0
         for vote in votes:
             count = count + vote.aye.filter(text=option.text).count()
-            if count == 0:
-                no_count = no_count + 1
+
+            if vote.aye.all().count() == 0:
+                no_count += 1
 
         _dict = {
             'text': option.text,
