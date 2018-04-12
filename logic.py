@@ -186,7 +186,7 @@ def get_inst_and_poll_from_session(request):
         return None, None, False
 
 
-@function_cache.cache(60)
+#@function_cache.cache(60)
 def vote_count(poll):
     votes = models.Vote.objects.filter(poll=poll)
     vote_list = list()
@@ -196,10 +196,8 @@ def vote_count(poll):
     for option in poll.options.all():
         count = 0
         for vote in votes:
-            count = count + vote.aye.filter(text=option.text).count()
-
-            if vote.aye.all().count() == 0:
-                no_count += 1
+            if option in vote.aye.all():
+                count = count + 1
 
         _dict = {
             'text': option.text,
@@ -211,6 +209,10 @@ def vote_count(poll):
 
         if option.all:
             all_count = all_count + count
+
+    for vote in votes:
+        if vote.aye.all().count() == 0:
+            no_count += 1
 
     for _dict in vote_list:
         if _dict['count'] + all_count > votes.count() / 2:
