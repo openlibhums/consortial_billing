@@ -186,7 +186,6 @@ def get_inst_and_poll_from_session(request):
         return None, None, False
 
 
-@function_cache.cache(30)
 def vote_count(poll):
     votes = models.Vote.objects.filter(poll=poll)
     vote_list = list()
