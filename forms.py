@@ -4,10 +4,10 @@ from django.utils import timezone
 from django import forms
 
 from plugins.consortial_billing import models
+from plugins.consortial_billing.templatetags.currency import convert_to
 
 
 class Institution(forms.ModelForm):
-
     class Meta:
         model = models.Institution
         fields = ('first_name', 'last_name', 'email_address', 'name', 'address', 'postal_code', 'country', 'display')
@@ -58,6 +58,27 @@ class Option(forms.ModelForm):
         exclude = ('',)
 
 
+class EasyBanding(forms.Form):
+    small = forms.CharField(widget=forms.TextInput(), required=False)
+    medium = forms.CharField(widget=forms.TextInput(), required=False)
+    large = forms.CharField(widget=forms.TextInput(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        option = kwargs.pop('option', None)
+        super(EasyBanding, self).__init__(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        option = kwargs.pop('option', None)
+        for banding in models.Banding.objects.all():
+            banding_price = self.cleaned_data.get(str(banding.size))
+
+            converted_price = convert_to(banding_price, banding.currency)
+
+            o, c = models.IncreaseOptionBand.objects.get_or_create(option=option,
+                                                                   banding=banding,
+                                                                   defaults={'price_increase': converted_price})
+
+
 class Banding(forms.Form):
 
     def __init__(self, *args, **kwargs):
@@ -80,9 +101,13 @@ class Banding(forms.Form):
         option = kwargs.pop('option', None)
         for banding in models.Banding.objects.all():
             banding_price = self.cleaned_data.get(str(banding.pk))
+
             o, c = models.IncreaseOptionBand.objects.get_or_create(option=option,
-                                                                   banding=banding,
-                                                                   defaults={'price_increase': banding_price})
-            if not c:
+                                                                   banding=banding)
+            if c:
+                o.price_increase = banding_price
+                o.save()
+
+            if not c and banding_price:
                 o.price_increase = banding_price
                 o.save()

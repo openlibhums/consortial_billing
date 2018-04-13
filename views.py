@@ -382,6 +382,7 @@ def polling_manager(request, poll_id=None, option_id=None):
 
     form = forms.Poll(instance=poll)
     option_form = forms.Option(instance=option)
+    easy_banding_form = forms.EasyBanding(option=option)
     banding_form = forms.Banding(option=option)
 
     if request.POST and 'poll' in request.POST:
@@ -395,11 +396,13 @@ def polling_manager(request, poll_id=None, option_id=None):
 
     if request.POST and 'option' in request.POST:
         option_form = forms.Option(request.POST, instance=option)
+        easy_banding_form = forms.EasyBanding(request.POST, option=option)
         banding_form = forms.Banding(request.POST, option=option)
 
-        if option_form.is_valid() and banding_form.is_valid():
+        if option_form.is_valid() and banding_form.is_valid() and easy_banding_form.is_valid():
             new_option = option_form.save()
             poll.options.add(new_option)
+            easy_banding_form.save(option=new_option)
             banding_form.save(option=new_option)
             return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
 
@@ -410,6 +413,7 @@ def polling_manager(request, poll_id=None, option_id=None):
         'bandings': bandings,
         'option': option,
         'option_form': option_form,
+        'easy_banding_form': easy_banding_form,
         'banding_form': banding_form,
         'vote_count': vote_count,
         'all_count': all_count,

@@ -22,6 +22,14 @@ def file_upload_path(instance, filename):
     return os.path.join(path, filename)
 
 
+def banding_choices():
+    return (
+        ('small', 'Small'),
+        ('medium', 'Medium'),
+        ('large', 'Large'),
+    )
+
+
 class Banding(models.Model):
     name = models.CharField(max_length=200, blank=False, unique=True)
     currency = models.CharField(max_length=255, blank=True, null=True)
@@ -29,6 +37,7 @@ class Banding(models.Model):
     billing_agent = models.ForeignKey('BillingAgent', null=True, blank=True)
     display = models.BooleanField(default=True)
     redirect_url = models.URLField(blank=True, null=True)
+    size = models.CharField(max_length=20, choices=banding_choices(), default='small')
 
     def __str__(self):
         return '{0}: {1} {2}'.format(self.name, self.default_price, self.currency if self.currency else '')
