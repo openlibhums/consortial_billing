@@ -70,7 +70,7 @@ class EasyBanding(forms.Form):
     def save(self, *args, **kwargs):
         option = kwargs.pop('option', None)
         for banding in models.Banding.objects.all():
-            banding_price = self.cleaned_data.get(str(banding.size))
+            banding_price = self.cleaned_data.get(str(banding.size), 0)
 
             converted_price = convert_to(banding_price, banding.currency)
 

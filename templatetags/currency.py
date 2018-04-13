@@ -12,8 +12,6 @@ register = template.Library()
 @register.simple_tag()
 def convert(value, currency, action="display"):
 
-    print(value, currency)
-
     plugin = plugin_settings.get_self()
     base_currency = setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value
     if currency == base_currency:
@@ -26,7 +24,6 @@ def convert(value, currency, action="display"):
 
     if ex_rate:
         ex_rate = ex_rate.value
-        print(ex_rate)
         if action == "display":
             return "{0} (ex rate {1})".format(intcomma(round((float(value) / float(ex_rate)), 2)), ex_rate)
         else:
