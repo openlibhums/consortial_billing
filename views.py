@@ -427,7 +427,7 @@ def poll_summary(request, poll_id):
         messages.add_message(request, messages.INFO, 'This poll is either still open or has already been processed.')
         return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll_id}))
     increases = models.IncreaseOptionBand.objects.filter(option__in=poll.options.all())
-    vote_count, all_count = logic.vote_count(poll)
+    vote_count, all_count, no_count = logic.vote_count(poll)
 
     if request.POST:
         options = request.POST.getlist('options')
