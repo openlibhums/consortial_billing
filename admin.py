@@ -16,7 +16,7 @@ class BillingAgentAdmin(admin.ModelAdmin):
 
 class BandingAdmin(admin.ModelAdmin):
     list_display = ('name', 'currency', 'default_price', 'billing_agent', 'display', 'size')
-    list_filter = ('currency', 'billing_agent', 'display')
+    list_filter = ('currency', 'billing_agent', 'display', 'size')
     search_fields = ('name',)
 
 
