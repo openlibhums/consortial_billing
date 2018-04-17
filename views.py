@@ -454,7 +454,7 @@ def poll_summary(request, poll_id):
 
 @staff_member_required
 def poll_email(request, poll_id):
-    institutions = get_list_or_404(models.Institution, email_address__isnull=False)
+    institutions = models.Institution.objects.filter(email_address__isnull=False, active=True).exclude(email_address='')
 
     try:
         poll = models.Poll.objects.get(pk=poll_id, date_close__gt=timezone.now(), processed=False)
@@ -469,7 +469,7 @@ def poll_email(request, poll_id):
     context = {
         'poll': poll,
         'institutions': institutions,
-        'sample': logic.get_poll_email_content(request, poll, institutions[0])
+        'sample': logic.get_poll_email_content(request, poll, list(institutions)[0])
     }
 
     return render(request, template, context)
