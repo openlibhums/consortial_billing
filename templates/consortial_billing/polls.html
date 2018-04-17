@@ -13,6 +13,7 @@
                     {{ poll.text|safe }}
                     <p><strong>Opened: </strong>{{ poll.date_open }} | <strong>Closes: </strong>{{ poll.date_close }}
                     </p>
+                    {% if poll.file %}<p>For more information on the journals being proposed, see our <a target="_blank" href="{{ poll.file.url }}">full report</a>.</p>{% endif %}
                     <p>To take part in this poll, you'll need to enter the email address associated with your institution.</p>
                     <form method="POST">
                         {% csrf_token %}
