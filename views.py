@@ -5,7 +5,7 @@ import datetime
 from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.core.cache import cache
 from django.core.management import call_command

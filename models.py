@@ -8,7 +8,6 @@ from django.core.files.storage import FileSystemStorage
 
 from plugins.consortial_billing import plugin_settings
 
-
 fs = FileSystemStorage(location=settings.MEDIA_ROOT)
 
 
@@ -125,7 +124,8 @@ class Renewal(models.Model):
     date_renewed = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return "Renewal for {0} due {1} for {2} {3}".format(self.institution.name, self.date, self.amount, self.currency)
+        return "Renewal for {0} due {1} for {2} {3}".format(self.institution.name, self.date, self.amount,
+                                                            self.currency)
 
 
 class ExcludedUser(models.Model):
@@ -179,11 +179,18 @@ class Option(models.Model):
         except IncreaseOptionBand.DoesNotExist:
             return "No result found."
 
+    def __str__(self):
+        return self.text
+
 
 class IncreaseOptionBand(models.Model):
     banding = models.ForeignKey(Banding)
     option = models.ForeignKey(Option)
     price_increase = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return "Increase Option {banding}, {option}, {price_increase}".format(banding=self.banding, option=self.option,
+                                                                              price_increase=self.price_increase)
 
 
 class Vote(models.Model):

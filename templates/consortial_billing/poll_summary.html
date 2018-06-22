@@ -25,12 +25,13 @@
                         {% csrf_token %}
                         <p>Now that this poll is complete, you can select which votes to carry. Bandings and active renewals
                             will be updated with the new values.</p>
+                        <p><strong>You should not carry an <i>all journals</i> option alongside any other options as it will result in a multiple increase.</strong></p>
                         <ul>
                             {% for count in vote_count %}
-                                <li><input type="checkbox" name="options" value="{{ count.option.pk }}" {% if count.carried %}checked="checked"{% endif %}>
+                                <li><input type="checkbox" name="options" value="{{ count.option.pk }}">
                                     <strong>{{ count.text }}: </strong> {{ count.count }}
                                     {% with count.count as votingcount %}{% if not count.option.all %}(Total:
-                                        {{ votingcount|add:all_count }}){% endif %}{% endwith %}</li>
+                                        {{ votingcount|add:all_count }}){% endif %}{% endwith %}{% if count.carried %} (Carried){% endif %}</li>
                             {% endfor %}
                         </ul>
                         <button type="submit" class="success button">Process Poll</button>
