@@ -124,8 +124,13 @@ class Renewal(models.Model):
     date_renewed = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return "Renewal for {0} due {1} for {2} {3}".format(self.institution.name, self.date, self.amount,
-                                                            self.currency)
+        s = "Renewal for {0} due {1} for {2} {3}".format(
+                self.institution.name, self.date, self.amount,
+                self.currency,
+        )
+        if self.billing_complete:
+            s += "|RENEWED on {}".format(self.date_renewed)
+        return s
 
 
 class ExcludedUser(models.Model):
