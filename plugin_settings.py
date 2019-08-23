@@ -3,18 +3,21 @@ from utils import models, setting_handler
 PLUGIN_NAME = 'Consortial Billing'
 DESCRIPTION = 'This is a plugin to handle consortial billing.'
 AUTHOR = 'Martin Paul Eve'
-VERSION = '1.0'
+VERSION = '1.1'
 SHORT_NAME = 'consortial_billing'
 DISPLAY_NAME = 'supporters'
 MANAGER_URL = 'consortial_index'
+JANEWAY_VERSION = "1.3.6"
 
 
 def get_self():
-    new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME,
-                                                              display_name=DISPLAY_NAME,
-                                                              version=VERSION,
-                                                              enabled=True,
-                                                              press_wide=True)
+    new_plugin, created = models.Plugin.objects.get_or_create(
+        name=SHORT_NAME,
+        display_name=DISPLAY_NAME,
+        enabled=True,
+        press_wide=True,
+        defaults={'version': VERSION},
+    )
     return new_plugin
 
 
@@ -101,11 +104,13 @@ def currency_options():
 
 
 def install():
-    new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME,
-                                                              display_name=DISPLAY_NAME,
-                                                              version=VERSION,
-                                                              enabled=True,
-                                                              press_wide=True)
+    new_plugin, created = models.Plugin.objects.get_or_create(
+        name=SHORT_NAME,
+        display_name=DISPLAY_NAME,
+        enabled=True,
+        press_wide=True,
+        defaults={'version': VERSION},
+    )
 
     if created:
         print('Plugin {0} installed.'.format(PLUGIN_NAME))
