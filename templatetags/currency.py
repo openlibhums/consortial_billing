@@ -20,7 +20,7 @@ def convert(value, currency, action="display"):
         else:
             return value
 
-    ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency), None, create=False)
+    ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency.upper()), None, create=False)
 
     if ex_rate:
         ex_rate = ex_rate.value
@@ -45,7 +45,7 @@ def convert_all(dict):
 
         else:
 
-            ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency), None, create=False)
+            ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency.upper()), None, create=False)
 
             if ex_rate:
                 ex_rate = Decimal(ex_rate.value)
@@ -91,7 +91,7 @@ def convert_to(value, currency_to):
     if currency_to == currency_from:
         return value
 
-    ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency_to), None, create=False).value
+    ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency_to.upper()), None, create=False).value
 
     return round(float(ex_rate) * float(value))
 
