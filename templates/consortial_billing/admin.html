@@ -52,9 +52,9 @@
             </div>
             <div class="content">
                 {% for item in renewals_in_year %}
-                    <p>{{ item.currency|intcomma }} {{ item.price}} | {{ base_currency }} {% convert item.price item.currency %}</p>
+                    <p>{{ item.currency|intcomma }} {{ item.price}} | {{ base_currency }}</p>
                 {% endfor %}
-                <strong>Total: </strong> {{ base_currency }} {% convert_all renewals_in_year %}
+                <strong>Total: </strong> {{ base_currency }}
 
                 <canvas id="myChart" width="400" height="400"></canvas>
 
