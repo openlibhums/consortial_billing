@@ -7,7 +7,7 @@ VERSION = '1.1'
 SHORT_NAME = 'consortial_billing'
 DISPLAY_NAME = 'supporters'
 MANAGER_URL = 'consortial_index'
-JANEWAY_VERSION = "1.3.6"
+JANEWAY_VERSION = "1.3.10"
 
 
 def get_self():
