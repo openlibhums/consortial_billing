@@ -5,7 +5,7 @@ from rest_framework import routers
 from plugins.consortial_billing import views
 
 router = routers.DefaultRouter()
-router.register(r'institution', views.InstitutionView, base_name='Institution')
+router.register(r'institution', views.InstitutionView, basename='Institution')
 
 urlpatterns = [
     url(r'^$', views.supporters, name='consortial_supporters'),
