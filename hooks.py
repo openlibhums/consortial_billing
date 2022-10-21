@@ -30,6 +30,10 @@ def nav_hook(context):
                                                           create=True,
                                                           pretty='Journal Display',
                                                           ).value
+
+    if not display_nav:
+        return ''
+
     journal_pks = []
     if journals_setting and journals_setting != ' ':
         journal_pks = [int(pk) for pk in journals_setting.split(',')]
