@@ -33,7 +33,12 @@ class Banding(models.Model):
     name = models.CharField(max_length=200, blank=False, unique=True)
     currency = models.CharField(max_length=255, blank=True, null=True)
     default_price = models.IntegerField(blank=True, null=True, default=0)
-    billing_agent = models.ForeignKey('BillingAgent', null=True, blank=True)
+    billing_agent = models.ForeignKey(
+        'BillingAgent',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     display = models.BooleanField(default=True)
     redirect_url = models.URLField(blank=True, null=True)
     size = models.CharField(max_length=20, choices=banding_choices(), default='small')
@@ -91,7 +96,12 @@ class Institution(models.Model):
 
     multiplier = models.DecimalField(decimal_places=2, max_digits=3, default=1.0)
 
-    supporter_level = models.ForeignKey(SupportLevel, blank=True, null=True)
+    supporter_level = models.ForeignKey(
+        SupportLevel,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
 
     referral_code = models.UUIDField(default=uuid.uuid4)
 
@@ -119,7 +129,10 @@ class Renewal(models.Model):
     date = models.DateField(default=timezone.now)
     amount = models.DecimalField(decimal_places=2, max_digits=20, blank=False)
     currency = models.CharField(max_length=255, blank=False)
-    institution = models.ForeignKey(Institution)
+    institution = models.ForeignKey(
+        Institution,
+        on_delete=models.CASCADE,
+    )
     billing_complete = models.BooleanField(default=False)
     date_renewed = models.DateTimeField(blank=True, null=True)
 
@@ -134,7 +147,10 @@ class Renewal(models.Model):
 
 
 class ExcludedUser(models.Model):
-    user = models.ForeignKey('core.Account')
+    user = models.ForeignKey(
+        'core.Account',
+        on_delete=models.CASCADE,
+    )
 
 
 class Signup(models.Model):
@@ -154,7 +170,11 @@ class Signup(models.Model):
 
 
 class Poll(models.Model):
-    staffer = models.ForeignKey('core.Account')
+    staffer = models.ForeignKey(
+        'core.Account',
+        null=True,
+        on_delete=models.SET_NULL,
+    )
     name = models.CharField(max_length=255)
     text = models.TextField(null=True)
     file = models.FileField(upload_to=file_upload_path, null=True, blank=True, storage=fs)
@@ -189,8 +209,14 @@ class Option(models.Model):
 
 
 class IncreaseOptionBand(models.Model):
-    banding = models.ForeignKey(Banding)
-    option = models.ForeignKey(Option)
+    banding = models.ForeignKey(
+        Banding,
+        on_delete=models.CASCADE,
+    )
+    option = models.ForeignKey(
+        Option,
+        on_delete=models.CASCADE,
+    )
     price_increase = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
@@ -199,15 +225,29 @@ class IncreaseOptionBand(models.Model):
 
 
 class Vote(models.Model):
-    institution = models.ForeignKey(Institution)
-    poll = models.ForeignKey(Poll)
+    institution = models.ForeignKey(
+        Institution,
+        on_delete=models.CASCADE,
+    )
+    poll = models.ForeignKey(
+        Poll,
+        on_delete=models.CASCADE,
+    )
     aye = models.ManyToManyField(Option, related_name="vote_aye")
     no = models.ManyToManyField(Option, related_name="vote_no")
 
 
 class Referral(models.Model):
-    referring_institution = models.ForeignKey(Institution, related_name='referring_institution')
-    new_institution = models.ForeignKey(Institution, related_name='new_institution')
+    referring_institution = models.ForeignKey(
+        Institution,
+        related_name='referring_institution',
+        on_delete=models.CASCADE,
+    )
+    new_institution = models.ForeignKey(
+        Institution,
+        related_name='new_institution',
+        on_delete=models.CASCADE,
+    )
     referring_discount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True)
     referent_discount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True)
     datetime = models.DateTimeField(default=timezone.now)

@@ -3,11 +3,11 @@ from utils import models, setting_handler
 PLUGIN_NAME = 'Consortial Billing'
 DESCRIPTION = 'This is a plugin to handle consortial billing.'
 AUTHOR = 'Martin Paul Eve'
-VERSION = '1.1'
+VERSION = '1.2'
 SHORT_NAME = 'consortial_billing'
 DISPLAY_NAME = 'supporters'
 MANAGER_URL = 'consortial_index'
-JANEWAY_VERSION = "1.3.6"
+JANEWAY_VERSION = "1.5.0"
 
 
 def get_self():
