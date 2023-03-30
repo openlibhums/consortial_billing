@@ -12,7 +12,7 @@
 
 {% block body %}
 <div class="row expanded">
-    <div class="{% if request.user.is_staff %}large-8{% else %}large-12{% endif %} columns">
+    <div class="large-12 columns">
         <div class="box">
             <div class="title-area">
                 <h2>Renewals Due</h2>
@@ -43,28 +43,9 @@
             </div>
         </div>
     </div>
-    {% if request.user.is_staff %}
-    <div class="large-4 columns">
-        <div class="box">
-            <div class="title-area">
-                <h2>Projected Revenue for Next 12 Months</h2>
-                <a class="float-right small button success" href="{% url 'core_edit_plugin_settings_groups' plugin 'currency_options' 0 %}?return=consortial_index"><i class="fa fa-pencil action-icon">&nbsp;</i></a>
-            </div>
-            <div class="content">
-                {% for item in renewals_in_year %}
-                    <p>{{ item.currency|intcomma }} {{ item.price}}</p>
-                {% endfor %}
-
-                <canvas id="myChart" width="400" height="400"></canvas>
-
-                <a href="{% url 'monthly_revenue' %}">View revenue by month >></a>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 <div class="row expanded">
-<div class="large-{% if institutions|length > 0 %}12{% else %}8{% endif %} columns {% if institutions|length > 0 %}end{% endif %}">
+<div class="large-12 columns {% if institutions|length > 0 %}end{% endif %}">
         <div class="box">
             <div class="title-area">
                 <h2>All Institutions ({{ institutions|length }})</h2>
@@ -118,96 +99,25 @@
         </div>
     </div>
     {% endif %}
-    {% if request.user.is_staff %}
-    <div class="large-8 columns">
-        <div class="box">
-            <div class="title-area">
-                <h2>Polls</h2>
-                <a href="{% url 'consortial_polling' %}" class="button">Add New Poll</a>
-            </div>
-            <div class="content">
-                <table id="polls">
-                    <tr>
-                        <th>Name</th>
-                        <th>Votes</th>
-                        <th>Opens</th>
-                        <th>Closes</th>
-                        <th></th>
-                    </tr>
-                    <tbody>
-                    {% for poll in polls %}
-                        <tr>
-                            <td>{{ poll.name }}</td>
-                            <td>{{ poll.vote_set.all|length }} / {{ institutions|length }}</td>
-                            <td>{{ poll.date_open }}</td>
-                            <td>{{ poll.date_close }}</td>
-                            <td><a href="{% url 'consortial_polling_id' poll.pk %}">Edit</a></td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-    {% if request.user.is_staff %}
+</div>
+{% if request.user.is_staff %}
+<div class="row expanded">
     <div class="large-4 columns">
         <div class="box">
             <div class="title-area">
-                <h2>Config Options</h2>
+                <h2>Configuration</h2>
             </div>
             <div class="content">
                 <div class="stacked button-group">
-                    <a class="button" href="{% url 'core_edit_plugin_settings_groups' plugin 'options' 0 %}?return=consortial_index">Configure signup system</a>
-                    <a class="button" href="{% url 'core_edit_plugin_settings_groups' plugin 'display_options' 0 %}?return=consortial_index">Configure supporting institutions page</a>
                     <a href="/admin/consortial_billing/banding/" class="button">Bandings</a>
                     <a href="/admin/consortial_billing/billingagent/" class="button">Billing Agents</a>
-                    <a href="/admin/consortial_billing/supportlevel/" class="button">Edit Support Levels</a>
-                    <a href="{% url 'consortial_display' %}" class="button">Display Nav Items</a>
+                    <a href="/admin/consortial_billing/supportlevel/" class="button">Support Levels</a>
                 </div>
-
             </div>
         </div>
     </div>
-        <div class="large-12 columns">
-            <div class="box">
-                <div class="title-area">
-                    <h2>Referrals</h2>
-                </div>
-                <div class="content">
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Referrer</th>
-                            <th>Referent</th>
-                            <th>Date</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for referral in referrals %}
-                            <tr>
-                                <td>
-                                    {{ referral.referring_institution }}
-                                </td>
-                                <td>
-                                    {{ referral.new_institution }}
-                                </td>
-                                <td>
-                                    {{ referral.datetime }}
-                                </td>
-                                <td>
-                                    <a href="{% url 'referral_info' referral.pk %}">View Referral</a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    {% endif %}
 </div>
+{% endif %}
 
 {% endblock body %}
 

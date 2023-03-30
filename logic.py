@@ -14,6 +14,7 @@ from plugins.consortial_billing import models, plugin_settings, templatetags
 from submission import models as submission_models
 from core import models as core_models, files
 from utils import notify_helpers, function_cache, setting_handler, render_template
+from utils import models as utils_models
 
 
 def get_authors():
@@ -60,7 +61,9 @@ def users_not_supporting(institutions, authors, editors):
 
 
 def get_signup_email_content(request, institution, currency, amount, host, url, display, user):
-    plugin = plugin_settings.get_self()
+    plugin = utils_models.Plugin.objects.filter(
+        name=plugin_settings.SHORT_NAME
+    )
     context = {'institution': institution, 'currency': currency, 'amount': amount, 'host': host, 'url': url,
                'display': display, 'user': user}
 
@@ -251,8 +254,14 @@ def process_poll_increases(options):
 
 
 def get_poll_email_content(request, poll, institution):
-    plugin = plugin_settings.get_self()
-    short_name = setting_handler.get_plugin_setting(plugin, 'organisation_short_name', None).value
+    plugin = utils_models.Plugin.objects.filter(
+        name=plugin_settings.SHORT_NAME
+    )
+    short_name = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'organisation_short_name',
+        None,
+    ).value
     context = {'poll': poll, 'institution': institution, 'short_name': short_name}
 
     return render_template.get_message_content(request, context, 'email_text', plugin=plugin)
@@ -345,7 +354,11 @@ def calc_discount(value, discount):
 
 
 def record_referral(referent, institution, referent_discount):
-    discount = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'referrer_discount', None).value
+    discount = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'referrer_discount',
+        None,
+    ).value
     referring_institution = models.Institution.objects.get(referral_code=referent)
     new_rate = calc_discount(referring_institution.next_renewal.amount, discount)
 
