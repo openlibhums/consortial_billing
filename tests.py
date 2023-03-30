@@ -8,6 +8,7 @@ from security.test_security import TestSecurity
 from core import models as core_models
 from journal import models as journal_models
 from plugins.consortial_billing import models, security
+from utils.testing import helpers
 
 
 class TestPluginSecurity(TestCase):
@@ -129,22 +130,8 @@ class TestPluginSecurity(TestCase):
         for role in roles:
             core_models.Role(name=role, slug=role).save()
 
-    @staticmethod
-    def create_journals():
-        """
-        Creates a set of dummy journals for testing
-        :return: a 2-tuple of two journals
-        """
-        journal_one = journal_models.Journal(code="TST", domain="journal1.localhost")
-        journal_one.save()
-
-        journal_two = journal_models.Journal(code="TSA", domain="journal2.localhost")
-        journal_two.save()
-
-        return journal_one, journal_two
-
     def setUp(self):
-        self.journal_one, self.journal_two = self.create_journals()
+        self.journal_one, self.journal_two = helpers.create_journals()
         self.create_roles(["editor", "author", "reviewer", "proofreader", "production", "copyeditor", "typesetter",
                            "proofing_manager", "section-editor"])
 

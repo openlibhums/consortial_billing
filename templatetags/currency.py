@@ -12,15 +12,22 @@ register = template.Library()
 @register.simple_tag()
 def convert(value, currency, action="display"):
 
-    plugin = plugin_settings.get_self()
-    base_currency = setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value
+    base_currency = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'base_currency',
+        None,
+    ).value
     if currency == base_currency:
         if action == "display":
             return intcomma(value)
         else:
             return value
 
-    ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency.upper()), None, create=False)
+    ex_rate = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'ex_rate_{0}'.format(currency.upper()),
+        None,
+    )
 
     if ex_rate:
         ex_rate = ex_rate.value
@@ -32,8 +39,11 @@ def convert(value, currency, action="display"):
 
 @register.simple_tag()
 def convert_all(dict):
-    plugin = plugin_settings.get_self()
-    base_currency = setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value
+    base_currency = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'base_currency',
+        None,
+    ).value
     total_in_local_currency = Decimal()
 
     for item in dict:
@@ -45,7 +55,11 @@ def convert_all(dict):
 
         else:
 
-            ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency.upper()), None, create=False)
+            ex_rate = setting_handler.get_setting(
+                'plugin:consortial_billing',
+                'ex_rate_{0}'.format(currency.upper()),
+                None,
+            )
 
             if ex_rate:
                 ex_rate = Decimal(ex_rate.value)
@@ -79,19 +93,25 @@ def reverse_discount(value, discount):
 
 @register.simple_tag()
 def default_currency():
-    plugin = plugin_settings.get_self()
-    return setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value
+    return setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'base_currency',
+        None,
+    ).value
 
 
 @register.simple_tag()
 def convert_to(value, currency_to):
-    plugin = plugin_settings.get_self()
     currency_from = default_currency()
 
     if currency_to == currency_from:
         return value
 
-    ex_rate = setting_handler.get_plugin_setting(plugin, 'ex_rate_{0}'.format(currency_to.upper()), None, create=False).value
+    ex_rate = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'ex_rate_{0}'.format(currency_to.upper()),
+        None,
+    ).value
 
     return round(float(ex_rate) * float(value))
 

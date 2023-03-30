@@ -11,10 +11,13 @@ from django.core.cache import cache
 from django.core.management import call_command
 from django.db.models import Count
 
-from utils import setting_handler, models as util_models
+from utils import setting_handler, models as utils_models
 from plugins.consortial_billing import models, logic, plugin_settings, forms, security
 from core import models as core_models
 from journal import models as journal_models
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @security.billing_agent_required
@@ -64,22 +67,18 @@ def index(request):
                                                         institution=institution,
                                                         currency=row["Local Currency"])
 
-            call_command('fetch_fixer_ex_rates')
+            logger.warning('Could not fetch exchange rates')
+            # call_command('fetch_fixer_ex_rates')
             cache.clear()
 
     near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(request.user.is_staff,
                                                                                              request.user)
 
-    try:
-        base_currency = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'base_currency', None).value
-    except util_models.PluginSetting.DoesNotExist:
-        kwargs = {
-            'plugin': 'consortial_billing',
-            'setting_group_name': 'currency_options',
-            'journal': 0,
-        }
-        reversal = '{0}??return=consortial_index'.format(reverse('core_edit_plugin_settings_groups', kwargs=kwargs))
-        return redirect(reversal)
+    base_currency = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'base_currency',
+        None,
+    ).value
     context = {'institutions': institutions,
                'renewals': near_renewals,
                'renewals_in_year': renewals_in_next_year,
@@ -94,7 +93,11 @@ def index(request):
 
 def signup(request):
     referent = request.GET.get('referent', None)
-    signup_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'preface_text', None)
+    signup_text = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'preface_text',
+        None,
+    )
 
     context = {'signup_text': signup_text, 'referent': referent}
 
@@ -104,7 +107,11 @@ def signup(request):
 def signup_stage_two(request):
     referent = request.GET.get('referent', None)
     bandings = models.Banding.objects.filter(display=True).order_by('name', '-default_price')
-    referent_discount = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'referent_discount', None)
+    referent_discount = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'referent_discount',
+        None,
+    )
 
     errors = list()
 
@@ -123,7 +130,11 @@ def signup_stage_two(request):
     context = {
         'bandings': bandings,
         'errors': errors,
-        'banding_text': setting_handler.get_plugin_setting(plugin_settings.get_self(), 'banding_pre_text', None).value,
+        'banding_text': setting_handler.get_setting(
+            'plugin:consortial_billing',
+            'banding_pre_text',
+            None,
+        ).value,
         'referent': referent,
         'referent_discount': referent_discount.value,
     }
@@ -132,7 +143,11 @@ def signup_stage_two(request):
 
 
 def signup_complete(request):
-    complete_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'complete_text', None)
+    complete_text = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'complete_text',
+        None,
+    )
 
     context = {'complete_text': complete_text}
 
@@ -141,7 +156,11 @@ def signup_complete(request):
 
 def signup_stage_three(request, banding_id):
     referent = request.GET.get('referent', None)
-    discount = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'referent_discount', None).value
+    discount = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'referent_discount',
+        None,
+    ).value
     banding = get_object_or_404(models.Banding, pk=banding_id)
     form = forms.Institution()
 
@@ -224,9 +243,16 @@ def supporters(request):
     else:
         institutions = models.Institution.objects.filter(active=True, display=True)
 
-    plugin = plugin_settings.get_self()
-    pre_text = setting_handler.get_plugin_setting(plugin, 'pre_text', None)
-    post_text = setting_handler.get_plugin_setting(plugin, 'post_text', None)
+    pre_text = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'pre_text',
+        None,
+    )
+    post_text = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'post_text',
+        None,
+    )
 
     if request.journal:
         template = 'consortial_billing/supporters.html'
@@ -329,7 +355,8 @@ def institution_manager(request, institution_id=None):
                                               currency=institution.banding.currency,
                                               amount=institution.banding.default_price * institution.multiplier,
                                               date=timezone.now())
-                call_command('fetch_fixer_ex_rates')
+                logger.warning('Could not fetch exchange rates')
+                # call_command('fetch_fixer_ex_rates')
 
             messages.add_message(request, messages.SUCCESS, '{0} has been saved.'.format(institution.name))
             return redirect(reverse('consortial_index'))
@@ -561,22 +588,26 @@ def display_journals(request):
     """
 
     journals = journal_models.Journal.objects.all()
-    journals_setting = setting_handler.get_plugin_setting(plugin_settings.get_self(),
-                                                          'journal_display',
-                                                          None,
-                                                          create=True,
-                                                          pretty='Journal Display',
-                                                          ).value
+    journals_setting = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'journal_display',
+        None,
+    ).value
     journal_pks = []
     if journals_setting and journals_setting != ' ':
         journal_pks = [int(pk) for pk in journals_setting.split(',')]
 
     if request.POST:
         journal_pks = request.POST.getlist('journal')
-        setting_handler.save_plugin_setting(plugin_settings.get_self(),
-                                            'journal_display',
-                                            ','.join(journal_pks),
-                                            None)
+        plugin = utils_models.Plugin.objects.filter(
+            name=plugin_settings.SHORT_NAME
+        )
+        setting_handler.save_plugin_setting(
+            plugin,
+            'journal_display',
+            ','.join(journal_pks),
+            None
+        )
         return redirect(reverse('consortial_display'))
 
     template = 'consortial_billing/display_journals.html'
@@ -598,13 +629,16 @@ def modeller(request, increase=0):
     :return: an HTTPResponse
     """
     institutions = models.Institution.objects.filter(active=True)
-    plugin = plugin_settings.get_self()
 
     template = 'consortial_billing/modeller.html'
     context = {
         'institutions': institutions,
         'increase': increase,
-        'base_currency': setting_handler.get_plugin_setting(plugin, 'base_currency', None, create=False).value,
+        'base_currency': setting_handler.get_setting(
+            'plugin:consortial_billing',
+            'base_currency',
+            None,
+        ).value,
         'renewals': logic.get_model_renewals(institutions),
     }
 
@@ -631,7 +665,11 @@ def monthly_revenue(request, year=None):
     context = {
         'revenue_by_month': revenue_by_month,
         'year': year,
-        'base_currency': setting_handler.get_plugin_setting(plugin_settings.get_self(), 'base_currency', None).value,
+        'base_currency': setting_handler.get_setting(
+            'plugin:consortial_billing',
+            'base_currency',
+            None
+        ).value,
         'total_revenue': logic.get_total_revenue(revenue_by_month)
     }
 
@@ -640,7 +678,11 @@ def monthly_revenue(request, year=None):
 
 def referral_codes(request):
     active_institutions = models.Institution.objects.filter(active=True)
-    referral_text = setting_handler.get_plugin_setting(plugin_settings.get_self(), 'referral_text', None)
+    referral_text = setting_handler.get_setting(
+        'plugin:consortial_billing',
+        'referral_text',
+        None,
+    )
     template = 'consortial_billing/referral_codes.html'
     context = {
         'active_institutions': active_institutions,

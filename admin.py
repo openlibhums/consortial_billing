@@ -5,7 +5,7 @@ import uuid
 from django.contrib import admin
 from django.conf import settings
 
-from plugins.consortial_billing.models import *
+from plugins.consortial_billing import models
 from core import files
 
 
@@ -50,17 +50,17 @@ class InstitutionAdmin(admin.ModelAdmin):
 
 
 admin_list = [
-    (Institution, InstitutionAdmin),
-    (Banding, BandingAdmin),
-    (Renewal,),
-    (BillingAgent, BillingAgentAdmin),
-    (ExcludedUser,),
-    (Poll,),
-    (Option,),
-    (IncreaseOptionBand,),
-    (Vote,),
-    (SupportLevel,),
-    (Referral, ReferralAdmin),
+    (models.Institution, InstitutionAdmin),
+    (models.Banding, BandingAdmin),
+    (models.Renewal,),
+    (models.BillingAgent, BillingAgentAdmin),
+    (models.ExcludedUser,),
+    (models.Poll,),
+    (models.Option,),
+    (models.IncreaseOptionBand,),
+    (models.Vote,),
+    (models.SupportLevel,),
+    (models.Referral, ReferralAdmin),
 ]
 
 
