@@ -1,16 +1,364 @@
 import uuid
 import os
+import re
 
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.core.exceptions import ValidationError, ImproperlyConfigured
 
-from plugins.consortial_billing import plugin_settings
+from django_countries.fields import CountryField
+
+from plugins.consortial_billing import utils, plugin_settings
+
+from utils.logger import get_logger
+logger = get_logger(__name__)
 
 fs = FileSystemStorage(location=settings.MEDIA_ROOT)
 
 
+CURRENCY_REGION_CHOICES = [
+    ('EMU', 'Euro area'),
+    ('GBR', 'United Kingdom'),
+    ('USA', 'United States'),
+]
+
+
+class BillingAgent(models.Model):
+    name = models.CharField(
+        max_length=255,
+    )
+    users = models.ManyToManyField(
+        'core.Account',
+        blank=True,
+        null=True,
+    )
+    country = CountryField(
+        blank=True,
+        null=True,
+        help_text='If selected, will route all signups in this '
+                  'country to this agent.',
+    )
+    default = models.BooleanField(
+        default=False,
+        help_text='Designates this as the default billing agent. ',
+    )
+    redirect_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text='If populated, the user will be redirected here '
+                  'to complete the sign-up process',
+    )
+
+    def save(self, *args, **kwargs):
+        # Keep self.default unique
+        if self.default:
+            self.country = None
+            try:
+                other = BillingAgent.objects.get(default=True)
+                if self != other:
+                    other.default = False
+                    other.save()
+            except BillingAgent.DoesNotExist:
+                pass
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class SupporterSize(models.Model):
+    name = models.CharField(
+        max_length=20,
+        help_text="The name of the size band, e.g. Large",
+    )
+    description = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text='How size is determined, e.g. 0-4999 FTE staff '
+                  'for an institution, or 10-19 members for a consortium '
+    )
+    multiplier = models.FloatField(
+        default=1,
+        help_text="The base rate is multiplied by this "
+                  "as part of the support fee calculation",
+    )
+    internal_notes = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Internal notes on how this was configured, "
+                  "for when it needs updating next",
+    )
+    is_consortium = models.BooleanField(
+        default=False,
+        help_text="Whether this is a consortium",
+    )
+
+    def __str__(self):
+        return f'{self.name} ({self.description})'
+
+    class Meta:
+        ordering = ('is_consortium', '-multiplier', 'name')
+
+
+class SupportLevel(models.Model):
+    name = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        help_text="The level of support, e.g. Standard or Higher"
+    )
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+    multiplier = models.FloatField(
+        default=1,
+        help_text="The base rate is multiplied by this "
+                  "as part of the support fee calculation",
+    )
+    internal_notes = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Internal notes on how this was configured, "
+                  "for when it needs updating next",
+    )
+
+    class Meta:
+        ordering = ('-multiplier', 'name')
+
+    def __str__(self):
+        return f'{self.name} support'
+
+
+class Currency(models.Model):
+
+    code = models.CharField(
+        max_length=3,
+        help_text="Three-letter currency code, e.g. EUR",
+    )
+    region = models.CharField(
+        max_length=3,
+        choices=CURRENCY_REGION_CHOICES,
+        help_text="The region or country associated with this currency "
+                  "in World Bank data",
+    )
+    internal_notes = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Internal notes on how this was configured, "
+                  "for when it needs updating next",
+    )
+
+    @property
+    def exchange_rate(self):
+        return utils.get_exchange_rate(self)
+
+    def __str__(self):
+        return self.code
+
+    class Meta:
+        ordering = ('code',)
+        verbose_name_plural = 'Currencies'
+
+
+class Band(models.Model):
+
+    size = models.ForeignKey(
+        SupporterSize,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name="Institution/consortium size",
+    )
+    country = CountryField(
+        blank=True,
+        null=True,
+    )
+    currency = models.ForeignKey(
+        Currency,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name="Preferred currency",
+    )
+    level = models.ForeignKey(
+        SupportLevel,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        verbose_name="Support level",
+    )
+    datetime = models.DateTimeField(
+        default=timezone.now,
+    )
+    fee = models.IntegerField(
+        blank=True,
+        null=True,
+    )
+    billing_agent = models.ForeignKey(
+        BillingAgent,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text="Who is responsible for billing this supporter",
+    )
+    display = models.BooleanField(
+        default=True,
+    )
+    base = models.BooleanField(
+        default=False,
+        help_text='Select if this is the base band to represent '
+                  'the base fee, country, currency, size, and support level.',
+    )
+
+    @property
+    def economic_disparity(self):
+        return utils.get_economic_disparity(self.country)
+
+    def calculate_fee(self):
+        """
+        Given institution size, supporter level, country,
+        and exchange rate, calculates supporter fee
+        """
+        for field in [
+            self.size,
+            self.level,
+            self.country,
+            self.currency
+        ]:
+            if not field:
+                raise ValidationError(f'{field} needed for calculation')
+
+        try:
+            fee = Band.objects.filter(base=True).latest('datetime').fee
+        except Band.DoesNotExist:
+            raise ImproperlyConfigured('No base band found')
+
+        # Account for size of institution
+        fee *= self.size.multiplier
+
+        # Account for support level chosen
+        fee *= self.level.multiplier
+
+        # Account for country
+        fee *= self.economic_disparity
+
+        # Convert into preferred currency
+        fee *= self.currency.exchange_rate
+
+        # Round to the nearest ten
+        return int(round(fee, -1))
+
+    def save(self, *args, **kwargs):
+        # Calculate fee if empty
+        if not self.fee and not self.base:
+            self.fee = self.calculate_fee()
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.fee} {self.currency} ({self.datetime}): ' \
+               f'{self.size}, {self.level}, {self.country.name}'
+
+
+def validate_ror(url):
+    ror = os.path.split(url)[-1]
+    ror_regex = '^0[a-hj-km-np-tv-z|0-9]{6}[0-9]{2}$'
+    if not re.match(ror_regex, ror):
+        raise ValidationError(f'{ror} is not a valid ROR identifier')
+
+
+class Supporter(models.Model):
+
+    # Entered by user on signup
+    name = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        verbose_name="Institution/consortium name",
+    )
+    ror = models.URLField(
+        blank=True,
+        null=True,
+        validators=[validate_ror],
+        verbose_name='ROR',
+        help_text='Research Organization Registry identifier (URL)',
+    )
+    address = models.TextField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Billing address",
+    )
+    postal_code = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    display = models.BooleanField(
+        default=True,
+        help_text="May we include your institution name "
+                  "in public our list of supporters?",
+    )
+    contacts = models.ManyToManyField(
+        'core.Account',
+        related_name="contact_for_supporter",
+        blank=True,
+        null=True,
+        help_text="Who can be contacted at this supporter",
+    )
+
+    # Attached to supporter at signup or
+    # recalculation with new data
+    bands = models.ManyToManyField(
+        Band,
+        blank=True,
+        null=True,
+        help_text='Includes both current and past bands '
+                  'so that there is a record of changes. '
+                  'Only the latest band is displayed.',
+    )
+
+    # Determined for the user or entered in admin
+    active = models.BooleanField(
+        default=False,
+        help_text="Whether the supporter is active",
+    )
+
+    @property
+    def band(self):
+        return self.bands.latest('datetime')
+
+    @property
+    def country(self):
+        return self.band.country if self.bands else None
+
+    @property
+    def size(self):
+        return self.band.size if self.bands else None
+
+    @property
+    def level(self):
+        return self.band.level if self.bands else None
+
+    @property
+    def currency(self):
+        return self.band.currency if self.bands else None
+
+    @property
+    def fee(self):
+        return self.band.fee if self.bands else None
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ('name',)
+
+
+# Keep this for old migrations
 def file_upload_path(instance, filename):
     try:
         filename = str(uuid.uuid4()) + '.' + str(filename.split('.')[1])
@@ -19,250 +367,3 @@ def file_upload_path(instance, filename):
 
     path = "plugins/{0}/".format(plugin_settings.SHORT_NAME)
     return os.path.join(path, filename)
-
-
-def banding_choices():
-    return (
-        ('small', 'Small'),
-        ('medium', 'Medium'),
-        ('large', 'Large'),
-    )
-
-
-class Banding(models.Model):
-    name = models.CharField(max_length=200, blank=False, unique=True)
-    currency = models.CharField(max_length=255, blank=True, null=True)
-    default_price = models.IntegerField(blank=True, null=True, default=0)
-    billing_agent = models.ForeignKey(
-        'BillingAgent',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
-    display = models.BooleanField(default=True)
-    redirect_url = models.URLField(blank=True, null=True)
-    size = models.CharField(max_length=20, choices=banding_choices(), default='small')
-
-    def __str__(self):
-        return '{0}: {1} {2}'.format(self.name, self.default_price, self.currency if self.currency else '')
-
-
-class BillingAgent(models.Model):
-    name = models.CharField(max_length=255, blank=False)
-    users = models.ManyToManyField('core.Account', blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-
-def supporter_level():
-    return (
-        ('top', 'Top-Tier Supporters'),
-        ('regular', 'Regular Supporters'),
-    )
-
-
-class SupportLevel(models.Model):
-    name = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField(blank=True)
-    order = models.PositiveIntegerField(default=99)
-
-    class Meta:
-        ordering = ('order', 'name')
-
-    def __str__(self):
-        return self.name
-
-
-class Institution(models.Model):
-    name = models.CharField(max_length=200, blank=False, unique=True, verbose_name="Institution Name")
-    country = models.CharField(max_length=255, blank=False)
-    sort_country = models.CharField(max_length=255, blank=True, default='')
-    active = models.BooleanField(default=True)
-    consortial_billing = models.BooleanField(default=False)
-    display = models.BooleanField(default=True)
-    consortium = models.ForeignKey('self', blank=True, null=True, on_delete=models.SET_NULL)
-    banding = models.ForeignKey(Banding, blank=True, null=True, on_delete=models.SET_NULL)
-    billing_agent = models.ForeignKey(BillingAgent, blank=True, null=True, on_delete=models.SET_NULL)
-
-    # Personal signup details
-    first_name = models.CharField(max_length=255, null=True, blank=True)
-    last_name = models.CharField(max_length=255, null=True, blank=True)
-    email_address = models.EmailField(max_length=255, null=True)
-
-    # Address
-    address = models.TextField(max_length=255, null=True, blank=True, verbose_name="Billing Address")
-    postal_code = models.CharField(max_length=255, null=True, blank=True, verbose_name="Post/Zip Code")
-
-    multiplier = models.DecimalField(decimal_places=2, max_digits=3, default=1.0)
-
-    supporter_level = models.ForeignKey(
-        SupportLevel,
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-    )
-
-    referral_code = models.UUIDField(default=uuid.uuid4)
-
-    class Meta:
-        ordering = ('sort_country', 'name')
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        self.sort_country = self.country.replace('The ', '')
-        super(Institution, self).save(*args, **kwargs)
-
-    @property
-    def next_renewal(self):
-        renewals = self.renewal_set.order_by('-date')
-
-        if len(renewals) > 0:
-            return renewals[0]
-        else:
-            return None
-
-
-class Renewal(models.Model):
-    date = models.DateField(default=timezone.now)
-    amount = models.DecimalField(decimal_places=2, max_digits=20, blank=False)
-    currency = models.CharField(max_length=255, blank=False)
-    institution = models.ForeignKey(
-        Institution,
-        on_delete=models.CASCADE,
-    )
-    billing_complete = models.BooleanField(default=False)
-    date_renewed = models.DateTimeField(blank=True, null=True)
-
-    def __str__(self):
-        s = "Renewal for {0} due {1} for {2} {3}".format(
-                self.institution.name, self.date, self.amount,
-                self.currency,
-        )
-        if self.billing_complete:
-            s += "|RENEWED on {}".format(self.date_renewed)
-        return s
-
-
-class ExcludedUser(models.Model):
-    user = models.ForeignKey(
-        'core.Account',
-        on_delete=models.CASCADE,
-    )
-
-
-class Signup(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    email_address = models.CharField(max_length=500)
-    institution = models.CharField(max_length=500)
-    address = models.TextField(max_length=500)
-
-    public = models.BooleanField()
-    billing_agent_member = models.BooleanField()
-
-    fte = models.TextField(max_length=500)
-    other_amount = models.IntegerField(default=0, null=True)
-    years = models.IntegerField(default=1)
-    amount = models.IntegerField()
-
-
-class Poll(models.Model):
-    staffer = models.ForeignKey(
-        'core.Account',
-        null=True,
-        on_delete=models.SET_NULL,
-    )
-    name = models.CharField(max_length=255)
-    text = models.TextField(null=True)
-    file = models.FileField(upload_to=file_upload_path, null=True, blank=True, storage=fs)
-
-    date_started = models.DateTimeField(default=timezone.now)
-    date_open = models.DateTimeField()
-    date_close = models.DateTimeField()
-    processed = models.BooleanField(default=False)
-
-    options = models.ManyToManyField('Option')
-
-    @property
-    def open(self):
-        if self.date_open < timezone.now() and self.date_close > timezone.now():
-            return True
-        return False
-
-
-class Option(models.Model):
-    text = models.CharField(max_length=300)
-    all = models.BooleanField(default=False)
-
-    def increase(self, institution):
-        try:
-            increase = IncreaseOptionBand.objects.get(banding=institution.banding, option=self)
-            return "{0} {1}".format(increase.price_increase, institution.banding.currency)
-        except IncreaseOptionBand.DoesNotExist:
-            return "No result found."
-
-    def __str__(self):
-        return self.text
-
-
-class IncreaseOptionBand(models.Model):
-    banding = models.ForeignKey(
-        Banding,
-        on_delete=models.CASCADE,
-    )
-    option = models.ForeignKey(
-        Option,
-        on_delete=models.CASCADE,
-    )
-    price_increase = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-
-    def __str__(self):
-        return "Increase Option {banding}, {option}, {price_increase}".format(banding=self.banding, option=self.option,
-                                                                              price_increase=self.price_increase)
-
-
-class Vote(models.Model):
-    institution = models.ForeignKey(
-        Institution,
-        on_delete=models.CASCADE,
-    )
-    poll = models.ForeignKey(
-        Poll,
-        on_delete=models.CASCADE,
-    )
-    aye = models.ManyToManyField(Option, related_name="vote_aye")
-    no = models.ManyToManyField(Option, related_name="vote_no")
-
-
-class Referral(models.Model):
-    referring_institution = models.ForeignKey(
-        Institution,
-        related_name='referring_institution',
-        on_delete=models.CASCADE,
-    )
-    new_institution = models.ForeignKey(
-        Institution,
-        related_name='new_institution',
-        on_delete=models.CASCADE,
-    )
-    referring_discount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True)
-    referent_discount = models.DecimalField(decimal_places=2, max_digits=10, blank=True, null=True)
-    datetime = models.DateTimeField(default=timezone.now)
-
-    class Meta:
-        ordering = ('datetime',)
-
-    def reverse(self):
-        referring_renewal = Renewal.objects.get(pk=self.referring_institution.next_renewal.pk)
-        referent_renewal = Renewal.objects.get(pk=self.new_institution.next_renewal.pk)
-
-        referring_renewal.amount = referring_renewal.amount + self.referring_discount
-        referent_renewal.amount = referent_renewal.amount + self.referent_discount
-
-        referring_renewal.save()
-        referent_renewal.save()
-
-        self.delete()
