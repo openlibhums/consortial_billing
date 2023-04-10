@@ -9,24 +9,139 @@ from plugins.consortial_billing import models
 from core import files
 
 
+class BandInline(admin.TabularInline):
+    model = models.Band
+    extra = 0
+
+
 class BillingAgentAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    filter_horizontal = ('users',)
+    list_display = (
+        'pk',
+        'name',
+        'country',
+        'default',
+    )
+    list_editable = (
+        'name',
+        'country',
+        'default',
+    )
+    raw_id_fields = (
+        'users',
+    )
+    inlines = [
+        BandInline,
+    ]
 
 
-class BandingAdmin(admin.ModelAdmin):
-    list_display = ('name', 'currency', 'default_price', 'billing_agent', 'display', 'size')
-    list_filter = ('currency', 'billing_agent', 'display', 'size')
-    search_fields = ('name',)
+class SupporterSizeAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk',
+        'name',
+        'is_consortium',
+        'description',
+        'multiplier',
+        'internal_notes',
+    )
+    list_editable = (
+        'name',
+        'is_consortium',
+        'description',
+        'multiplier',
+        'internal_notes',
+    )
+    list_filter = (
+        'is_consortium',
+    )
+    inlines = [
+        BandInline,
+    ]
 
 
-class ReferralAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'referring_institution', 'new_institution', 'datetime')
-    list_filter = ('referring_institution',)
+class SupportLevelAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk',
+        'name',
+        'description',
+        'multiplier',
+        'internal_notes',
+    )
+    list_editable = (
+        'name',
+        'description',
+        'multiplier',
+        'internal_notes',
+    )
+    inlines = [
+        BandInline,
+    ]
 
 
-def export_institutions(modeladmin, request, queryset):
-    headers = ['Name', 'Country', 'Active', 'First Name', 'Last Name', 'Email']
+class CurrencyAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk',
+        'code',
+        'region',
+        'exchange_rate',
+        'internal_notes',
+    )
+    list_editable = (
+        'code',
+        'region',
+        'internal_notes',
+    )
+    readonly_fields = (
+        'exchange_rate',
+    )
+    inlines = [
+        BandInline,
+    ]
+
+
+class BandAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk',
+        'size',
+        'country',
+        'currency',
+        'level',
+        'fee',
+        'datetime',
+        'billing_agent',
+        'display',
+        'base',
+    )
+    list_filter = (
+        'base',
+        'datetime',
+        'size',
+        'currency',
+        'level',
+        'fee',
+        'billing_agent',
+        'display',
+        'country',
+    )
+    date_hierarchy = 'datetime'
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return (
+                'size',
+                'country',
+                'currency',
+                'level',
+                'fee',
+                'datetime',
+                'billing_agent',
+                'base',
+            )
+        else:
+            return ()
+
+
+def export_supporters(modeladmin, request, queryset):
+    headers = ['Name', 'Active', 'First Name', 'Last Name', 'Email']
     filename = '{uuid}.csv'.format(uuid=uuid.uuid4())
     filepath = os.path.join(settings.BASE_DIR, 'files', 'temp', filename)
     with open(filepath, 'w') as file:
@@ -34,33 +149,64 @@ def export_institutions(modeladmin, request, queryset):
         writer.writerow(headers)
 
         for inst in queryset:
-            writer.writerow([inst.name, inst.country, inst.active, inst.first_name, inst.last_name, inst.email_address])
+            writer.writerow([
+                inst.name,
+                inst.active,
+                inst.first_name,
+                inst.last_name,
+                inst.email_address,
+            ])
 
     return files.serve_temp_file(filepath, filename)
 
 
-export_institutions.short_description = "Export Institutions"
+export_supporters.short_description = "Export Supporters"
 
 
-class InstitutionAdmin(admin.ModelAdmin):
-    list_display = ('name', 'country', 'active', 'banding', 'first_name', 'last_name', 'email_address')
-    search_fields = ('name', 'first_name', 'last_name', 'email_addres')
-    list_filter = ('country', 'banding')
-    actions = [export_institutions]
+class SupporterAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'address',
+        'postal_code',
+        'country',
+        'size',
+        'level',
+        'fee',
+        'currency',
+        'active',
+        'display',
+    )
+    search_fields = (
+        'name',
+        'address',
+        'postal_code',
+        'contacts__first_name',
+        'contacts__last_name',
+        'contacts__email',
+    )
+    list_filter = (
+        'active',
+        'bands__size',
+        'bands__level',
+        'bands__currency',
+        'bands__country',
+    )
+    raw_id_fields = (
+        'contacts',
+    )
+    filter_vertical = (
+        'bands',
+    )
+    actions = [export_supporters]
 
 
 admin_list = [
-    (models.Institution, InstitutionAdmin),
-    (models.Banding, BandingAdmin),
-    (models.Renewal,),
+    (models.SupporterSize, SupporterSizeAdmin),
+    (models.SupportLevel, SupportLevelAdmin),
+    (models.Currency, CurrencyAdmin),
+    (models.Supporter, SupporterAdmin),
+    (models.Band, BandAdmin),
     (models.BillingAgent, BillingAgentAdmin),
-    (models.ExcludedUser,),
-    (models.Poll,),
-    (models.Option,),
-    (models.IncreaseOptionBand,),
-    (models.Vote,),
-    (models.SupportLevel,),
-    (models.Referral, ReferralAdmin),
 ]
 
 
