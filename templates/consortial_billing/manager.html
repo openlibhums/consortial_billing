@@ -1,5 +1,5 @@
 {% extends "admin/core/base.html" %}
-{% load humanize %}
+{% load admin_urls %}
 
 {% block title %}Consortial Billing - {{ request.press.name }}{% endblock title %}
 
@@ -130,6 +130,7 @@
                     </div>
                 </div>
             </div>
+            {% if settings %}
             <div class="box">
                 <div class="title-area">
                     <h2>Other Settings</h2>
@@ -139,23 +140,19 @@
                         Text blocks and email templates.
                     </p>
                     <div class="stacked button-group">
+                        {% for setting in settings %}
                         <a
-                            href="/admin/core/settingvalue/?q=complete_text"
                             class="button secondary"
-                            target="_blank">
+                            target="_blank"
+                            href="{% url 'admin:core_setting_change' setting.pk %}">
                             <i class="fa fa-pencil"></i>
-                            Edit signup complete text
+                            {{ setting.pretty_name }}
                         </a>
-                        <a
-                            href="/admin/core/settingvalue/?q=new_signup_email"
-                            class="button secondary"
-                            target="_blank">
-                            <i class="fa fa-pencil"></i>
-                            Edit new signup text
-                        </a>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
         <div class="large-6 columns">
             {% if base_band %}

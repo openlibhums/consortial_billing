@@ -184,6 +184,7 @@ class SupporterAdmin(admin.ModelAdmin):
         'level',
         'fee',
         'currency',
+        'billing_agent',
         'active',
         'display',
     )

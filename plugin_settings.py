@@ -1,5 +1,6 @@
 from utils import plugins
 from utils.install import update_settings
+from events import logic as events_logic
 from django.core.management import call_command
 
 PLUGIN_NAME = 'Consortial Billing'
@@ -11,6 +12,8 @@ AUTHOR = 'Martin Paul Eve & Joseph Muller'
 VERSION = '2.0'
 JANEWAY_VERSION = "1.5.0"
 IS_WORKFLOW_PLUGIN = False
+
+ON_SIGNUP = "on_signup"
 
 
 class ConsortialBillingPlugin(plugins.Plugin):
@@ -45,3 +48,18 @@ def hook_registry():
             'function': 'admin_hook'
         },
     }
+
+
+def register_for_events():
+    # Plugin modules can't be imported until plugin is loaded
+    from plugins.consortial_billing.notifications import emails
+
+    events_logic.Events.register_for_event(
+        ON_SIGNUP,
+        emails.send_signup_notification_to_billing_agent,
+    )
+
+    events_logic.Events.register_for_event(
+        ON_SIGNUP,
+        emails.send_confirmation_email_to_supporter,
+    )

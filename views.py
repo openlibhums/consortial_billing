@@ -3,7 +3,9 @@ from django.urls import reverse
 from django.core.management import call_command
 
 from plugins.consortial_billing import utils, \
-    models, plugin_settings, forms, security
+     models, plugin_settings, forms, security
+from plugins.consortial_billing.notifications import notify
+
 from cms import models as cms_models
 from utils.logger import get_logger
 from security.decorators import base_check_required
@@ -22,33 +24,11 @@ def manager(request):
         if 'recalculate_bands' in request.POST:
             call_command('calculate_all_fees', '--save')
 
-    try:
-        base_band = models.Band.objects.filter(
-            base=True
-        ).latest('datetime')
-    except models.Band.DoesNotExist:
-        base_band = None
-
-    try:
-        latest_gni_data = cms_models.MediaFile.objects.filter(
-            label__contains='NY.GNP.PCAP.CD',
-        ).latest('uploaded')
-    except cms_models.MediaFile.DoesNotExist:
-        latest_gni_data = None
-    try:
-        latest_exchange_rate_data = cms_models.MediaFile.objects.filter(
-            label__contains='PA.NUS.FCRF',
-        ).latest('uploaded')
-    except cms_models.MediaFile.DoesNotExist:
-        latest_exchange_rate_data = None
-
-    exchange_rates = []
-    if base_band:
-        for currency in models.Currency.objects.all():
-            rate_usd, _warnings = currency.exchange_rate
-            base_usd, _warnings = base_band.currency.exchange_rate
-            rate = rate_usd / base_usd
-            exchange_rates.append((rate, currency.code))
+    base_band = utils.get_base_band()
+    latest_gni_data = utils.get_latest_gni_data()
+    latest_exchange_rate_data = utils.get_latest_exchange_rate_data()
+    exchange_rates = utils.get_exchange_rates_for_display()
+    settings = utils.get_settings_for_display()
 
     context = {
         'plugin': plugin_settings.SHORT_NAME,
@@ -62,6 +42,7 @@ def manager(request):
         'latest_gni_data': latest_gni_data,
         'latest_exchange_rate_data': latest_exchange_rate_data,
         'exchange_rates': exchange_rates,
+        'settings': settings,
     }
 
     template = 'consortial_billing/manager.html'
@@ -115,8 +96,13 @@ def signup(request):
                 if supporter_form.is_valid():
                     supporter = supporter_form.save(commit=True)
                     supporter.bands.add(band)
+                    supporter.contacts.add(request.user)
                     supporter.save()
                     complete_text = utils.setting('complete_text')
+                    notify.event_signup(
+                        request,
+                        supporter,
+                    )
 
     template = 'consortial_billing/signup.html'
 

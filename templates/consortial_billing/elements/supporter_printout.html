@@ -1,0 +1,12 @@
+<p>{{ supporter.name }}</p>
+<p>{{ supporter.ror|default:'' }}</p>
+<p>{{ supporter.billing_address|default:''  }}</p>
+<p>{{ supporter.postal_code|default:''  }}</p>
+<p>{{ supporter.band.country.name }}</p>
+<p>{{ supporter.band.size }}</p>
+<p>{{ supporter.band.level }}</p>
+<p>{{ supporter.band.fee }} {{ supporter.band.currency }}</p>
+{% if supporter.display %}
+    <p>OK to display</p>
+{% endif %}
+<p>Billed by {{ supporter.billing_agent }}</p>

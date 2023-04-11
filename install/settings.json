@@ -4,10 +4,25 @@
       "name": "plugin:consortial_billing"
     },
     "setting": {
+      "description": "List of things supporters must agree to when signing up",
+      "is_translatable": true,
+      "name": "signup_agreement",
+      "pretty_name": "Supporter signup form agreement",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "<p>By submitting this form you agree to these terms:</p><ul class='browser-default'><li>You are the named representative of the institution or consortium named above.</li><li>You are authorised to commit to expenditure of the institution or consortium named above.</li><li>We have the right to reject funds from any organization or individual for any reason.</li></ul>"
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
       "description": "Text thanking users on completion of the sign-up form",
       "is_translatable": true,
       "name": "complete_text",
-      "pretty_name": "Complete text (plugin)",
+      "pretty_name": "Supporter signup complete text",
       "type": "rich-text"
     },
     "value": {
@@ -16,32 +31,62 @@
   },
   {
     "group": {
-      "name": "plugin:consortial_billing"
+      "name": "email"
     },
     "setting": {
       "description": "Email notifying press contact that a new supporter has signed up",
       "is_translatable": true,
       "name": "new_signup_email",
-      "pretty_name": "New signup email (plugin)",
+      "pretty_name": "New supporter signup email",
       "type": "rich-text"
     },
     "value": {
-      "default": ""
+      "default": "<p>{{ supporter.name }} has signed up as a supporter! <a href='{{ supporter_url }}'>Confirm details and mark active</a></p>"
     }
   },
   {
     "group": {
-      "name": "plugin:consortial_billing"
+      "name": "email_subject"
     },
     "setting": {
-      "description": "List of things supporters must agree to when signing up",
+      "description": "Subject for email notifying press contact that a new supporter has signed up",
       "is_translatable": true,
-      "name": "signup_agreement",
-      "pretty_name": "Signup form agreement",
+      "name": "subject_new_signup_email",
+      "pretty_name": "Subject for new supporter signup email",
       "type": "rich-text"
     },
     "value": {
-      "default": "<p>By submitting this form you agree to these terms:</p><ul class='browser-default'><li>You are the named representative of the institution or consortium named above.</li><li>You are authorised to commit to expenditure of the institution or consortium named above.</li><li>We have the right to reject funds from any organization or individual for any reason.</li></ul>"
+      "default": "New supporter signup"
+    }
+  },
+  {
+    "group": {
+      "name": "email"
+    },
+    "setting": {
+      "description": "Email to supporter with sign-up details for their records",
+      "is_translatable": true,
+      "name": "signup_confirmation_email",
+      "pretty_name": "Supporter signup confirmation email",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "<p>Thank you for signing up to support us. Here are the details you submitted:</p>{% include 'consortial_billing/elements/supporter_printout.html' with supporter=supporter %}"
+    }
+  },
+  {
+    "group": {
+      "name": "email_subject"
+    },
+    "setting": {
+      "description": "Subject for email to supporter with sign-up details for their records",
+      "is_translatable": true,
+      "name": "subject_signup_confirmation_email",
+      "pretty_name": "Subject for supporter signup confirmation email",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "Open Library of Humanities support confirmation"
     }
   }
 ]
