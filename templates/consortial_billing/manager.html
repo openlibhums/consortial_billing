@@ -173,6 +173,20 @@
                     </ul>
                 </div>
             </div>
+                {% if exchange_rates %}
+                <div class="box">
+                    <div class="title-area">
+                        <h2>Current Exchange Rates (from {{ base_band.currency }})</h2>
+                    </div>
+                    <div class="content">
+                        <ul>
+                            {% for rate, currency in exchange_rates %}
+                            <li>{{ rate|floatformat:3 }} {{currency }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
             {% endif %}
             <form method="POST">
             {% csrf_token %}

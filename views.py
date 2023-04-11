@@ -42,6 +42,14 @@ def manager(request):
     except cms_models.MediaFile.DoesNotExist:
         latest_exchange_rate_data = None
 
+    exchange_rates = []
+    if base_band:
+        for currency in models.Currency.objects.all():
+            rate_usd, _warnings = currency.exchange_rate
+            base_usd, _warnings = base_band.currency.exchange_rate
+            rate = rate_usd / base_usd
+            exchange_rates.append((rate, currency.code))
+
     context = {
         'plugin': plugin_settings.SHORT_NAME,
         'supporters': models.Supporter.objects.all(),
@@ -53,6 +61,7 @@ def manager(request):
         'complete_text': utils.setting('complete_text'),
         'latest_gni_data': latest_gni_data,
         'latest_exchange_rate_data': latest_exchange_rate_data,
+        'exchange_rates': exchange_rates,
     }
 
     template = 'consortial_billing/manager.html'
