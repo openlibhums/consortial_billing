@@ -82,7 +82,7 @@ class CurrencyAdmin(admin.ModelAdmin):
         'pk',
         'code',
         'region',
-        'exchange_rate',
+        '_exchange_rate',
         'internal_notes',
     )
     list_editable = (
@@ -96,6 +96,13 @@ class CurrencyAdmin(admin.ModelAdmin):
     inlines = [
         BandInline,
     ]
+
+    def _exchange_rate(self, obj):
+        if obj:
+            rate, warnings = obj.exchange_rate
+            return rate
+        else:
+            return ''
 
 
 class BandAdmin(admin.ModelAdmin):
@@ -138,7 +145,10 @@ class BandAdmin(admin.ModelAdmin):
                 'base',
             )
         else:
-            return ()
+            return (
+                'datetime',
+                'warnings',
+            )
 
 
 def export_supporters(modeladmin, request, queryset):
