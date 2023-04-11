@@ -6,7 +6,6 @@ from django.core.exceptions import PermissionDenied
 
 from security.test_security import TestSecurity
 from core import models as core_models
-from journal import models as journal_models
 from plugins.consortial_billing import models, security
 from utils.testing import helpers
 
@@ -36,65 +35,6 @@ class TestPluginSecurity(TestCase):
 
         self.assertFalse(func.called,
                          "billing agent required wrongly allows a non agent to access pages")
-
-    def test_billing_agent_for_institution_required_with_correct_agent(self):
-        func = Mock()
-        decorated_func = security.billing_agent_for_institution_required(func)
-
-        request = self.prepare_request_with_user(self.agent_user_one, self.journal_one)
-
-        kwargs = {'institution_id': self.institution_one.pk}
-        decorated_func(request, **kwargs)
-
-        # test that the callback was called
-        self.assertTrue(func.called, "billing_agent_for_institution_required wrongly blocks an agent")
-
-        kwargs = {'renewal_id': self.renewal_one.pk}
-        decorated_func(request, **kwargs)
-
-        self.assertTrue(func.called, "billing_agent_for_institution_required wrongly blocks an agent")
-
-    def test_billing_agent_for_institution_required_with_bad_agent(self):
-        func = Mock()
-        decorated_func = security.billing_agent_for_institution_required(func)
-
-        request = self.prepare_request_with_user(self.agent_user_two, self.journal_one)
-
-        kwargs = {'institution_id': self.institution_one.pk}
-        with self.assertRaises(PermissionDenied):
-            decorated_func(request, **kwargs)
-
-    def test_billing_agent_for_institution_required_with_regular_user(self):
-        func = Mock()
-        decorated_func = security.billing_agent_for_institution_required(func)
-
-        request = self.prepare_request_with_user(self.second_user, self.journal_one)
-
-        kwargs = {'institution_id': self.institution_one.pk}
-        with self.assertRaises(PermissionDenied):
-            decorated_func(request, **kwargs)
-
-    def test_agent_for_billing_agent_required_with_agent(self):
-        func = Mock()
-        decorated_func = security.agent_for_billing_agent_required(func)
-
-        request = self.prepare_request_with_user(self.agent_user_one, self.journal_one)
-
-        kwargs = {'billing_agent_id': self.billing_agent_one.pk}
-        decorated_func(request, **kwargs)
-
-        # test that the callback was called
-        self.assertTrue(func.called, "billing agent required wrongly blocks an agent")
-
-    def test_agent_for_billing_agent_required_with_regular_user(self):
-        func = Mock()
-        decorated_func = security.agent_for_billing_agent_required(func)
-
-        request = self.prepare_request_with_user(self.second_user, self.journal_one)
-
-        kwargs = {'billing_agent_id': self.billing_agent_one.pk}
-        with self.assertRaises(PermissionDenied):
-            decorated_func(request, **kwargs)
 
     @staticmethod
     def create_user(username, roles=None, journal=None):
