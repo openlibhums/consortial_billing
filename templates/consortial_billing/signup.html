@@ -1,16 +1,74 @@
 {% extends "core/base.html" %}
 {% load i18n %}
-{% block title %}Support the Open Library of Humanities{% endblock title %}
-
+{% load static %}
+{% load render_string %}
+{% load materializecss %}
+{% block title %}Support the OLH - {{ request.press.name }}{% endblock title %}
 
 {% block body %}
-<section id="content">
-    <div class="row columns">
-        <h2>Step One</h2>
-        {{ signup_text.value|safe }}
-        <a href="{% url 'consortial_banding' %}{% if referent %}?referent={{ referent }}{% endif %}" class="success button pull-right" type="submit" name="start_submission"><i
-                class="fa fa-check">&nbsp;</i>{% trans "Agree and Continue" %}
-        </a>
-    </div>
-</section>
+    {% if complete_text %}
+        <div class="row">
+            <div class="col m10 l8">
+                <h1>Signup Complete</h1>
+                <div><i class="material-icons medium green-text">done</i></div>
+                {% render_string complete_text %}
+            </div>
+        </div>
+    {% else %}
+
+        <div class="row">
+            <div class="col">
+                <h1>Support the OLH</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <form method="POST">
+
+                {% csrf_token %}
+                <div class="input-field col m10 l8">
+                    <input
+                        id="{{ supporter_form.name.id_for_label }}"
+                        type="text"
+                        class="autocomplete"
+                        name="{{ supporter_form.name.html_name }}"
+                        value="{{ supporter_form.name.value|default:'' }}">
+                    <label
+                        for="{{ supporter_form.name.id_for_label }}">
+                        {{ supporter_form.name.label|title }}
+                    </label>
+                </div>
+                {{ supporter_form.display|materializecss:"m10 l8" }}
+
+                {{ supporter_form.address|materializecss:"m10 l8" }}
+                {{ supporter_form.postal_code|materializecss:"m10 l8" }}
+
+                {% include 'consortial_billing/elements/calculate_fee.html' with band_form=band_form %}
+
+                {% if band_form.fee.value %}
+                    <div class="row">
+                        <div class="col m10 l8">
+                            {{ signup_agreement|safe }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col m10 l8">
+                            <button
+                                type="submit"
+                                class="btn-large baustel dijon black-text waves-effect waves-light"
+                                name="sign_up">
+                                Submit
+                                <i class="material-icons right">send</i>
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    {% endif %}
+
 {% endblock body %}
+
+{% block js %}
+    <script src="{% static 'path/autocomplete.js' %}" type="module"></script>
+{% endblock js %}

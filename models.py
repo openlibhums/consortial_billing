@@ -212,6 +212,11 @@ class Band(models.Model):
         help_text='Select if this is the base band to represent '
                   'the base fee, country, currency, size, and support level.',
     )
+    warnings = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Warning messages from the fee calculator',
+    )
 
     @property
     def economic_disparity(self):
@@ -236,6 +241,8 @@ class Band(models.Model):
         except Band.DoesNotExist:
             raise ImproperlyConfigured('No base band found')
 
+        warnings = ''
+
         # Account for size of institution
         fee *= self.size.multiplier
 
@@ -243,18 +250,24 @@ class Band(models.Model):
         fee *= self.level.multiplier
 
         # Account for country
-        fee *= self.economic_disparity
+        disparity, warning = self.economic_disparity
+        fee *= disparity
+        warnings += warning
 
         # Convert into preferred currency
-        fee *= self.currency.exchange_rate
+        rate, warning = self.currency.exchange_rate
+        fee *= rate
+        warnings += warning
 
         # Round to the nearest ten
-        return int(round(fee, -1))
+        fee = int(round(fee, -1))
+
+        return fee, warnings
 
     def save(self, *args, **kwargs):
         # Calculate fee if empty
         if not self.fee and not self.base:
-            self.fee = self.calculate_fee()
+            self.fee, self.warnings = self.calculate_fee()
 
         super().save(*args, **kwargs)
 
