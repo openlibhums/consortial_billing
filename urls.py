@@ -4,6 +4,11 @@ from plugins.consortial_billing import views
 
 urlpatterns = [
     re_path(
+        r'^$',
+        views.supporters,
+        name='consortial_supporters',
+    ),
+    re_path(
         r'^site/(?P<page_name>.*)/$',
         views.view_custom_page,
         name='supporters_custom_page',

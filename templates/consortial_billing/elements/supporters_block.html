@@ -1,47 +1,32 @@
-<section id="content">
-    <div class="row columns">
-        <div>
-            {{ pre_text.value|safe }}
-        </div>
-        <br/>
+{% regroup supporters|dictsort:"band.country.name" by band.country.name as supporter_list %}
 
-        {% if levels %}
-            {% for level in institutions %}
-                {% for k, v in level.items %}
-                    {% if k.name %}
-                    <h3>{{ k.name }}</h3>
-                    <p>{{ k.description }}</p>
-                    {% else %}
-                        <h3>{{ k }}</h3>
-                        <p>The following are our regular supporters.</p>
-                    {% endif %}
+<div class="row">
 
-
-                    {% regroup v by sort_country as institutions_list %}
-                    {% for institution in institutions_list %}
-                        <h5>{{ institution.list.0.country }}</h5>
-                        <ul>
-                            {% for institution in institution.list %}
-                                <li>{{ institution }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endfor %}
-
-
+    <section class="col s12 m6 l7">
+        {% for supporter in supporter_list %}
+            <{{ h }}
+                id="{{ supporter.list.0.band.country.alpha3 }}"
+                class="scrollspy">
+                {{ supporter.list.0.band.country.name }}
+            </{{ h }}>
+            <ul>
+                {% for supporter in supporter.list %}
+                    <li>{{ supporter }}</li>
                 {% endfor %}
+            </ul>
+        {% endfor %}
+    </section>
+
+    <section class="col m6 l5 hide-on-small-only">
+        <ul class="col m5 l4 table-of-contents fixed">
+            {% for supporter in supporter_list %}
+                <li>
+                    <a href="#{{ supporter.list.0.band.country.alpha3 }}">
+                        {{ supporter.list.0.band.country.name }}
+                    </a>
+                </li>
             {% endfor %}
-        {% else %}
-            {% regroup institutions by sort_country as institutions_list %}
-            {% for institution in institutions_list %}
-                <h5>{{ institution.list.0.country }}</h5>
-                <ul>
-                    {% for institution in institution.list %}
-                        <li>{{ institution }}</li>
-                    {% endfor %}
-                </ul>
-            {% endfor %}
-        {% endif %}
-    <br />
-        {{ post_text.value|safe }}
-    </div>
-</section>
+        </ul>
+    </section>
+
+</div>

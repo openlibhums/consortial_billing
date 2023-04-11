@@ -1,8 +1,15 @@
 {% extends "core/base.html" %}
 
-{% block title %}Supporters{% endblock title %}
-
+{% block title %}Supporters - {{ request.press.name }}{% endblock title %}
 
 {% block body %}
-{% include "consortial_billing/elements/supporters_block.html" %}
+
+    <div class="row">
+        <div class="col s12 m8 l9">
+            <h1>Supporters</h1>
+        </div>
+    </div>
+
+    {% include 'consortial_billing/elements/supporters_block.html' with h="h2" %}
+
 {% endblock body %}
