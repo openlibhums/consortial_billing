@@ -14,6 +14,11 @@ urlpatterns = [
         name='view_support_bands',
     ),
     re_path(
+        r'^manager/$',
+        views.manager,
+        name='supporters_manager',
+    ),
+    re_path(
         r'^site/(?P<page_name>.*)/$',
         views.view_custom_page,
         name='supporters_custom_page',

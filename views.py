@@ -11,6 +11,55 @@ from security.decorators import base_check_required
 logger = get_logger(__name__)
 
 
+@security.billing_agent_required
+def manager(request):
+
+    if request.POST:
+        if 'fetch_data' in request.POST:
+            indicator = request.POST.get('fetch_data', None)
+            call_command('fetch_world_bank_data', indicator)
+
+        if 'recalculate_bands' in request.POST:
+            call_command('calculate_all_fees', '--save')
+
+    try:
+        base_band = models.Band.objects.filter(
+            base=True
+        ).latest('datetime')
+    except models.Band.DoesNotExist:
+        base_band = None
+
+    try:
+        latest_gni_data = cms_models.MediaFile.objects.filter(
+            label__contains='NY.GNP.PCAP.CD',
+        ).latest('uploaded')
+    except cms_models.MediaFile.DoesNotExist:
+        latest_gni_data = None
+    try:
+        latest_exchange_rate_data = cms_models.MediaFile.objects.filter(
+            label__contains='PA.NUS.FCRF',
+        ).latest('uploaded')
+    except cms_models.MediaFile.DoesNotExist:
+        latest_exchange_rate_data = None
+
+    context = {
+        'plugin': plugin_settings.SHORT_NAME,
+        'supporters': models.Supporter.objects.all(),
+        'agents': models.BillingAgent.objects.all(),
+        'sizes': models.Supporter.objects.all(),
+        'levels': models.SupportLevel.objects.all(),
+        'currencies': models.Currency.objects.all(),
+        'base_band': base_band,
+        'complete_text': utils.setting('complete_text'),
+        'latest_gni_data': latest_gni_data,
+        'latest_exchange_rate_data': latest_exchange_rate_data,
+    }
+
+    template = 'consortial_billing/manager.html'
+
+    return render(request, template, context)
+
+
 @base_check_required
 def signup(request):
 
