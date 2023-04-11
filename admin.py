@@ -132,6 +132,7 @@ class BandAdmin(admin.ModelAdmin):
                 'currency',
                 'level',
                 'fee',
+                'warnings',
                 'datetime',
                 'billing_agent',
                 'base',

@@ -6,9 +6,9 @@ __maintainer__ = "Open Library of Humanities"
 import os
 import requests
 import json
-from datetime import datetime
 
 from django.core.files.base import ContentFile
+from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 
 from utils import setting_handler
@@ -86,7 +86,7 @@ def get_display_bands():
         for size in models.SupporterSize.objects.all():
             for currency in models.Currency.objects.all():
                 kwargs = {
-                    'institution__active': True,
+                    'supporter__active': True,
                     'fee__isnull': False,
                     'level': level,
                     'size': size,
@@ -167,29 +167,64 @@ def get_exchange_rate(currency):
     """
     Gets most up-to-date multiplier for exchange rate
     based on latest GNI per capita figure
+    :return: tuple of the indicator as int plus a string warning if
+             matching country data could not be found
     """
     indicator = 'PA.NUS.FCRF'
     base = models.Band.objects.filter(base=True).latest('datetime')
+    base_improperly_configured = 0
     for year in reversed(last_five_years()):
         rates = get_indicator_by_country(indicator, year)
-        if currency.region in rates and rates[currency.region]:
-            return rates[currency.region] / rates[base.currency.region]
+        if (
+            base.currency.region not in rates
+            or not rates[base.currency.region]
+        ):
+            base_improperly_configured += 1
+        elif currency.region in rates and rates[currency.region]:
+            rate = rates[currency.region] / rates[base.currency.region]
+            warning = ''
+            return rate, warning
 
-    logger.warning(f'No {indicator} data for {currency.region}')
-    return 1
+    if base_improperly_configured == 5:
+        raise ImproperlyConfigured(
+            f'{base.currency.region} not found in {indicator} data'
+        )
+
+    rate = 1
+    warning = f"""
+               <p>We don't have currency data for the region {currency.region},
+               so we could not factor that in to the fee calculation</p>
+               """
+    return rate, warning
 
 
 def get_economic_disparity(country):
     """
     Gets most up-to-date multiplier for economic disparity
     based on latest GNI per capita figure
+    :return: tuple of the indicator as int plus a string warning if
+             matching country data could not be found
     """
     indicator = 'NY.GNP.PCAP.CD'
     base = models.Band.objects.filter(base=True).latest('datetime')
+    base_improperly_configured = 0
     for year in reversed(last_five_years()):
         gnis = get_indicator_by_country(indicator, year)
-        if country.alpha3 in gnis and gnis[country.alpha3]:
-            return gnis[country.alpha3] / gnis[base.country.alpha3]
+        if base.country.alpha3 not in gnis or not gnis[base.country.alpha3]:
+            base_improperly_configured += 1
+        elif country.alpha3 in gnis and gnis[country.alpha3]:
+            disparity = gnis[country.alpha3] / gnis[base.country.alpha3]
+            warning = ''
+            return disparity, warning
 
-    logger.warning(f'No {indicator} data for {country.name}')
-    return 1
+    if base_improperly_configured == 5:
+        raise ImproperlyConfigured(
+            f'{base.country.alpha3} not found in {indicator} data'
+        )
+
+    disparity = 1
+    warning = f"""
+               <p>We don't have data for {country.name},
+               so we could not factor that in to the fee calculation</p>
+               """
+    return disparity, warning

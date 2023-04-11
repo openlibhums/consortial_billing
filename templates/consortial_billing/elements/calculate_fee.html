@@ -1,0 +1,41 @@
+{% load materializecss %}
+
+<div class="row">
+    {{ band_form.country|materializecss:"m10 l8" }}
+    {{ band_form.currency|materializecss:"m10 l8" }}
+    {{ band_form.size|materializecss:"m10 l8" }}
+    {{ band_form.level|materializecss:"m10 l8" }}
+</div>
+
+<div class="row">
+    {{ band_form.fee|materializecss:"s6 m5 l4" }}
+    <div class="col s6 m4 l3">
+        <button
+            class="btn-large waves-effect waves-light"
+            name="calculate"
+            type="submit">
+            {% if band_form.fee.value %}
+                Recalculate
+            {% else %}
+                Calculate
+            {% endif %}
+            <i class="material-icons right">calculate</i>
+        </button>
+    </div>
+</div>
+
+{% include 'core/elements/warnings.html' with warnings=band.warnings %}
+
+{% if band_form.fee.value and not supporter_form %}
+    <div class="row">
+        <div class="col m10 l8">
+            <button
+                type="submit"
+                class="btn-large baustel dijon black-text waves-effect waves-light"
+                name="start_signup">
+                Start Signup
+                <i class="material-icons right">start</i>
+            </button>
+        </div>
+    </div>
+{% endif %}

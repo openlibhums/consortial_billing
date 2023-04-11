@@ -312,6 +312,8 @@ class Migration(migrations.Migration):
                 blank=True,
                 null=True,
                 validators=[plugins.consortial_billing.models.validate_ror],
+                help_text='Research Organization Registry identifier (URL)',
+                verbose_name='ROR',
             ),
         ),
         migrations.AlterField(

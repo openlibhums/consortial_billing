@@ -1,770 +1,145 @@
-import csv
-import io
-import datetime
-
-from django.shortcuts import render, get_object_or_404, redirect, get_list_or_404
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib import messages
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
-from django.utils import timezone
-from django.core.cache import cache
 from django.core.management import call_command
-from django.db.models import Count
 
-from utils import setting_handler, models as utils_models
-from plugins.consortial_billing import models, logic, plugin_settings, forms, security
-from core import models as core_models
-from journal import models as journal_models
+from plugins.consortial_billing import utils, \
+    models, plugin_settings, forms, security
+from cms import models as cms_models
 from utils.logger import get_logger
+from security.decorators import base_check_required
 
 logger = get_logger(__name__)
 
 
-@security.billing_agent_required
-def index(request):
-    if request.POST:
-        # an action
-        if 'csv_upload' in request.FILES:
-            csv_import = request.FILES['csv_upload']
-            csv_reader = csv.DictReader(io.StringIO(csv_import.read().decode('utf-8')))
-
-            for row in csv_reader:
-
-                dict_renewal_amount = row.get("2017 Local Currency")
-                renewal_amount = dict_renewal_amount if dict_renewal_amount != '' else 0.00
-
-                if bool(row["Consortium"]):
-                    consortium, created = models.Institution.objects.get_or_create(name=row["Consortium"])
-                else:
-                    consortium = None
-
-                if row["Billing Agent"] != '':
-                    billing_agent, created = models.BillingAgent.objects.get_or_create(name=row["Billing Agent"])
-                else:
-                    billing_agent = None
-
-                if row["Band"] != '':
-                    banding_dict = {'currency': row['Local Currency'],
-                                    'default_price': renewal_amount}
-                    banding, create = models.Banding.objects.get_or_create(name=row['Band'],
-                                                                           billing_agent=billing_agent,
-                                                                           defaults=banding_dict)
-                else:
-                    banding = None
-
-                institution, created = models.Institution.objects.get_or_create(name=row["Institution"],
-                                                                                email_address=row['Email'],
-                                                                                country=row["Country"],
-                                                                                active=True,
-                                                                                consortial_billing=bool(row["Consortium"]),
-                                                                                consortium=consortium,
-                                                                                banding=banding,
-                                                                                billing_agent=billing_agent,
-                                                                                display=bool(row['Display']))
-
-                renewal = models.Renewal.objects.create(date=row["Renewal Date"],
-                                                        amount=renewal_amount,
-                                                        institution=institution,
-                                                        currency=row["Local Currency"])
-
-            logger.warning('Could not fetch exchange rates')
-            # call_command('fetch_fixer_ex_rates')
-            cache.clear()
-
-    near_renewals, renewals_in_next_year, institutions = logic.get_institutions_and_renewals(request.user.is_staff,
-                                                                                             request.user)
-
-    base_currency = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'base_currency',
-        None,
-    ).value
-    context = {'institutions': institutions,
-               'renewals': near_renewals,
-               'renewals_in_year': renewals_in_next_year,
-               'plugin': plugin_settings.SHORT_NAME,
-               'polls': models.Poll.objects.all(),
-               'base_currency': base_currency,
-               'referrals': models.Referral.objects.all()
-               }
-
-    return render(request, 'consortial_billing/admin.html', context)
-
-
+@base_check_required
 def signup(request):
-    referent = request.GET.get('referent', None)
-    signup_text = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'preface_text',
-        None,
-    )
 
-    context = {'signup_text': signup_text, 'referent': referent}
+    band_form = forms.BandForm()
+    band = None
+    supporter_form = forms.SupporterForm()
+    supporter = None
+    signup_agreement = utils.setting('signup_agreement')
+    complete_text = ''
 
-    return render(request, 'consortial_billing/signup.html', context)
-
-
-def signup_stage_two(request):
-    referent = request.GET.get('referent', None)
-    bandings = models.Banding.objects.filter(display=True).order_by('name', '-default_price')
-    referent_discount = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'referent_discount',
-        None,
-    )
-
-    errors = list()
+    # This handles the redirect from custom CMS pages with a GET
+    # calculation form
+    if request.GET:
+        band_form = forms.BandForm(request.GET)
+        if band_form.is_valid():
+            band = band_form.save(commit=False)
+            band_form = forms.BandForm(
+                instance=band,
+            )
+            supporter_form = forms.SupporterForm(
+                {'band': band}
+            )
 
     if request.POST:
-        banding_id = request.POST.get('banding')
-        if banding_id:
-            banding = get_object_or_404(models.Banding, pk=banding_id)
-            if banding.redirect_url:
-                return redirect(banding.redirect_url)
-            reversal = reverse('consortial_detail', kwargs={'banding_id': banding.pk})
-            return redirect('{0}{1}'.format(reversal, '?referent={0}'.format(referent) if referent else ''))
-        else:
-            banding = None
-            errors.append('No banding has been selected')
+        if 'calculate' in request.POST:
+            band_form = forms.BandForm(request.POST)
+            if band_form.is_valid():
+                band = band_form.save(commit=False)
+                band_form = forms.BandForm(
+                    instance=band,
+                )
+
+                supporter_form = forms.SupporterForm(request.POST)
+
+        if 'sign_up' in request.POST:
+            band_form = forms.BandForm(request.POST)
+            if band_form.is_valid():
+                band = band_form.save(commit=True)
+                band_form = forms.BandForm(
+                    instance=band,
+                )
+
+                supporter_form = forms.SupporterForm(request.POST)
+                if supporter_form.is_valid():
+                    supporter = supporter_form.save(commit=True)
+                    supporter.bands.add(band)
+                    supporter.save()
+                    complete_text = utils.setting('complete_text')
+
+    template = 'consortial_billing/signup.html'
 
     context = {
-        'bandings': bandings,
-        'errors': errors,
-        'banding_text': setting_handler.get_setting(
-            'plugin:consortial_billing',
-            'banding_pre_text',
-            None,
-        ).value,
-        'referent': referent,
-        'referent_discount': referent_discount.value,
+        'band_form': band_form,
+        'band': band,
+        'supporter_form': supporter_form,
+        'supporter': supporter,
+        'signup_agreement': signup_agreement,
+        'complete_text': complete_text,
     }
 
-    return render(request, 'consortial_billing/signup2.html', context)
+    return render(request, template, context)
 
 
-def signup_complete(request):
-    complete_text = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'complete_text',
-        None,
-    )
-
-    context = {'complete_text': complete_text}
-
-    return render(request, 'consortial_billing/complete.html', context)
-
-
-def signup_stage_three(request, banding_id):
-    referent = request.GET.get('referent', None)
-    discount = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'referent_discount',
-        None,
-    ).value
-    banding = get_object_or_404(models.Banding, pk=banding_id)
-    form = forms.Institution()
-
-    if request.POST:
-        form = forms.Institution(request.POST)
-        if form.is_valid():
-            institution = form.save(commit=False)
-            institution.banding = banding
-            institution.billing_agent = banding.billing_agent
-            institution.active = False
-            institution.save()
-
-            if referent:
-                price = logic.calc_discount(banding.default_price, discount)
-                discount_amount = float(banding.default_price) - float(price)
-            else:
-                price = banding.default_price
-                discount_amount = 0
-
-            models.Renewal.objects.create(institution=institution,
-                                          currency=banding.currency,
-                                          amount=price,
-                                          date=timezone.now())
-
-            if referent:
-                try:
-                    logic.record_referral(referent, institution, discount_amount)
-                except BaseException:
-                    # This except is wide, but we dont want this process to stop the recording of a new institution.
-                    pass
-
-            logic.send_emails(institution, banding.currency, banding.default_price, institution.display, request)
-            return redirect(reverse('consortial_complete'))
+def view_support_bands(request):
+    display_bands = utils.get_display_bands()
 
     context = {
-        'banding': banding,
-        'form': form,
-        'referent': referent,
-        'discount': discount,
+        'display_bands': display_bands,
     }
 
-    return render(request, 'consortial_billing/signup3.html', context)
-
-
-@staff_member_required
-def non_funding_author_insts(request):
-    if request.POST and 'user' in request.POST:
-        user_id = request.POST.get('user')
-        user = get_object_or_404(core_models.Account, pk=user_id)
-        models.ExcludedUser.objects.get_or_create(user=user)
-        messages.add_message(request, messages.INFO, "User has been excluded from this list.")
-        return redirect(reverse('consortial_non_funding_author_insts'))
-
-    institutions = models.Institution.objects.all()
-    authors = logic.get_authors()
-    editors = logic.get_editors()
-
-    list_of_users_not_supporting = logic.users_not_supporting(institutions, authors, editors)
-
-    template = 'consortial_billing/non_funding.html'
-    context = {
-        'authors_and_editors': list_of_users_not_supporting,
-        'institutions': institutions,
-    }
+    template = 'consortial_billing/view_support_bands.html'
 
     return render(request, template, context)
 
 
 def supporters(request):
-    levels = models.SupportLevel.objects.all()
 
-    if levels:
-        institutions = []
-        for level in levels:
-            insts_in_level = models.Institution.objects.filter(active=True, display=True, supporter_level=level)
-            institutions.append({level: insts_in_level})
-
-        insts_with_no_level = models.Institution.objects.filter(active=True, display=True, supporter_level__isnull=True)
-        institutions.append({'Regular Supporters': insts_with_no_level})
-    else:
-        institutions = models.Institution.objects.filter(active=True, display=True)
-
-    pre_text = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'pre_text',
-        None,
-    )
-    post_text = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'post_text',
-        None,
+    supporters = models.Supporter.objects.filter(
+        active=True,
+        display=True,
     )
 
-    if request.journal:
-        template = 'consortial_billing/supporters.html'
-    else:
-        template = 'consortial_billing/supporters_press.html'
+    template = 'consortial_billing/supporters_press.html'
 
     context = {
-        'levels': levels,
-        'institutions': institutions,
-        'pre_text': pre_text,
-        'post_text': post_text
+        'supporters': supporters,
     }
 
     return render(request, template, context)
 
 
-@security.billing_agent_required
-def process_renewal(request, renewal_id):
-    renewal = get_object_or_404(models.Renewal, pk=renewal_id, billing_complete=False)
-    renewal_form = forms.Renewal(institution=renewal.institution)
+def view_custom_page(request, page_name):
 
-    if request.POST:
-        renewal_form = forms.Renewal(request.POST)
-        if renewal_form.is_valid():
-            new_renewal = renewal_form.save(commit=False)
-            new_renewal.institution = renewal.institution
-            renewal.billing_complete = True
-            renewal.date_renewed = timezone.now()
-
-            new_renewal.save()
-            renewal.save()
-            cache.clear()
-
-            messages.add_message(request, messages.SUCCESS, 'Renewal for {0} processed.'.format(renewal.institution))
-            return redirect(reverse('consortial_index'))
-
-    context = {
-        'renewal': renewal,
-        'renewal_form': renewal_form,
-    }
-
-    return render(request, 'consortial_billing/process_renewal.html', context)
-
-
-@staff_member_required
-def view_renewals_report(request, start_date=None, end_date=None):
-    if request.POST:
-        start = request.POST.get('start')
-        end = request.POST.get('end')
-        print(start)
-        return redirect(reverse('consortial_renewals_with_date', kwargs={'start_date': start, 'end_date': end}))
-
-    if not start_date:
-        start_date = timezone.now() - datetime.timedelta(days=365)
-
-    if not end_date:
-        end_date = timezone.now()
-
-    renewals = models.Renewal.objects.filter(billing_complete=True,
-                                             date_renewed__gte=start_date,
-                                             date_renewed__lte=end_date)
-
-    template = 'consortial_billing/renewals_report.html'
-    context = {
-        'start_date': start_date,
-        'end_date': end_date,
-        'renewals': renewals,
-    }
-
-    return render(request, template, context)
-
-
-@security.billing_agent_for_institution_required
-def institution_manager(request, institution_id=None):
-    if institution_id:
-        institution = get_object_or_404(models.Institution, pk=institution_id)
-        form = forms.InstitutionForm(instance=institution)
-    else:
-        institution = None
-        form = forms.InstitutionForm()
-
-    if request.POST:
-
-        if 'delete' in request.POST and institution_id:
-            institution.delete()
-            messages.add_message(request, messages.WARNING, 'Institution deleted.')
-            cache.clear()
-            return redirect(reverse('consortial_index'))
-
-        if institution_id:
-            form = forms.InstitutionForm(request.POST, instance=institution)
-        else:
-            form = forms.InstitutionForm(request.POST)
-            cache.clear()
-
-        if form.is_valid():
-            institution = form.save()
-            if not institution_id:
-                models.Renewal.objects.create(institution=institution,
-                                              currency=institution.banding.currency,
-                                              amount=institution.banding.default_price * institution.multiplier,
-                                              date=timezone.now())
-                logger.warning('Could not fetch exchange rates')
-                # call_command('fetch_fixer_ex_rates')
-
-            messages.add_message(request, messages.SUCCESS, '{0} has been saved.'.format(institution.name))
-            return redirect(reverse('consortial_index'))
-
-    template = 'consortial_billing/institution_manager.html'
-    context = {
-        'institution': institution,
-        'form': form,
-    }
-
-    return render(request, template, context)
-
-
-@security.agent_for_billing_agent_required
-def renewals_by_agent(request, billing_agent_id):
-    billing_agent = get_object_or_404(models.BillingAgent, pk=billing_agent_id)
-    renewals = models.Renewal.objects.filter(institution__billing_agent=billing_agent, billing_complete=False)
-
-    if request.POST and 'mass_renewal' in request.POST:
-        agent_id = request.POST.get('mass_renewal')
-        if int(agent_id) == billing_agent.pk:
-            logic.complete_all_renewals(renewals)
-            messages.add_message(request, messages.SUCCESS, "{0} renewals completed".format(len(renewals)))
-            cache.clear()
-            return redirect(reverse('consortial_index'))
-
-    template = 'consortial_billing/renewals_by_agent.html'
-    context = {
-        'billing_agent': billing_agent,
-        'renewals': renewals,
-    }
-
-    return render(request, template, context)
-
-
-@staff_member_required
-def polling_manager(request, poll_id=None, option_id=None):
-    if poll_id:
-        poll = get_object_or_404(models.Poll, pk=poll_id)
-        vote_count, all_count, no_count = logic.vote_count(poll)
-    else:
-        poll, vote_count, all_count, no_count = None, None, None, None
-
-    if option_id:
-        option = get_object_or_404(models.Option, pk=option_id)
-    else:
-        option = None
-
-    bandings = models.Banding.objects.all()
-
-    form = forms.Poll(instance=poll)
-    option_form = forms.Option(instance=option)
-    easy_banding_form = forms.EasyBanding(option=option)
-    banding_form = forms.Banding(option=option)
-
-    if request.POST and 'poll' in request.POST:
-        form = forms.Poll(request.POST, request.FILES, instance=poll)
-        if form.is_valid():
-            new_poll = form.save(commit=False)
-            new_poll.staffer = request.user
-            new_poll.save()
-            messages.add_message(request, messages.INFO, 'Poll saved.')
-            return redirect(reverse('consortial_polling_id', kwargs={'poll_id': new_poll.pk}))
-
-    if request.POST and 'option' in request.POST:
-        option_form = forms.Option(request.POST, instance=option)
-        easy_banding_form = forms.EasyBanding(request.POST, option=option)
-        banding_form = forms.Banding(request.POST, option=option)
-
-        if option_form.is_valid() and banding_form.is_valid() and easy_banding_form.is_valid():
-            new_option = option_form.save()
-            poll.options.add(new_option)
-            easy_banding_form.save(option=new_option)
-            banding_form.save(option=new_option)
-            return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
-
-    template = 'consortial_billing/polling_manager.html'
-    context = {
-        'form': form,
-        'poll': poll,
-        'bandings': bandings,
-        'option': option,
-        'option_form': option_form,
-        'easy_banding_form': easy_banding_form,
-        'banding_form': banding_form,
-        'vote_count': vote_count,
-        'all_count': all_count,
-        'no_count': no_count,
-    }
-
-    return render(request, template, context)
-
-
-@staff_member_required
-def poll_summary(request, poll_id):
-    try:
-        poll = models.Poll.objects.get(pk=poll_id, date_close__lt=timezone.now(), processed=False)
-    except models.Poll.DoesNotExist:
-        messages.add_message(request, messages.INFO, 'This poll is either still open or has already been processed.')
-        return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll_id}))
-    increases = models.IncreaseOptionBand.objects.filter(option__in=poll.options.all())
-    vote_count, all_count, no_count = logic.vote_count(poll)
-
-    if request.POST:
-        options = request.POST.getlist('options')
-        options = models.Option.objects.filter(poll=poll, pk__in=options)
-        logic.process_poll_increases(options)
-        poll.processed = True
-        poll.save()
-        return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
-
-    template = 'consortial_billing/poll_summary.html'
-    context = {
-        'poll': poll,
-        'increases': increases,
-        'vote_count': vote_count,
-        'all_count': all_count,
-    }
-
-    return render(request, template, context)
-
-
-@staff_member_required
-def poll_email(request, poll_id):
-    institutions = models.Institution.objects.filter(email_address__isnull=False, active=True).exclude(email_address='')
-
-    try:
-        poll = models.Poll.objects.get(pk=poll_id, date_close__gt=timezone.now(), processed=False)
-    except models.Poll.DoesNotExist:
-        messages.add_message(request, messages.INFO, 'This poll is either closed or has already been processed.')
-
-    if request.POST:
-        logic.email_poll_to_institutions(poll, request)
-        return redirect(reverse('consortial_polling_id', kwargs={'poll_id': poll.pk}))
-
-    template = 'consortial_billing/poll_email.html'
-    context = {
-        'poll': poll,
-        'institutions': institutions,
-        'sample': logic.get_poll_email_content(request, poll, list(institutions)[0])
-    }
-
-    return render(request, template, context)
-
-
-@staff_member_required
-def poll_delete(request, poll_id):
-    poll = get_object_or_404(models.Poll, pk=poll_id)
-
-    if request.POST:
-        poll.delete()
-        return redirect(reverse('consortial_index'))
-
-    template = 'consortial_billing/poll_delete.html'
-    context = {'poll': poll}
-
-    return render(request, template, context)
-
-
-def polls(request):
-    polls = models.Poll.objects.filter(
-        date_open__lte=timezone.now(),
-        date_close__gte=timezone.now()
+    page = get_object_or_404(
+        cms_models.Page,
+        name=page_name,
+        content_type=request.model_content_type,
+        object_id=request.site_type.pk
     )
 
-    if request.POST:
-        institution, poll, complete = logic.handle_polls_post(request, polls)
-
-        if not institution:
-            messages.add_message(request, messages.WARNING, 'No institution with that email address found.')
-            return redirect(reverse('consortial_polls'))
-        elif not poll:
-            messages.add_message(request, messages.WARNING, 'No active poll with that ID found.')
-            return redirect(reverse('consortial_polls'))
-        elif len(complete) > 0:
-            messages.add_message(request, messages.WARNING, 'Institution with that email address has already voted.')
-            return redirect(reverse('consortial_polls'))
-        else:
-            logic.assign_cookie_for_vote(request, poll.pk, institution.pk)
-            return redirect(reverse('consortial_polls_vote', kwargs={'poll_id': poll.pk}))
-
-    template = 'consortial_billing/polls.html'
-    context = {
-        'polls': polls,
-    }
-
-    return render(request, template, context)
-
-
-def polls_vote(request, poll_id):
-    poll, institution, complete = logic.get_inst_and_poll_from_session(request)
-
-    if not poll or not institution or len(complete) > 0:
-        messages.add_message(request, messages.WARNING, 'You do not have permission to access this poll.')
-        return redirect(reverse('consortial_polls'))
-
-    if request.POST:
-        voting = request.POST.getlist('options')
-        aye_options = poll.options.filter(pk__in=voting)
-        no_options = poll.options.exclude(pk__in=voting)
-
-        vote = models.Vote.objects.create(institution=institution,
-                                          poll=poll)
-        vote.aye.add(*aye_options)
-        vote.no.add(*no_options)
-        vote.save()
-
-        request.session['consortial_voting'] = None
-        request.session.modified = True
-
-        messages.add_message(request, messages.SUCCESS, 'Thank you for voting')
-        return redirect(reverse('consortial_polls'))
-
-    template = 'consortial_billing/polls_vote.html'
-    context = {
-        'institution': institution,
-        'poll': poll,
-    }
-
-    return render(request, template, context)
-
-
-@staff_member_required
-def display_journals(request):
-    """
-    Determines which journals to display links on.
-    :param request: wsgi request object
-    :return: httpresponse
-    """
-
-    journals = journal_models.Journal.objects.all()
-    journals_setting = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'journal_display',
-        None,
-    ).value
-    journal_pks = []
-    if journals_setting and journals_setting != ' ':
-        journal_pks = [int(pk) for pk in journals_setting.split(',')]
-
-    if request.POST:
-        journal_pks = request.POST.getlist('journal')
-        plugin = utils_models.Plugin.objects.filter(
-            name=plugin_settings.SHORT_NAME
-        )
-        setting_handler.save_plugin_setting(
-            plugin,
-            'journal_display',
-            ','.join(journal_pks),
-            None
-        )
-        return redirect(reverse('consortial_display'))
-
-    template = 'consortial_billing/display_journals.html'
-    context = {
-        'journals': journals,
-        'journal_pks': journal_pks,
-
-    }
-    return render(request, template, context)
-
-
-@staff_member_required
-def modeller(request, increase=0):
-    """
-    Allows a user to model out a price increase.
-    :param request: HTTPRequest object
-    :param increase: an integer
-    :param currency: a curreny shortcode eg GBP or USD
-    :return: an HTTPResponse
-    """
-    institutions = models.Institution.objects.filter(active=True)
-
-    template = 'consortial_billing/modeller.html'
-    context = {
-        'institutions': institutions,
-        'increase': increase,
-        'base_currency': setting_handler.get_setting(
-            'plugin:consortial_billing',
-            'base_currency',
-            None,
-        ).value,
-        'renewals': logic.get_model_renewals(institutions),
-    }
-
-    return render(request, template, context)
-
-
-@staff_member_required
-def monthly_revenue(request, year=None):
-    """
-    Displays revenue by month for a given year.
-    :param request: HttpRequest
-    :param year: A year in format XXXX
-    :return: HttpResponse
-    """
-    if not year:
-        year = timezone.now().year
-
-    revenue_by_month = logic.count_renewals_by_month(year)
-
-    if request.GET.get('export'):
-        return logic.serve_csv_file(revenue_by_month)
-
-    template = 'consortial_billing/monthly_revenue.html'
-    context = {
-        'revenue_by_month': revenue_by_month,
-        'year': year,
-        'base_currency': setting_handler.get_setting(
-            'plugin:consortial_billing',
-            'base_currency',
-            None
-        ).value,
-        'total_revenue': logic.get_total_revenue(revenue_by_month)
-    }
-
-    return render(request, template, context)
-
-
-def referral_codes(request):
-    active_institutions = models.Institution.objects.filter(active=True)
-    referral_text = setting_handler.get_setting(
-        'plugin:consortial_billing',
-        'referral_text',
-        None,
+    currencies = models.Currency.objects.all()
+    supporters = models.Supporter.objects.filter(
+        active=True,
+        display=True,
     )
-    template = 'consortial_billing/referral_codes.html'
+    band_form = forms.BandForm()
+    band = None
+
+    if request.GET:
+        if 'calculate' in request.GET:
+            band_form = forms.BandForm(request.GET)
+            if band_form.is_valid():
+                band = band_form.save(commit=False)
+                band_form = forms.BandForm(
+                    instance=band,
+                )
+
+        elif 'start_signup' in request.GET:
+            url = reverse('consortial_signup')
+            params = request.GET.urlencode()
+            return redirect(f'{url}?{params}')
+
+    template = 'consortial_billing/custom.html'
     context = {
-        'active_institutions': active_institutions,
-        'referral_text': referral_text,
+        'page': page,
+        'supporters': supporters,
+        'band_form': band_form,
+        'band': band,
+        'currencies': currencies,
     }
 
     return render(request, template, context)
-
-
-def referral_code(request, code):
-    institution = get_object_or_404(models.Institution, referral_code=code, active=True)
-
-    template = 'consortial_billing/referral_code.html'
-    context = {
-        'institution': institution,
-    }
-
-    return render(request, template, context)
-
-
-@staff_member_required
-def referral_info(request, referral_id):
-    referral = get_object_or_404(models.Referral, pk=referral_id)
-
-    if request.POST:
-        referral.reverse()
-        messages.add_message(request, messages.SUCCESS, 'Referral reversed.')
-        return redirect(reverse('consortial_index'))
-
-    template = 'consortial_billing/referral_info.html'
-    context = {
-        'referral': referral,
-    }
-
-    return render(request, template, context)
-
-
-def referral_leadership_board(request):
-    referrals = models.Referral.objects.all()
-
-    template = 'consortial_billing/leader_board.html'
-    context = {
-        'referrals': referrals,
-    }
-
-    return render(request, template, context)
-
-
-# API
-
-from api import permissions as api_permissions
-from plugins.consortial_billing import serializers
-from rest_framework import viewsets, generics
-from rest_framework.decorators import permission_classes
-
-
-@permission_classes((api_permissions.IsEditor, ))
-class InstitutionView(viewsets.ModelViewSet):
-    """
-    API endpoint that allows user roles to be viewed or edited.
-    """
-
-    def get_queryset(self):
-        """
-        Optionally allows to filter on domain of email.
-        :return: a queryset
-        """
-
-        queryset = models.Institution.objects.all()
-        domain = self.request.query_params.get('domain', None)
-        name = self.request.query_params.get('name', None)
-        banding = self.request.query_params.get('banding', None)
-
-        if domain is not None:
-            queryset = queryset.filter(email_address__icontains=domain)
-
-        if name is not None:
-            queryset = queryset.filter(name__icontains=name)
-
-        if banding is not None:
-            queryset = queryset.filter(banding__name=banding)
-
-        return queryset
-
-    serializer_class = serializers.InstitutionSerializer
