@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError, ImproperlyConfigured
+from django.shortcuts import reverse
 
 from django_countries.fields import CountryField
 
@@ -37,6 +38,7 @@ class BillingAgent(models.Model):
     country = CountryField(
         blank=True,
         null=True,
+        unique=True,
         help_text='If selected, will route all signups in this '
                   'country to this agent.',
     )
@@ -264,6 +266,13 @@ class Band(models.Model):
 
         return fee, warnings
 
+    def determine_billing_agent(self):
+        try:
+            agent = BillingAgent.objects.get(country=self.country)
+        except BillingAgent.DoesNotExist:
+            agent = BillingAgent.objects.get(default=True)
+        return agent
+
     def save(self, *args, **kwargs):
         # Calculate fee if empty
         if not self.fee and not self.base:
@@ -363,6 +372,17 @@ class Supporter(models.Model):
     @property
     def fee(self):
         return self.band.fee if self.bands else None
+
+    @property
+    def billing_agent(self):
+        return self.band.billing_agent if self.bands else None
+
+    @property
+    def url(self):
+        return reverse(
+            'admin:consortial_billing_supporter_change',
+            args=(self.pk, ),
+        )
 
     def __str__(self):
         return self.name

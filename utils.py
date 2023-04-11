@@ -14,6 +14,7 @@ from django.utils import timezone
 from utils import setting_handler
 from plugins.consortial_billing import models, plugin_settings
 from cms import models as cms_models
+from core import models as core_models
 
 from utils.logger import get_logger
 
@@ -228,3 +229,60 @@ def get_economic_disparity(country):
                so we could not factor that in to the fee calculation</p>
                """
     return disparity, warning
+
+
+def get_base_band():
+    try:
+        return models.Band.objects.filter(
+            base=True
+        ).latest('datetime')
+    except models.Band.DoesNotExist:
+        return None
+
+
+def get_latest_gni_data():
+    try:
+        return cms_models.MediaFile.objects.filter(
+            label__contains='NY.GNP.PCAP.CD',
+        ).latest('uploaded')
+    except cms_models.MediaFile.DoesNotExist:
+        return None
+
+
+def get_latest_exchange_rate_data():
+    try:
+        return cms_models.MediaFile.objects.filter(
+            label__contains='PA.NUS.FCRF',
+        ).latest('uploaded')
+    except cms_models.MediaFile.DoesNotExist:
+        return None
+
+
+def get_exchange_rates_for_display():
+    """
+    Get exchange rates from base rate in tuples
+    """
+    exchange_rates = []
+    base_band = get_base_band()
+    if base_band:
+        for currency in models.Currency.objects.all():
+            rate_usd, _warnings = currency.exchange_rate
+            base_usd, _warnings = base_band.currency.exchange_rate
+            rate = rate_usd / base_usd
+            exchange_rates.append((rate, currency.code))
+    return exchange_rates
+
+
+def get_settings_for_display():
+    """
+    Get settings for display in manager
+    """
+    settings = []
+    with open('install/settings.json', 'r') as file_ref:
+        for default_setting in json.loads(file_ref.read()):
+            setting = core_models.Setting.objects.get(
+                group__name=default_setting['group']['name'],
+                name=default_setting['setting']['name'],
+            )
+            settings.append(setting)
+    return settings
