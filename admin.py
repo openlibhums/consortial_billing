@@ -204,8 +204,6 @@ class SupporterAdmin(admin.ModelAdmin):
     )
     raw_id_fields = (
         'contacts',
-    )
-    filter_vertical = (
         'bands',
     )
     actions = [export_supporters]
