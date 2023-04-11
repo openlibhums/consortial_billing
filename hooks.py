@@ -9,4 +9,4 @@ def admin_hook(context):
                Consortial Billing
              </a>
            </li>
-           '''.format(url=reverse('consortial_index'))
+           '''.format(url=reverse('supporters_manager'))

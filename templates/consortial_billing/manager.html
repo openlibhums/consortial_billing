@@ -1,0 +1,240 @@
+{% extends "admin/core/base.html" %}
+{% load humanize %}
+
+{% block title %}Consortial Billing - {{ request.press.name }}{% endblock title %}
+
+{% block breadcrumbs %}
+{{ block.super }}
+<li><a href="{% url 'supporters_manager' %}">Supporters Manager</a></li>
+{% endblock %}
+
+
+{% block body %}
+{% if request.user.is_staff %}
+    <div class="row">
+        <div class="large-6 columns">
+            <div class="box">
+                <div class="title-area">
+                    <h2>Data</h2>
+                </div>
+                <div class="content">
+                    <p>
+                        You can view supporter records and other data here. Note that bands are created
+                        by the plugin when needed, so you don't have to create or edit them one by one.
+                        You can control them using Configuration below.
+                    </p>
+                    <div class="stacked button-group">
+                        <a
+                            href="/admin/consortial_billing/supporter/"
+                            class="button secondary"
+                            target="_blank">
+                            <i class="fa fa-users"></i>
+                            All supporters
+                        </a>
+                        <a
+                            href="/admin/consortial_billing/band/"
+                            class="button secondary"
+                            target="_blank">
+                            <i class="fa fa-table"></i>
+                            All bands
+                        </a>
+                        <a
+                            href="/admin/cms/mediafile/?q=NY.GNP.PCAP.CD"
+                            class="button secondary"
+                            target="_blank">
+                            <i class="fa fa-globe"></i>
+                            All GNI per capita data
+                        </a>
+                        <a
+                            href="/admin/cms/mediafile/?q=PA.NUS.FCRF"
+                            class="button secondary"
+                            target="_blank">
+                            <i class="fa fa-gbp"></i>
+                            All exchange rates
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="box">
+                <div class="title-area">
+                    <h2>Configuration</h2>
+                </div>
+                <div class="content">
+                    {% if not agents or not sizes or not levels or not currencies or not base_band %}
+                    <p>
+                        The plugin expects at least one of each of the following items
+                        to function properly. These are all components of bands, so configure
+                        them before creating a base band.
+                    </p>
+                    {% endif %}
+                    <p>
+                        Size and support level factor in to bands according to custom 
+                        multipliers. Country and currency factor in according to
+                        data from the World Bank, including GNI per capita, as shown in
+                        the data section.
+                    </p>
+                    <div class="stacked button-group">
+                        <a
+                            href="/admin/consortial_billing/billingagent/"
+                            class="button secondary"
+                            target="_blank">
+                            {% if agents %}
+                                Billing agents ({{ agents.count }})
+                            {% else %}
+                                <i class="fa fa-plus"></i>
+                                Create a billing agent
+                            {% endif %}
+                        </a>
+                        <a
+                            href="/admin/consortial_billing/institutionsize/"
+                            class="button secondary"
+                            target="_blank">
+                            {% if sizes %}
+                                Institution and consortium sizes ({{ sizes.count }})
+                            {% else %}
+                                <i class="fa fa-plus"></i>
+                                Create an institution or consortium size
+                            {% endif %}
+                        </a>
+                        <a
+                            href="/admin/consortial_billing/supportlevel/"
+                            class="button secondary"
+                            target="_blank">
+                            {% if levels %}
+                                Support levels ({{ levels.count }})
+                            {% else %}
+                                <i class="fa fa-plus"></i>
+                                Create a support level
+                            {% endif %}
+                        </a>
+                        <a
+                            href="/admin/consortial_billing/currency/"
+                            class="button secondary"
+                            target="_blank">
+                            {% if currencies %}
+                                Currencies ({{ currencies.count }})
+                            {% else %}
+                                <i class="fa fa-plus"></i>
+                                Create a currency
+                            {% endif %}
+                        </a>
+                        {% if not base_band %}
+                            <a
+                                href="/admin/consortial_billing/band/add/?display=False&base=True"
+                                class="button secondary"
+                                target="_blank">
+                                <i class="fa fa-plus"></i>
+                                Create base band
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="box">
+                <div class="title-area">
+                    <h2>Other Settings</h2>
+                </div>
+                <div class="content">
+                    <p>
+                        Text blocks and email templates.
+                    </p>
+                    <div class="stacked button-group">
+                        <a
+                            href="/admin/core/settingvalue/?q=complete_text"
+                            class="button secondary"
+                            target="_blank">
+                            <i class="fa fa-pencil"></i>
+                            Edit signup complete text
+                        </a>
+                        <a
+                            href="/admin/core/settingvalue/?q=new_signup_email"
+                            class="button secondary"
+                            target="_blank">
+                            <i class="fa fa-pencil"></i>
+                            Edit new signup text
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="large-6 columns">
+            {% if base_band %}
+            <div class="box">
+                <div class="title-area">
+                    <h2>Current Base Band</h2>
+                </div>
+                <div class="content">
+                    <ul>
+                        <li>{{ base_band.fee }} {{ base_band.currency }}</li>
+                        <li>{{ base_band.size }}</li>
+                        <li>{{ base_band.country.name }}</li>
+                        <li>{{ base_band.level }}</li>
+                        <li>Created on {{ base_band.datetime|date:"j F Y" }}</li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+            <form method="POST">
+            {% csrf_token %}
+            <div class="box">
+                <div class="title-area">
+                    <h2>Annual update</h2>
+                </div>
+                <div class="content">
+                    <p>
+                        You can update the source data by fetching new
+                        information from the World Bank with these buttons.
+                    </p>
+                    <div class="stacked button-group">
+                        <button
+                            name="fetch_data"
+                            value="NY.GNP.PCAP.CD"
+                            type="submit"
+                            class="button warning">
+                            <i class="fa fa-refresh"></i>
+                            Get new GNI per capita data
+                            <br>
+                            (last fetched {{ latest_gni_data.uploaded|default:'never' }})
+                        </button>
+                        <button
+                            name="fetch_data"
+                            value="PA.NUS.FCRF"
+                            type="submit"
+                            class="button warning">
+                            <i class="fa fa-refresh"></i>
+                            Get new exchange rates
+                            <br>
+                            (last fetched {{ latest_exchange_rate_data.uploaded|default:'never' }})
+                        </button>
+                    </div>
+                    <p>
+                        The base band needs replacing every year
+                        to keep track of inflation. <a
+                            href="/admin/consortial_billing/band/?base=True"
+                            target="_blank">Older base bands</a>
+                        are kept on record. The button below takes you to a form
+                        where you can select parameters for a new base band.
+                    </p>
+                    <div class="stacked button-group">
+                        <a
+                            href="/admin/consortial_billing/band/add/?display=False&base=True"
+                            class="button warning"
+                            target="_blank">
+                            {% if base_band %}
+                                <i class="fa fa-plus"></i>
+                                Replace base band
+                                <br>
+                                (latest is {{ base_band.datetime }})
+                            {% else %}
+                                Create base band
+                            {% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock body %}
