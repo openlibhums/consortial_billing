@@ -1,0 +1,34 @@
+{% extends "core/base.html" %}
+
+{% block title %}
+    Support the OLH - {{ request.press.name }}
+{% endblock title %}
+
+{% block body %}
+    <div class="row">
+        <div class="col">
+            <h1>Support Bands</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <table class="striped centered">
+                <thead>
+                    <th>Support Level</th>
+                    <th>Supporter Size</th>
+                    <th>Countries</th>
+                    <th>Fee</th>
+                </thead>
+                <tbody>
+                    {% for band in display_bands %}
+                    <tr>
+                        {% for cell in band %}
+                        <td>{{ cell|safe }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock body %}
