@@ -9,6 +9,11 @@ urlpatterns = [
         name='consortial_supporters',
     ),
     re_path(
+        r'^support-bands/$',
+        views.view_support_bands,
+        name='view_support_bands',
+    ),
+    re_path(
         r'^site/(?P<page_name>.*)/$',
         views.view_custom_page,
         name='supporters_custom_page',
