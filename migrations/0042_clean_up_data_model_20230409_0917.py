@@ -40,10 +40,6 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name="institution",
-            name="country",
-        ),
-        migrations.RemoveField(
-            model_name="institution",
             name="email_address",
         ),
         migrations.RemoveField(
@@ -137,6 +133,11 @@ class Migration(migrations.Migration):
             model_name="institution",
             name="banding",
         ),
+        migrations.RemoveField(
+            # see also RenameField below
+            model_name="institution",
+            name="country",
+        ),
 
 
         # RENAME MIGRATED FIELDS
@@ -154,6 +155,11 @@ class Migration(migrations.Migration):
             model_name='institution',
             old_name='band_temp',
             new_name='band',
+        ),
+        migrations.RenameField(
+            model_name='institution',
+            old_name='country_temp',
+            new_name='country',
         ),
 
 
