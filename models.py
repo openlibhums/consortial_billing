@@ -319,6 +319,10 @@ class Supporter(models.Model):
         blank=True,
         null=True,
     )
+    country = CountryField(
+        blank=True,
+        null=True,
+    )
     display = models.BooleanField(
         default=True,
         help_text="May we include your institution name "
@@ -354,10 +358,6 @@ class Supporter(models.Model):
         default=False,
         help_text="Whether the supporter is active",
     )
-
-    @property
-    def country(self):
-        return self.band.country if self.band else None
 
     @property
     def size(self):

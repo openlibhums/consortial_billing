@@ -317,6 +317,15 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
+            model_name="institution",
+            name="country_temp",
+            field=django_countries.fields.CountryField(
+                blank=True,
+                max_length=2,
+                null=True,
+            ),
+        ),
+        migrations.AddField(
             model_name='institution',
             name='ror',
             field=models.URLField(

@@ -189,6 +189,7 @@ def migrate_data(apps, schema_editor):
     for supporter in Institution.objects.all():
         band_temp = determine_band(supporter)
         supporter.band_temp = band_temp
+        supporter.country_temp = band_temp.country
         contact = determine_contact(supporter)
         supporter.contacts.add(contact)
         supporter.save()

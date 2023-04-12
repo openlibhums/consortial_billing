@@ -98,6 +98,7 @@ def signup(request):
                     if supporter.band:
                         supporter.old_bands.add(supporter.band)
                     supporter.band = band
+                    supporter.country = band.country
                     supporter.contacts.add(request.user)
                     supporter.save()
                     complete_text = utils.setting('complete_text')
