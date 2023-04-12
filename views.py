@@ -38,7 +38,6 @@ def manager(request):
         'levels': models.SupportLevel.objects.all(),
         'currencies': models.Currency.objects.all(),
         'base_band': base_band,
-        'complete_text': utils.setting('complete_text'),
         'latest_gni_data': latest_gni_data,
         'latest_exchange_rate_data': latest_exchange_rate_data,
         'exchange_rates': exchange_rates,
@@ -58,6 +57,7 @@ def signup(request):
     supporter_form = forms.SupporterForm()
     supporter = None
     signup_agreement = utils.setting('signup_agreement')
+    redirect_text = ''
     complete_text = ''
 
     # This handles the redirect from custom CMS pages with a GET
@@ -101,7 +101,10 @@ def signup(request):
                     supporter.country = band.country
                     supporter.contacts.add(request.user)
                     supporter.save()
-                    complete_text = utils.setting('complete_text')
+                    if band.billing_agent.redirect_url:
+                        redirect_text = utils.setting('redirect_text')
+                    else:
+                        complete_text = utils.setting('complete_text')
                     notify.event_signup(
                         request,
                         supporter,
@@ -115,6 +118,7 @@ def signup(request):
         'supporter_form': supporter_form,
         'supporter': supporter,
         'signup_agreement': signup_agreement,
+        'redirect_text': redirect_text,
         'complete_text': complete_text,
     }
 
