@@ -38,7 +38,6 @@ class BillingAgent(models.Model):
     country = CountryField(
         blank=True,
         null=True,
-        unique=True,
         help_text='If selected, will route all signups in this '
                   'country to this agent.',
     )
@@ -98,7 +97,10 @@ class SupporterSize(models.Model):
     )
 
     def __str__(self):
-        return f'{self.name} ({self.description})'
+        if self.description:
+            return f'{self.name} ({self.description})'
+        else:
+            return self.name
 
     class Meta:
         ordering = ('is_consortium', '-multiplier', 'name')
@@ -269,9 +271,15 @@ class Band(models.Model):
     def determine_billing_agent(self):
         try:
             agent = BillingAgent.objects.get(country=self.country)
+            return agent
         except BillingAgent.DoesNotExist:
-            agent = BillingAgent.objects.get(default=True)
-        return agent
+            try:
+                agent = BillingAgent.objects.get(default=True)
+                return agent
+            except BillingAgent.DoesNotExist:
+                raise ImproperlyConfigured(
+                    'No billing agent has been set as default'
+                )
 
     def save(self, *args, **kwargs):
         # Calculate fee if empty

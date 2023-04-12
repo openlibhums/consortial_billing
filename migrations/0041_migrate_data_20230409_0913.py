@@ -17,11 +17,14 @@ def migrate_data(apps, schema_editor):
     # Institution.banding.name -> Institution.band_temp.level
     def determine_level(supporter):
         level_name = ''
-        if 'Higher' in supporter.supporter_level.name:
-            level_name += 'Higher'
+        if supporter.supporter_level:
+            if 'Higher' in supporter.supporter_level.name:
+                level_name += 'Higher'
         for metal in ['Gold', 'Silver', 'Bronze']:
             if metal in supporter.banding.name:
                 level_name += f' ({metal})'
+        if not level_name:
+            level_name = 'Standard'
         level, created = SupportLevel.objects.get_or_create(
             name=level_name,
         )
@@ -36,8 +39,8 @@ def migrate_data(apps, schema_editor):
         else:
             type_descriptor = 'Institution'
 
-        size_descriptor = supporter.size.capitalize()
-        name = f'{size_descriptor} ({type_descriptor})'
+        size_descriptor = supporter.banding.size.capitalize()
+        name = f'{size_descriptor} {type_descriptor}'
 
         if '0-5' in supporter.banding.name:
             description = '0-4,999 FTE'
@@ -48,7 +51,7 @@ def migrate_data(apps, schema_editor):
         else:
             description = ''
 
-        size_temp = SupporterSize.objects.get_or_create(
+        size_temp, created = SupporterSize.objects.get_or_create(
             name=name,
             description=description,
         )
@@ -119,7 +122,7 @@ def migrate_data(apps, schema_editor):
 
         code = OLD_NEW_CURRENCIES[supporter.banding.currency]
         region = CURRENCIES_REGIONS[code]
-        currency_temp = Currency.objects.get_or_create(
+        currency_temp, created = Currency.objects.get_or_create(
             code=code,
             region=region,
         )
@@ -152,9 +155,9 @@ def migrate_data(apps, schema_editor):
     # Institution.banding -> Institution.band_temp
     def determine_band(supporter):
         level = determine_level(supporter)
-        size = determine_size(supporter)
+        size_temp = determine_size(supporter)
         country = determine_country(supporter)
-        currency = determine_currency(supporter)
+        currency_temp = determine_currency(supporter)
         fee = determine_fee(supporter)
         year = timezone.now().year
         billing_agent = supporter.billing_agent
@@ -162,9 +165,9 @@ def migrate_data(apps, schema_editor):
 
         band, created = Banding.objects.get_or_create(
             level=level,
-            size=size,
+            size_temp=size_temp,
             country=country,
-            currency=currency,
+            currency_temp=currency_temp,
             fee=fee,
             datetime__year=year,
             billing_agent=billing_agent,
