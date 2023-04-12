@@ -13,8 +13,8 @@ def migrate_data(apps, schema_editor):
     Banding = apps.get_model('consortial_billing', 'Banding')
     Account = apps.get_model('core', 'Account')
 
-    # Institution.supporter_level -> Institution.bands.level
-    # Institution.banding.name -> Institution.bands.level
+    # Institution.supporter_level -> Institution.band_temp.level
+    # Institution.banding.name -> Institution.band_temp.level
     def determine_level(supporter):
         level_name = ''
         if 'Higher' in supporter.supporter_level.name:
@@ -27,8 +27,8 @@ def migrate_data(apps, schema_editor):
         )
         return level
 
-    # Institution.banding.name -> Institution.bands.size_temp
-    # Institution.banding.size -> Institution.bands.size_temp
+    # Institution.banding.name -> Institution.band_temp.size_temp
+    # Institution.banding.size -> Institution.band_temp.size_temp
     def determine_size(supporter):
 
         if supporter.consortial_billing:
@@ -85,7 +85,7 @@ def migrate_data(apps, schema_editor):
         'USA': 'US',
     }
 
-    # Institution.country -> Institution.bands.country
+    # Institution.country -> Institution.band_temp.country
     def determine_country(supporter):
         country = COUNTRIES_NORMALIZED[supporter.country]
         return country
@@ -114,7 +114,7 @@ def migrate_data(apps, schema_editor):
         'USD': 'USA',
     }
 
-    # Institution.banding.currency -> Institution.bands.currency_temp
+    # Institution.banding.currency -> Institution.band_temp.currency_temp
     def determine_currency(supporter):
 
         code = OLD_NEW_CURRENCIES[supporter.banding.currency]
@@ -141,7 +141,7 @@ def migrate_data(apps, schema_editor):
         'USD': 1,
     }
 
-    # Institution.banding.fee -> Institution.bands.fee
+    # Institution.banding.fee -> Institution.band_temp.fee
     def determine_fee(supporter):
         old_currency = supporter.banding.currency
         new_currency = determine_currency(supporter).code
@@ -149,7 +149,7 @@ def migrate_data(apps, schema_editor):
         fee = supporter.banding.default_price * exchange_rate
         return fee
 
-    # Institution.banding -> Institution.bands
+    # Institution.banding -> Institution.band_temp
     def determine_band(supporter):
         level = determine_level(supporter)
         size = determine_size(supporter)
@@ -187,8 +187,8 @@ def migrate_data(apps, schema_editor):
         return account
 
     for supporter in Institution.objects.all():
-        band = determine_banding(supporter)
-        supporter.bands.add(band)
+        band_temp = determine_band(supporter)
+        supporter.band_temp = band_temp
         contact = determine_contact(supporter)
         supporter.contacts.add(contact)
         supporter.save()

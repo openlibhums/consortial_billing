@@ -95,7 +95,9 @@ def signup(request):
                 supporter_form = forms.SupporterForm(request.POST)
                 if supporter_form.is_valid():
                     supporter = supporter_form.save(commit=True)
-                    supporter.bands.add(band)
+                    if supporter.band:
+                        supporter.old_bands.add(supporter.band)
+                    supporter.band = band
                     supporter.contacts.add(request.user)
                     supporter.save()
                     complete_text = utils.setting('complete_text')
