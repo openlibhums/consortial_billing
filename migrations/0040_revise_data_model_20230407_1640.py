@@ -269,6 +269,15 @@ class Migration(migrations.Migration):
                 verbose_name="Institution/consortium size",
             ),
         ),
+        migrations.AddField(
+            model_name='banding',
+            name='warnings',
+            field=models.CharField(
+                blank=True,
+                help_text='Warning messages from the fee calculator',
+                max_length=255,
+            ),
+        ),
         migrations.AlterField(
             model_name="banding",
             name="billing_agent",
