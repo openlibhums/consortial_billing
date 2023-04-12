@@ -6,7 +6,26 @@
 {% block title %}Support the OLH - {{ request.press.name }}{% endblock title %}
 
 {% block body %}
-    {% if complete_text %}
+    {% if redirect_text %}
+        <div class="row">
+            <div class="col m10 l8">
+                <h1>One More Step</h1>
+                {% render_string redirect_text %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col m10 l8">
+                <a
+                    href="{{ supporter.billing_agent.redirect_url }}"
+                    class="btn-large waves-effect waves-light"
+                    target="_blank"
+                    >
+                    Go to {{ supporter.billing_agent.name }}
+                    <i class="material-icons right">launch</i>
+                </a>
+            </div>
+        </div>
+    {% elif complete_text %}
         <div class="row">
             <div class="col m10 l8">
                 <h1>Signup Complete</h1>

@@ -26,7 +26,22 @@
       "type": "rich-text"
     },
     "value": {
-      "default": "Thank you for signing up. We will be in touch to confirm billing details."
+      "default": "Thank you for signing up. You should receive a confirmation email soon. We will then be in touch to confirm billing details."
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Text letting supporters know they will be redirected to the billing agent's website when they click the button",
+      "is_translatable": true,
+      "name": "redirect_text",
+      "pretty_name": "Supporter signup redirect text",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "We work with {{ supporter.billing_agent }} to handle billing for supporters in your band. Please follow the link to their website to complete the signup process."
     }
   },
   {
