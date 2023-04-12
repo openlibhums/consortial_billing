@@ -40,7 +40,8 @@ class Command(BaseCommand):
                     continue
                 if options['save']:
                     new_band.save()
-                    supporter.bands.add(new_band)
+                    supporter.band = new_band
+                    supporter.old_bands.add(old_band)
                     supporter.save()
                     status = 'Saved new fee: '
                 else:

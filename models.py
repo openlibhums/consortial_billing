@@ -334,13 +334,19 @@ class Supporter(models.Model):
 
     # Attached to supporter at signup or
     # recalculation with new data
-    bands = models.ManyToManyField(
+    band = models.ForeignKey(
         Band,
         blank=True,
         null=True,
-        help_text='Includes both current and past bands '
-                  'so that there is a record of changes. '
-                  'Only the latest band is displayed.',
+        on_delete=models.SET_NULL,
+        help_text='Current band',
+    )
+    old_bands = models.ManyToManyField(
+        Band,
+        blank=True,
+        null=True,
+        help_text='Old bands for this supporter',
+        related_name='supporter_history',
     )
 
     # Determined for the user or entered in admin
@@ -350,32 +356,28 @@ class Supporter(models.Model):
     )
 
     @property
-    def band(self):
-        return self.bands.latest('datetime')
-
-    @property
     def country(self):
-        return self.band.country if self.bands else None
+        return self.band.country if self.band else None
 
     @property
     def size(self):
-        return self.band.size if self.bands else None
+        return self.band.size if self.band else None
 
     @property
     def level(self):
-        return self.band.level if self.bands else None
+        return self.band.level if self.band else None
 
     @property
     def currency(self):
-        return self.band.currency if self.bands else None
+        return self.band.currency if self.band else None
 
     @property
     def fee(self):
-        return self.band.fee if self.bands else None
+        return self.band.fee if self.band else None
 
     @property
     def billing_agent(self):
-        return self.band.billing_agent if self.bands else None
+        return self.band.billing_agent if self.band else None
 
     @property
     def url(self):

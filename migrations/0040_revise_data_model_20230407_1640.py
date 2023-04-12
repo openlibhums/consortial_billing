@@ -285,14 +285,24 @@ class Migration(migrations.Migration):
         # ADD AND ALTER FIELDS -- INSTITUTION
         migrations.AddField(
             model_name="institution",
-            name="bands",
+            name="band_temp",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="consortial_billing.Banding",
+                help_text='Current band',
+            ),
+        ),
+        migrations.AddField(
+            model_name="institution",
+            name="old_bands",
             field=models.ManyToManyField(
                 blank=True,
                 null=True,
-                to="consortial_billing.Banding",
-                help_text='Includes both current and past bands '
-                          'so that there is a record of changes. '
-                          'Only the latest band is displayed.',
+                help_text='Old bands for this supporter',
+                related_name='supporter_history',
+                to='consortial_billing.Banding',
             ),
         ),
         migrations.AddField(

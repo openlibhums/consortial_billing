@@ -198,14 +198,15 @@ class SupporterAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'active',
-        'bands__size',
-        'bands__level',
-        'bands__currency',
-        'bands__country',
+        'band__size',
+        'band__level',
+        'band__currency',
+        'band__country',
     )
     raw_id_fields = (
         'contacts',
-        'bands',
+        'band',
+        'old_bands',
     )
     actions = [export_supporters]
 
