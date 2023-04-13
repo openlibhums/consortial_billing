@@ -22,9 +22,6 @@ def manager(request):
             indicator = request.POST.get('fetch_data', None)
             call_command('fetch_world_bank_data', indicator)
 
-        if 'recalculate_bands' in request.POST:
-            call_command('calculate_all_fees', '--save')
-
     base_band = logic.get_base_band()
     latest_gni_data = logic.latest_dataset_for_indicator(
         plugin_settings.DISPARITY_INDICATOR,
@@ -67,15 +64,13 @@ def signup(request):
     # This handles the redirect from custom CMS pages with a GET
     # calculation form
     if request.GET:
-        band_form = forms.BandForm(request.GET)
-        if band_form.is_valid():
-            band = band_form.save(commit=False)
-            band_form = forms.BandForm(
-                instance=band,
-            )
-            supporter_form = forms.SupporterForm(
-                {'band': band}
-            )
+        if 'start_signup' in request.GET:
+            band_form = forms.BandForm(request.GET)
+            if band_form.is_valid():
+                band = band_form.save(commit=False)
+                band_form = forms.BandForm(
+                    instance=band,
+                )
 
     if request.POST:
         if 'calculate' in request.POST:
@@ -184,7 +179,7 @@ def view_custom_page(request, page_name):
                 )
 
         elif 'start_signup' in request.GET:
-            url = reverse('consortial_signup')
+            url = reverse('supporter_signup')
             params = request.GET.urlencode()
             return redirect(f'{url}?{params}')
 

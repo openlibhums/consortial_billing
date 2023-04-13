@@ -60,10 +60,10 @@ def register_for_events():
 
     events_logic.Events.register_for_event(
         ON_SIGNUP,
-        emails.send_signup_notification_to_billing_agent,
+        emails.email_agent_about_signup,
     )
 
     events_logic.Events.register_for_event(
         ON_SIGNUP,
-        emails.send_confirmation_email_to_supporter,
+        emails.email_supporter_to_confirm,
     )
