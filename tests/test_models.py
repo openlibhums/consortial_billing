@@ -82,6 +82,7 @@ class TestCaseWithData(TestCase):
             level=cls.level_other,
             billing_agent=cls.agent_other,
             fee=2000,
+            warnings='Oh no!'
         )
         cls.band_other_three, _c = models.Band.objects.get_or_create(
             size=cls.size_base,

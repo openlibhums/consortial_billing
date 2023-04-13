@@ -271,7 +271,9 @@ class Band(models.Model):
             self.currency
         ]:
             if not field:
-                raise ValidationError(f'{field} needed for calculation')
+                raise ValidationError(
+                    'Band does not have data needed for fee calculation'
+                )
 
         warnings = ''
         fee = logic.get_base_band().fee
