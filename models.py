@@ -65,6 +65,18 @@ class BillingAgent(models.Model):
                 pass
         super().save(*args, **kwargs)
 
+    @property
+    def email(self):
+        return self.users.first().email if self.users else None
+
+    @property
+    def first_name(self):
+        return self.users.first().first_name if self.users else None
+
+    @property
+    def last_name(self):
+        return self.users.first().last_name if self.users else None
+
     def __str__(self):
         return self.name
 
@@ -415,8 +427,28 @@ class Supporter(models.Model):
         return self.band.fee if self.band else None
 
     @property
+    def warnings(self):
+        return self.band.warnings if self.band else None
+
+    @property
+    def datetime(self):
+        return self.band.datetime if self.band else None
+
+    @property
     def billing_agent(self):
         return self.band.billing_agent if self.band else None
+
+    @property
+    def email(self):
+        return self.contacts.first().email if self.contacts else None
+
+    @property
+    def first_name(self):
+        return self.contacts.first().first_name if self.contacts else None
+
+    @property
+    def last_name(self):
+        return self.contacts.first().last_name if self.contacts else None
 
     @property
     def url(self):
