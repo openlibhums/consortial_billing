@@ -91,7 +91,7 @@ class CurrencyAdmin(admin.ModelAdmin):
         'internal_notes',
     )
     readonly_fields = (
-        'exchange_rate',
+        '_exchange_rate',
     )
     inlines = [
         BandInline,

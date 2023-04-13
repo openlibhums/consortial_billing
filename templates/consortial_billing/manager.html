@@ -39,14 +39,14 @@
                             All bands
                         </a>
                         <a
-                            href="/admin/cms/mediafile/?q=NY.GNP.PCAP.CD"
+                            href="/admin/cms/mediafile/?q={{ plugin_settings.DISPARITY_INDICATOR }}"
                             class="button secondary"
                             target="_blank">
                             <i class="fa fa-globe"></i>
                             All GNI per capita data
                         </a>
                         <a
-                            href="/admin/cms/mediafile/?q=PA.NUS.FCRF"
+                            href="/admin/cms/mediafile/?q={{ plugin_settings.RATE_INDICATOR }}"
                             class="button secondary"
                             target="_blank">
                             <i class="fa fa-gbp"></i>
@@ -170,15 +170,15 @@
                     </ul>
                 </div>
             </div>
-                {% if exchange_rates %}
+                {% if currencies %}
                 <div class="box">
                     <div class="title-area">
                         <h2>Current Exchange Rates (from {{ base_band.currency }})</h2>
                     </div>
                     <div class="content">
                         <ul>
-                            {% for rate, currency in exchange_rates %}
-                            <li>{{ rate|floatformat:3 }} {{currency }}</li>
+                            {% for currency in currencies %}
+                                <li>{{ currency.exchange_rate.0|floatformat:3 }} {{currency.code }}</li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -199,7 +199,7 @@
                     <div class="stacked button-group">
                         <button
                             name="fetch_data"
-                            value="NY.GNP.PCAP.CD"
+                            value="{{ plugin_settings.DISPARITY_INDICATOR }}"
                             type="submit"
                             class="button warning">
                             <i class="fa fa-refresh"></i>
@@ -209,7 +209,7 @@
                         </button>
                         <button
                             name="fetch_data"
-                            value="PA.NUS.FCRF"
+                            value="{{ plugin_settings.RATE_INDICATOR }}"
                             type="submit"
                             class="button warning">
                             <i class="fa fa-refresh"></i>

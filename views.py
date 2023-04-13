@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.core.management import call_command
+from django.contrib.admin.views.decorators import staff_member_required
 
 from plugins.consortial_billing import utils, \
-     models, plugin_settings, forms, security
+     logic, models, plugin_settings, forms
 from plugins.consortial_billing.notifications import notify
 
 from cms import models as cms_models
@@ -13,7 +14,7 @@ from security.decorators import base_check_required
 logger = get_logger(__name__)
 
 
-@security.billing_agent_required
+@staff_member_required
 def manager(request):
 
     if request.POST:
@@ -24,11 +25,14 @@ def manager(request):
         if 'recalculate_bands' in request.POST:
             call_command('calculate_all_fees', '--save')
 
-    base_band = utils.get_base_band()
-    latest_gni_data = utils.get_latest_gni_data()
-    latest_exchange_rate_data = utils.get_latest_exchange_rate_data()
-    exchange_rates = utils.get_exchange_rates_for_display()
-    settings = utils.get_settings_for_display()
+    base_band = logic.get_base_band()
+    latest_gni_data = logic.latest_dataset_for_indicator(
+        plugin_settings.DISPARITY_INDICATOR,
+    )
+    latest_exchange_rate_data = logic.latest_dataset_for_indicator(
+        plugin_settings.RATE_INDICATOR,
+    )
+    settings = logic.get_settings_for_display()
 
     context = {
         'plugin': plugin_settings.SHORT_NAME,
@@ -40,8 +44,8 @@ def manager(request):
         'base_band': base_band,
         'latest_gni_data': latest_gni_data,
         'latest_exchange_rate_data': latest_exchange_rate_data,
-        'exchange_rates': exchange_rates,
         'settings': settings,
+        'plugin_settings': plugin_settings,
     }
 
     template = 'consortial_billing/manager.html'
@@ -126,7 +130,7 @@ def signup(request):
 
 
 def view_support_bands(request):
-    display_bands = utils.get_display_bands()
+    display_bands = logic.get_display_bands()
 
     context = {
         'display_bands': display_bands,
