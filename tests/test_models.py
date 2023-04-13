@@ -6,8 +6,12 @@ __maintainer__ = "Open Library of Humanities"
 from unittest.mock import patch
 
 from django.test import TestCase
+from django.contrib.contenttypes.models import ContentType
+
 from plugins.consortial_billing import models, plugin_settings
 from utils.testing import helpers
+from press import models as press_models
+from cms.models import Page
 
 
 class TestCaseWithData(TestCase):
@@ -16,9 +20,18 @@ class TestCaseWithData(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         plugin_settings.install(fetch_data=False)
+        cls.press = press_models.Press(domain="supporters.org")
+        cls.press.save()
         cls.user_supporter = helpers.create_user('user_supporter@example.org')
+        cls.user_supporter.is_active = True
+        cls.user_supporter.save()
         cls.user_staff = helpers.create_user('user_billing_staff@example.org')
+        cls.user_staff.is_staff = True
+        cls.user_staff.is_active = True
+        cls.user_staff.save()
         cls.user_agent = helpers.create_user('user_agent@example.org')
+        cls.user_agent.is_active = True
+        cls.user_agent.save()
         cls.agent_default, _c = models.BillingAgent.objects.get_or_create(
             name='Open Library of Humanities',
             default=True,
@@ -108,17 +121,31 @@ class TestCaseWithData(TestCase):
         cls.supporter_two.contacts.add(cls.user_supporter)
         cls.supporter_two.save()
         cls.supporter_three, _c = models.Supporter.objects.get_or_create(
-            name='University of Sussex',
+            name='University of Essex',
             band=cls.band_other_three,
             active=True,
         )
         cls.supporter_three.contacts.add(cls.user_supporter)
         cls.supporter_three.save()
+        cls.supporter_four, _c = models.Supporter.objects.get_or_create(
+            name='University of Antwerp',
+            band=cls.band_other_two,
+            active=True,
+        )
+        cls.supporter_four.contacts.add(cls.user_supporter)
+        cls.supporter_four.save()
         cls.fake_indicator = 'ABC.DEF.GHI'
+        cls.custom_page, created = Page.objects.get_or_create(
+            content_type=ContentType.objects.get_for_model(cls.press),
+            object_id=cls.press.pk,
+            name='become-a-supporter',
+            display_name='Become a Supporter',
+        )
 
     @classmethod
     def tearDownClass(cls):
-        super().tearDownClass()
+        cls.custom_page.delete()
+        cls.supporter_four.delete()
         cls.supporter_three.delete()
         cls.supporter_two.delete()
         cls.supporter_one.delete()
@@ -136,6 +163,8 @@ class TestCaseWithData(TestCase):
         cls.user_agent.save()
         cls.user_staff.save()
         cls.user_supporter.delete()
+        cls.press.delete()
+        super().tearDownClass()
 
 
 class ModelTests(TestCaseWithData):

@@ -1,7 +1,7 @@
 from utils import notify_helpers
 
 
-def send_signup_notification_to_billing_agent(**kwargs):
+def email_agent_about_signup(**kwargs):
     request = kwargs['request']
     supporter = kwargs['supporter']
 
@@ -30,7 +30,7 @@ def send_signup_notification_to_billing_agent(**kwargs):
     )
 
 
-def send_confirmation_email_to_supporter(**kwargs):
+def email_supporter_to_confirm(**kwargs):
     request = kwargs['request']
     supporter = kwargs['supporter']
 
