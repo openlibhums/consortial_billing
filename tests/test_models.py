@@ -3,18 +3,19 @@ __author__ = "Open Library of Humanities"
 __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from django.test import TestCase
-from plugins.consortial_billing import utils, models
+from plugins.consortial_billing import models, plugin_settings
 from utils.testing import helpers
 
 
-class (TestCase):
+class TestCaseWithData(TestCase):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        plugin_settings.install(fetch_data=False)
         cls.user_supporter = helpers.create_user('user_supporter@example.org')
         cls.user_staff = helpers.create_user('user_billing_staff@example.org')
         cls.user_agent = helpers.create_user('user_agent@example.org')
@@ -66,7 +67,15 @@ class (TestCase):
             billing_agent=cls.agent_default,
             base=True,
         )
-        cls.band_other, _c = models.Band.objects.get_or_create(
+        cls.band_other_one, _c = models.Band.objects.get_or_create(
+            size=cls.size_base,
+            country='GB',
+            currency=cls.currency_base,
+            level=cls.level_base,
+            fee=1001,
+            billing_agent=cls.agent_default,
+        )
+        cls.band_other_two, _c = models.Band.objects.get_or_create(
             size=cls.size_other,
             country='BE',
             currency=cls.currency_other,
@@ -74,19 +83,46 @@ class (TestCase):
             billing_agent=cls.agent_other,
             fee=2000,
         )
-        cls.supporter, _c = models.Supporter.objects.get_or_create(
+        cls.band_other_three, _c = models.Band.objects.get_or_create(
+            size=cls.size_base,
+            country='GB',
+            currency=cls.currency_base,
+            level=cls.level_base,
+            fee=1500,
+            billing_agent=cls.agent_default,
+        )
+        cls.supporter_one, _c = models.Supporter.objects.get_or_create(
             name='Birkbeck, University of London',
             ror='https://ror.org/02mb95055',
             band=cls.band_base,
+            active=True,
         )
-        cls.supporter.contacts.add(cls.user_supporter)
-        cls.supporter.save()
+        cls.supporter_one.contacts.add(cls.user_supporter)
+        cls.supporter_one.save()
+        cls.supporter_two, _c = models.Supporter.objects.get_or_create(
+            name='University of Sussex',
+            band=cls.band_other_one,
+            active=True,
+        )
+        cls.supporter_two.contacts.add(cls.user_supporter)
+        cls.supporter_two.save()
+        cls.supporter_three, _c = models.Supporter.objects.get_or_create(
+            name='University of Sussex',
+            band=cls.band_other_three,
+            active=True,
+        )
+        cls.supporter_three.contacts.add(cls.user_supporter)
+        cls.supporter_three.save()
+        cls.fake_indicator = 'ABC.DEF.GHI'
 
     @classmethod
     def tearDownClass(cls):
         super().tearDownClass()
-        cls.supporter.delete()
-        cls.band_other.delete()
+        cls.supporter_three.delete()
+        cls.supporter_two.delete()
+        cls.supporter_one.delete()
+        cls.band_other_two.delete()
+        cls.band_other_one.delete()
         cls.band_base.delete()
         cls.currency_other.delete()
         cls.currency_base.delete()
@@ -99,6 +135,9 @@ class (TestCase):
         cls.user_agent.save()
         cls.user_staff.save()
         cls.user_supporter.delete()
+
+
+class ModelTests(TestCaseWithData):
 
     def test_billing_agent_save(self):
 
@@ -122,33 +161,64 @@ class (TestCase):
         self.assertFalse(other_has_country)
         self.assertFalse(default_still_default)
 
+    def test_currency_exchange_rate(self):
+        with patch(
+            'plugins.consortial_billing.logic.latest_multiplier_for_indicator'
+        ) as latest_multiplier:
+            self.currency_other.exchange_rate
+            self.assertIn(
+                plugin_settings.RATE_INDICATOR,
+                latest_multiplier.call_args.args,
+            )
+            self.assertIn(
+                self.currency_other.region,
+                latest_multiplier.call_args.args,
+            )
+            self.assertIn(
+                self.currency_other.region,
+                latest_multiplier.call_args.args,
+            )
+
+    def test_band_economic_disparity(self):
+        with patch(
+            'plugins.consortial_billing.logic.latest_multiplier_for_indicator'
+        ) as latest_multiplier:
+            self.band_other_two.economic_disparity
+            self.assertIn(
+                plugin_settings.DISPARITY_INDICATOR,
+                latest_multiplier.call_args.args,
+            )
+            self.assertIn(
+                self.band_other_two.country.alpha3,
+                latest_multiplier.call_args.args,
+            )
+            self.assertIn(
+                self.band_base.country.alpha3,
+                latest_multiplier.call_args.args,
+            )
+
     def test_band_calculate_fee(self):
         with patch(
-            'plugins.consortial_billing.utils.get_economic_disparity',
-            return_value=(0.7, ''),
-        ) as disparity:
-            with patch(
-                'plugins.consortial_billing.utils.get_exchange_rate',
-                return_value=(0.85, ''),
-            ) as rate:
-                fee, warnings = self.band_other.calculate_fee()
-                expected_fee = round(1000 * 0.6 * 2.0 * 0.7 * 0.85, -1)
-                disparity.assert_called()
-                rate.assert_called()
-                self.assertEqual(fee, expected_fee)
+            'plugins.consortial_billing.logic.latest_multiplier_for_indicator',
+            return_value=(0.85, ''),
+        ) as latest_multiplier:
+            fee, warnings = self.band_other_two.calculate_fee()
+            expected_fee = round(1000 * 0.6 * 2.0 * 0.85 * 0.85, -1)
+            latest_multiplier.assert_called()
+            self.assertEqual(fee, expected_fee)
 
     def test_band_determine_billing_agent(self):
         agent = self.band_base.determine_billing_agent()
         self.assertEqual(agent, self.agent_default)
-        agent = self.band_other.determine_billing_agent()
+        agent = self.band_other_two.determine_billing_agent()
         self.assertEqual(agent, self.agent_other)
 
     def test_band_save(self):
         with patch.object(
-            self.band_other,
+            self.band_other_two,
             'calculate_fee',
             return_value=(2000, '')
         ) as calculate_fee:
-            self.band_other.fee = None
-            self.band_other.save()
+            self.band_other_two.fee = None
+            self.band_other_two.save()
             calculate_fee.assert_called_once()

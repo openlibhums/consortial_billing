@@ -15,6 +15,9 @@ IS_WORKFLOW_PLUGIN = False
 
 ON_SIGNUP = "on_signup"
 
+RATE_INDICATOR = 'PA.NUS.FCRF'
+DISPARITY_INDICATOR = 'NY.GNP.PCAP.CD'
+
 
 class ConsortialBillingPlugin(plugins.Plugin):
     plugin_name = PLUGIN_NAME
@@ -32,13 +35,14 @@ class ConsortialBillingPlugin(plugins.Plugin):
     press_wide = True
 
 
-def install():
+def install(fetch_data=True):
     ConsortialBillingPlugin.install()
     update_settings(
         file_path=f'plugins/{SHORT_NAME}/install/settings.json'
     )
-    call_command('fetch_world_bank_data', 'PA.NUS.FCRF')
-    call_command('fetch_world_bank_data', 'NY.GNP.PCAP.CD')
+    if fetch_data:
+        call_command('fetch_world_bank_data', RATE_INDICATOR)
+        call_command('fetch_world_bank_data', DISPARITY_INDICATOR)
 
 
 def hook_registry():

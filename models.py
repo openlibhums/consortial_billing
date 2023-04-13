@@ -11,7 +11,7 @@ from django.shortcuts import reverse
 
 from django_countries.fields import CountryField
 
-from plugins.consortial_billing import utils, plugin_settings
+from plugins.consortial_billing import utils, logic, plugin_settings
 
 from utils.logger import get_logger
 logger = get_logger(__name__)
@@ -157,7 +157,23 @@ class Currency(models.Model):
 
     @property
     def exchange_rate(self):
-        return utils.get_exchange_rate(self)
+        """
+        Gets most up-to-date multiplier for exchange rate
+        based on latest GNI per capita figure
+        :return: tuple with the rate as int plus a string warning if
+                 matching country data could not be found
+        """
+        base_key = logic.get_base_band().country.alpha3
+        warning = f"""
+                   <p>We don't have currency data for the region {self.region},
+                   so we could not factor that in to the fee calculation</p>
+                   """
+        return logic.latest_multiplier_for_indicator(
+            plugin_settings.RATE_INDICATOR,
+            self.region,
+            base_key,
+            warning,
+        )
 
     def __str__(self):
         return self.code
@@ -224,7 +240,24 @@ class Band(models.Model):
 
     @property
     def economic_disparity(self):
-        return utils.get_economic_disparity(self.country)
+        """
+        Gets most up-to-date multiplier for economic disparity
+        based on latest GNI per capita figure
+        :return: tuple of the indicator as int plus a string warning if
+                 matching country data could not be found
+        """
+        base_key = logic.get_base_band().country.alpha3
+        warning = f"""
+                   <p>We don't have data for {self.country.name},
+                   so we could not factor that in to the fee calculation</p>
+                   """
+
+        return logic.latest_multiplier_for_indicator(
+            plugin_settings.DISPARITY_INDICATOR,
+            self.country.alpha3,
+            base_key,
+            warning,
+        )
 
     def calculate_fee(self):
         """
@@ -240,12 +273,8 @@ class Band(models.Model):
             if not field:
                 raise ValidationError(f'{field} needed for calculation')
 
-        try:
-            fee = Band.objects.filter(base=True).latest('datetime').fee
-        except Band.DoesNotExist:
-            raise ImproperlyConfigured('No base band found')
-
         warnings = ''
+        fee = logic.get_base_band().fee
 
         # Account for size of institution
         fee *= self.size.multiplier

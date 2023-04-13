@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from plugins.consortial_billing import utils
+from plugins.consortial_billing import utils, logic
 
 from utils.logger import get_logger
 
@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         indicator = options['indicator']
-        for year in utils.last_five_years():
+        for year in logic.last_five_years():
             status_code = utils.fetch_world_bank_data(indicator, year)
             if status_code == 200:
                 logger.info(
