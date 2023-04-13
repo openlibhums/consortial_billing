@@ -19,16 +19,6 @@ from core import include_urls  # imported so that urls will load
 @override_settings(SITE_SEARCH_INDEXING_FREQUENCY=None)
 class ViewTests(test_models.TestCaseWithData):
 
-    def setUp(self):
-        self.request = Mock(HttpRequest)
-        type(self.request).GET = {}
-        type(self.request).POST = {}
-        type(self.request).journal = None
-        type(self.request).press = Mock(press_models.Press)
-        press_type = ContentType.objects.get_for_model(self.press)
-        type(self.request).model_content_type = press_type
-        type(self.request).site_type = self.press
-
     def test_manager_loads(self):
         self.client.force_login(self.user_staff)
         response = self.client.get(
