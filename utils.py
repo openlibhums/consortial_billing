@@ -40,22 +40,31 @@ def save_media_file(filename, content):
     return file
 
 
+def form_world_bank_url(indicator, year):
+    base = 'https://api.worldbank.org/v2/country/all/indicator/'
+    params = f'?date={year}&format=json&per_page=500'
+    return base + indicator + params
+
+
+def save_file_for_indicator_and_year(indicator, year, content):
+    filename = os.path.join(
+        plugin_settings.SHORT_NAME,
+        f'{indicator}_{year}.json',
+    )
+    save_media_file(filename, content)
+
+
 def fetch_world_bank_data(indicator, year):
     """
     Gets API data and calls save_media_file if status is 200
     :indicator: A world bank indicator string such as PA.NUS.FCRF
+    :year: YYYY as int
     :return: status code
     """
-    base = 'https://api.worldbank.org/v2/country/all/indicator/'
-    params = f'?date={year}&format=json&per_page=500'
-    url = base + indicator + params
+    url = form_world_bank_url(indicator, year)
     response = requests.get(url)
     if response.status_code == 200:
-        filename = os.path.join(
-            plugin_settings.SHORT_NAME,
-            f'{indicator}_{year}.json',
-        )
-        save_media_file(filename, response.content)
+        save_file_for_indicator_and_year(indicator, year, response.content)
     return response.status_code
 
 
