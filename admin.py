@@ -1,9 +1,8 @@
 import csv
-import os
-import uuid
 
 from django.contrib import admin
-from django.conf import settings
+from django.contrib import messages
+from django.utils import timezone
 
 from plugins.consortial_billing import models
 from core import files
@@ -150,29 +149,6 @@ class BandAdmin(admin.ModelAdmin):
             )
 
 
-def export_supporters(modeladmin, request, queryset):
-    headers = ['Name', 'Active', 'First Name', 'Last Name', 'Email']
-    filename = '{uuid}.csv'.format(uuid=uuid.uuid4())
-    filepath = os.path.join(settings.BASE_DIR, 'files', 'temp', filename)
-    with open(filepath, 'w') as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-        writer.writerow(headers)
-
-        for inst in queryset:
-            writer.writerow([
-                inst.name,
-                inst.active,
-                inst.first_name,
-                inst.last_name,
-                inst.email_address,
-            ])
-
-    return files.serve_temp_file(filepath, filename)
-
-
-export_supporters.short_description = "Export Supporters"
-
-
 class SupporterAdmin(admin.ModelAdmin):
     list_display = (
         'name',
@@ -207,7 +183,55 @@ class SupporterAdmin(admin.ModelAdmin):
         'band',
         'old_bands',
     )
-    actions = [export_supporters]
+
+    actions = [
+        'export_supporters',
+        'test_action',
+    ]
+
+    @admin.action(description="Export selected supporters")
+    def export_supporters(self, request, queryset):
+        fieldnames = [
+            'name',
+            'ror',
+            'address',
+            'postal_code',
+            'country',
+            'email',
+            'first_name',
+            'last_name',
+            'display',
+            'active',
+            'size',
+            'currency',
+            'level',
+            'fee',
+            'warnings',
+            'datetime',
+            'billing_agent',
+        ]
+
+        timestamp = timezone.now().strftime('%Y-%m-%dT%H-%M-%S')
+        filename = f'supporters_export_{timestamp}.csv'
+        filepath = files.create_temp_file('', filename)
+        with open(filepath, 'w') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for supporter in queryset:
+                row = {}
+                for fieldname in fieldnames:
+                    row[fieldname] = getattr(supporter, fieldname)
+
+                writer.writerow(row)
+
+        count = queryset.count()
+        self.message_user(
+            request,
+            f"Downloaded {count} records",
+            messages.SUCCESS,
+        )
+        return files.serve_temp_file(filepath, filename)
 
 
 admin_list = [
