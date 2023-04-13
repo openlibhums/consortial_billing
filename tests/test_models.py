@@ -3,10 +3,11 @@ __author__ = "Open Library of Humanities"
 __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
+from django.http import HttpRequest
 
 from plugins.consortial_billing import models, plugin_settings
 from utils.testing import helpers
@@ -165,6 +166,16 @@ class TestCaseWithData(TestCase):
         cls.user_supporter.delete()
         cls.press.delete()
         super().tearDownClass()
+
+    def setUp(self):
+        self.request = Mock(HttpRequest)
+        type(self.request).GET = {}
+        type(self.request).POST = {}
+        type(self.request).journal = None
+        type(self.request).press = Mock(press_models.Press)
+        press_type = ContentType.objects.get_for_model(self.press)
+        type(self.request).model_content_type = press_type
+        type(self.request).site_type = self.press
 
 
 class ModelTests(TestCaseWithData):
