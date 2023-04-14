@@ -3,14 +3,16 @@ __author__ = "Open Library of Humanities"
 __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
+import os
 import json
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
+from django.conf import settings
 
 from core import models as core_models
 from cms import models as cms_models
-from plugins.consortial_billing import utils, models
+from plugins.consortial_billing import utils, models, plugin_settings
 
 
 def get_display_bands():
@@ -149,12 +151,19 @@ def get_settings_for_display():
     """
     Get settings for display in manager
     """
-    settings = []
-    with open('install/settings.json', 'r') as file_ref:
+    file_path = os.path.join(
+        settings.BASE_DIR,
+        'plugins',
+        plugin_settings.SHORT_NAME,
+        'install',
+        'settings.json',
+    )
+    display_settings = []
+    with open(file_path, 'r') as file_ref:
         for default_setting in json.loads(file_ref.read()):
             setting = core_models.Setting.objects.get(
                 group__name=default_setting['group']['name'],
                 name=default_setting['setting']['name'],
             )
-            settings.append(setting)
-    return settings
+            display_settings.append(setting)
+    return display_settings
