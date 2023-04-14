@@ -125,7 +125,6 @@ class BandAdmin(admin.ModelAdmin):
         'level',
         'fee',
         'billing_agent',
-        'display',
         'country',
     )
     date_hierarchy = 'datetime'
