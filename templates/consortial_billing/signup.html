@@ -8,13 +8,13 @@
 {% block body %}
     {% if redirect_text %}
         <div class="row">
-            <div class="col m10 l8">
+            <div class="col s12 m10 l8">
                 <h1>One More Step</h1>
                 {% render_string redirect_text %}
             </div>
         </div>
         <div class="row">
-            <div class="col m10 l8">
+            <div class="col s12 m10 l8">
                 <a
                     href="{{ supporter.billing_agent.redirect_url }}"
                     class="btn-large waves-effect waves-light"
@@ -27,7 +27,7 @@
         </div>
     {% elif complete_text %}
         <div class="row">
-            <div class="col m10 l8">
+            <div class="col s12 m10 l8">
                 <h1>Signup Complete</h1>
                 <div><i class="material-icons medium green-text">done</i></div>
                 {% render_string complete_text %}
@@ -45,7 +45,7 @@
             <form method="POST">
 
                 {% csrf_token %}
-                <div class="input-field col m10 l8">
+                <div class="input-field col s12 m10 l8">
                     <input
                         id="{{ supporter_form.name.id_for_label }}"
                         type="text"
@@ -57,21 +57,21 @@
                         {{ supporter_form.name.label|title }}
                     </label>
                 </div>
-                {{ supporter_form.display|materializecss:"m10 l8" }}
+                {{ supporter_form.display|materializecss:"s12 m10 l8" }}
 
-                {{ supporter_form.address|materializecss:"m10 l8" }}
-                {{ supporter_form.postal_code|materializecss:"m10 l8" }}
+                {{ supporter_form.address|materializecss:"s12 m10 l8" }}
+                {{ supporter_form.postal_code|materializecss:"s12 m10 l8" }}
 
-                {% include 'consortial_billing/elements/calculate_fee.html' with band_form=band_form %}
+                {% include 'consortial_billing/elements/calculate_fee.html' %}
 
                 {% if band_form.fee.value %}
                     <div class="row">
-                        <div class="col m10 l8">
+                        <div class="col s12 m10 l8">
                             {{ signup_agreement|safe }}
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col m10 l8">
+                        <div class="col s12 m10 l8">
                             <button
                                 type="submit"
                                 class="btn-large baustel dijon black-text waves-effect waves-light"
