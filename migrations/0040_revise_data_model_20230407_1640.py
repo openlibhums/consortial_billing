@@ -83,8 +83,9 @@ class Migration(migrations.Migration):
                 (
                     "name",
                     models.CharField(
-                        help_text="The name of the size band, e.g. Large",
-                        max_length=20
+                        help_text="The name of the size band, "
+                                  "e.g. Large Institution",
+                        max_length=50
                     ),
                 ),
                 (

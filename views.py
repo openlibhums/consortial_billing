@@ -43,7 +43,7 @@ def manager(request):
         'plugin': plugin_settings.SHORT_NAME,
         'supporters': models.Supporter.objects.all(),
         'agents': models.BillingAgent.objects.all(),
-        'sizes': models.Supporter.objects.all(),
+        'sizes': models.SupporterSize.objects.all(),
         'levels': models.SupportLevel.objects.all(),
         'currencies': models.Currency.objects.all(),
         'base_band': base_band,
