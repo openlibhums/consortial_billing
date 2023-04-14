@@ -1,10 +1,10 @@
 {% load materializecss %}
 
 <div class="row">
-    {{ band_form.country|materializecss:"m10 l8" }}
-    {{ band_form.size|materializecss:"m10 l8" }}
-    {{ band_form.level|materializecss:"m10 l8" }}
-    {{ band_form.currency|materializecss:"m10 l8" }}
+    {{ band_form.country|materializecss:"s12 m10 l8" }}
+    {{ band_form.size|materializecss:"s12 m10 l8" }}
+    {{ band_form.level|materializecss:"s12 m10 l8" }}
+    {{ band_form.currency|materializecss:"s12 m10 l8" }}
 </div>
 
 <div class="row">
@@ -28,7 +28,7 @@
 
 {% if band_form.fee.value and not supporter_form %}
     <div class="row">
-        <div class="col m10 l8">
+        <div class="col s12 m10 l8">
             <button
                 type="submit"
                 class="btn-large baustel dijon black-text waves-effect waves-light"
