@@ -181,7 +181,6 @@ class Migration(migrations.Migration):
                           "in this country to this agent.",
                 max_length=2,
                 null=True,
-                unique=True,
             ),
         ),
         migrations.AddField(
