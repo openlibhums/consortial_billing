@@ -38,6 +38,7 @@ class BandForm(forms.ModelForm):
                 warnings=band.warnings,
                 billing_agent=band.billing_agent,
                 datetime__year=timezone.now().year,
+                display=True,
             )
         return band
 

@@ -325,6 +325,10 @@ class Band(models.Model):
                 )
 
     def save(self, *args, **kwargs):
+        # Don't display base bands
+        if self.base:
+            self.display = False
+
         # Calculate fee if empty
         if not self.fee and not self.base:
             self.fee, self.warnings = self.calculate_fee()
