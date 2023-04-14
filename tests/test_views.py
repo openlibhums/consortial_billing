@@ -3,20 +3,16 @@ __author__ = "Open Library of Humanities"
 __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
-from django.http import HttpRequest, QueryDict
+from django.http import QueryDict
 from django.urls import reverse
-from django.test import override_settings
-from django.contrib.contenttypes.models import ContentType
 
 from plugins.consortial_billing import views, plugin_settings
 from plugins.consortial_billing.tests import test_models
-from press import models as press_models
 from core import include_urls  # imported so that urls will load
 
 
-@override_settings(SITE_SEARCH_INDEXING_FREQUENCY=None)
 class ViewTests(test_models.TestCaseWithData):
 
     def test_manager_loads(self):
