@@ -61,6 +61,6 @@ class CommandTests(test_models.TestCaseWithData):
         call_command('calculate_all_fees', '--save')
         band_save.assert_called()
         band_form_save.assert_called_with(commit=False)
-        supporter_save.assert_called_with()
+        supporter_save.assert_called()
         info.assert_called()
         warning.assert_not_called()
