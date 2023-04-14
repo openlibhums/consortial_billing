@@ -59,9 +59,9 @@ def get_display_bands():
                 (.25, .49999),
                 (0, .24999),
             ]
-        for segment in segments:
-            lower_end = min(fees) + (span * segment[0])
-            higher_end = min(fees) + (span * segment[1])
+        for start, end in segments:
+            lower_end = min(fees) + (span * start)
+            higher_end = min(fees) + (span * end)
             kwargs['fee__gte'] = lower_end
             kwargs['fee__lte'] = higher_end
             bands = models.Band.objects.filter(**kwargs)
@@ -96,10 +96,10 @@ def last_five_years():
 
 
 def get_indicator_by_country(indicator, year):
-    data = utils.open_saved_world_bank_data(indicator, year)
-    if not data[1]:
+    metadata, data = utils.open_saved_world_bank_data(indicator, year)
+    if not data:
         return {}
-    return {each['countryiso3code']: each['value'] for each in data[1]}
+    return {each['countryiso3code']: each['value'] for each in data}
 
 
 def get_base_band():
@@ -108,7 +108,12 @@ def get_base_band():
             base=True
         ).latest('datetime')
     except models.Band.DoesNotExist:
-        raise ImproperlyConfigured('No base band found')
+        if models.Band.objects.count():
+            raise ImproperlyConfigured('No base band found')
+        else:
+            # If there are no bands, the plugin is still
+            # being configured in the admin interface
+            return None
 
 
 def latest_multiplier_for_indicator(indicator, measure_key, base_key, warning):
@@ -121,6 +126,14 @@ def latest_multiplier_for_indicator(indicator, measure_key, base_key, warning):
     :return: tuple with the measure as int plus a string warning if
              matching data could not be found
     """
+
+    if base_key == '---':
+        # The plugin is being configured
+        # via the admin interface
+        multiplier = 1
+        warning = ''
+        return multiplier, warning
+
     base_improperly_configured = 0
     for year in reversed(last_five_years()):
         data = get_indicator_by_country(indicator, year)

@@ -49,12 +49,40 @@ class LogicTests(test_models.TestCaseWithData):
             base_band,
         )
 
+    def test_get_base_band_with_no_base_band(self):
+
+        base_band = logic.get_base_band()
+        self.assertEqual(
+            self.band_base,
+            base_band,
+        )
+
         # Make it so there is no base band
         self.band_base.base = False
         self.band_base.save()
 
         with self.assertRaises(ImproperlyConfigured):
             base_band = logic.get_base_band()
+
+        # Restore data
+        self.band_base.base = True
+        self.band_base.save()
+
+    @patch('plugins.consortial_billing.models.Band.objects.count')
+    def test_get_base_band_with_no_bands_at_all(self, band_count):
+        # In other words, the plugin is being
+        # configured for the first time
+
+        # Make it so there is no base band
+        self.band_base.base = False
+        self.band_base.save()
+
+        band_count.return_value = 0
+        base_band = logic.get_base_band()
+        self.assertEqual(
+            base_band,
+            None,
+        )
 
         # Restore data
         self.band_base.base = True
@@ -97,6 +125,19 @@ class LogicTests(test_models.TestCaseWithData):
             )
             self.assertEqual(multiplier, 1)
             self.assertEqual(warning, warning_text)
+
+    def test_latest_multiplier_for_indicator_during_initial_config(self):
+        measure_key = 'dog'
+        base_key = '---'
+        warning_text = ''
+        multiplier, warning = logic.latest_multiplier_for_indicator(
+            self.fake_indicator,
+            measure_key,
+            base_key,
+            warning_text,
+        )
+        self.assertEqual(multiplier, 1)
+        self.assertEqual(warning, '')
 
     def test_get_settings_for_display(self):
         settings = logic.get_settings_for_display()

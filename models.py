@@ -83,8 +83,8 @@ class BillingAgent(models.Model):
 
 class SupporterSize(models.Model):
     name = models.CharField(
-        max_length=20,
-        help_text="The name of the size band, e.g. Large",
+        max_length=50,
+        help_text="The name of the size band, e.g. Large Institution",
     )
     description = models.CharField(
         max_length=200,
@@ -175,7 +175,13 @@ class Currency(models.Model):
         :return: tuple with the rate as int plus a string warning if
                  matching country data could not be found
         """
-        base_key = logic.get_base_band().country.alpha3
+        base_band = logic.get_base_band()
+        if base_band:
+            base_key = base_band.country.alpha3
+        else:
+            # This is needed during initial configuration
+            base_key = '---'
+
         warning = f"""
                    <p>We don't have currency data for the region {self.region},
                    so we could not factor that in to the fee calculation</p>
