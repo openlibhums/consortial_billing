@@ -119,6 +119,7 @@ class BandAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'base',
+        'display',
         'datetime',
         'size',
         'currency',
@@ -176,6 +177,10 @@ class SupporterAdmin(admin.ModelAdmin):
         'band__level',
         'band__currency',
         'band__country',
+    )
+    list_editable = (
+        'active',
+        'display',
     )
     raw_id_fields = (
         'contacts',

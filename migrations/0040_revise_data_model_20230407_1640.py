@@ -369,7 +369,7 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=True,
                 help_text="May we include your institution name "
-                          "in public our list of supporters?",
+                          "in our public list of supporters?",
             ),
         ),
         migrations.AlterField(
