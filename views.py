@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.core.management import call_command
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.exceptions import ImproperlyConfigured
 
 from plugins.consortial_billing import utils, \
      logic, models, plugin_settings, forms
@@ -22,7 +23,14 @@ def manager(request):
             indicator = request.POST.get('fetch_data', None)
             call_command('fetch_world_bank_data', indicator)
 
-    base_band = logic.get_base_band()
+    try:
+        base_band = logic.get_base_band()
+    except ImproperlyConfigured:
+        # This is OK on the manager page
+        # because it may be accessed before a base band is created.
+        # The template can handle no base band.
+        base_band = None
+
     latest_gni_data = logic.latest_dataset_for_indicator(
         plugin_settings.DISPARITY_INDICATOR,
     )

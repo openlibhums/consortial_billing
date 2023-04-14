@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from django.http import QueryDict
 from django.urls import reverse
+from django.core.exceptions import ImproperlyConfigured
 
 from plugins.consortial_billing import views, plugin_settings
 from plugins.consortial_billing.tests import test_models
@@ -16,6 +17,17 @@ from core import include_urls  # imported so that urls will load
 class ViewTests(test_models.TestCaseWithData):
 
     def test_manager_loads(self):
+        self.client.force_login(self.user_staff)
+        response = self.client.get(
+            reverse('supporters_manager'),
+            SERVER_NAME=self.press.domain,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'consortial_billing/manager.html')
+
+    @patch('plugins.consortial_billing.logic.get_base_band')
+    def test_manager_loads_with_no_base_band(self, get_base):
+        get_base.side_effect = ImproperlyConfigured('No base')
         self.client.force_login(self.user_staff)
         response = self.client.get(
             reverse('supporters_manager'),
