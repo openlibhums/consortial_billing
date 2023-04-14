@@ -381,7 +381,7 @@ class Supporter(models.Model):
     display = models.BooleanField(
         default=True,
         help_text="May we include your institution name "
-                  "in public our list of supporters?",
+                  "in our public list of supporters?",
     )
     contacts = models.ManyToManyField(
         'core.Account',
