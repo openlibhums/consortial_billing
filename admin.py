@@ -141,6 +141,7 @@ class BandAdmin(admin.ModelAdmin):
                 'warnings',
                 'datetime',
                 'billing_agent',
+                'base',
             )
         else:
             return (
