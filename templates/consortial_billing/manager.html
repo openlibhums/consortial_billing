@@ -241,6 +241,21 @@
                             {% endif %}
                         </a>
                     </div>
+                    {% if fixed_fee_bands %}
+                        <p>
+                            Any fixed fee bands need to be updated manually.
+                        </p>
+                        <div class="stacked button-group">
+                            <a
+                                href="/admin/consortial_billing/band/?fixed_fee__exact=True"
+                                class="button secondary"
+                                target="_blank">
+                                <i class="fa fa-pencil"></i>
+                                Edit fixed fee bands
+                                (oldest is {{ fixed_fee_bands.earliest.datetime }})
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             </form>

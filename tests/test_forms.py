@@ -50,6 +50,21 @@ class FormTests(test_models.TestCaseWithData):
                     'Oh no!',
                 )
 
+    def test_band_form_save_fixed_fee_band(self):
+        with patch(
+            'plugins.consortial_billing.logic.determine_billing_agent',
+            return_value=self.agent_other,
+        ):
+            data = {
+                'country': 'FR',
+                'currency': self.currency_other,
+                'size': self.size_other,
+                'level': self.level_other,
+            }
+            band_form = forms.BandForm(data)
+            band = band_form.save(commit=False)
+            self.assertEqual(band.pk, self.band_fixed_fee.pk)
+
     def test_band_form_save_existing_band_commit(self):
         with patch(
             'plugins.consortial_billing.models.Band.determine_billing_agent',

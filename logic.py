@@ -180,3 +180,22 @@ def get_settings_for_display():
             )
             display_settings.append(setting)
     return display_settings
+
+
+def determine_billing_agent(country):
+    """
+    :country: a two-letter country code like the ones
+              django_countries stores in the database
+    :return: BillingAgent
+    """
+    try:
+        agent = models.BillingAgent.objects.get(country=country)
+        return agent
+    except models.BillingAgent.DoesNotExist:
+        try:
+            agent = models.BillingAgent.objects.get(default=True)
+            return agent
+        except models.BillingAgent.DoesNotExist:
+            raise ImproperlyConfigured(
+                'No billing agent has been set as default'
+            )

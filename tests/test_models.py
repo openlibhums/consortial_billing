@@ -106,6 +106,15 @@ class TestCaseWithData(TestCase):
             fee=1500,
             billing_agent=cls.agent_default,
         )
+        cls.band_fixed_fee, _c = models.Band.objects.get_or_create(
+            size=cls.size_other,
+            country='FR',
+            currency=cls.currency_other,
+            level=cls.level_other,
+            fee=7777,
+            fixed_fee=True,
+            billing_agent=cls.agent_other,
+        )
         cls.supporter_one, _c = models.Supporter.objects.get_or_create(
             name='Birkbeck, University of London',
             ror='https://ror.org/02mb95055',
