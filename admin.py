@@ -120,6 +120,7 @@ class BandAdmin(admin.ModelAdmin):
     list_filter = (
         'base',
         'display',
+        'fixed_fee',
         'datetime',
         'size',
         'currency',
@@ -131,13 +132,24 @@ class BandAdmin(admin.ModelAdmin):
     date_hierarchy = 'datetime'
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:
+        if obj and obj.fixed_fee:
+            return (
+                'size',
+                'country',
+                'currency',
+                'level',
+                'warnings',
+                'datetime',
+                'base',
+            )
+        elif obj:
             return (
                 'size',
                 'country',
                 'currency',
                 'level',
                 'fee',
+                'fixed_fee',
                 'warnings',
                 'datetime',
                 'billing_agent',
@@ -145,8 +157,8 @@ class BandAdmin(admin.ModelAdmin):
             )
         else:
             return (
-                'datetime',
                 'warnings',
+                'datetime',
             )
 
 

@@ -235,6 +235,21 @@ class Band(models.Model):
         blank=True,
         null=True,
     )
+    fixed_fee = models.BooleanField(
+        default=False,
+        help_text='Select if you want to manually set the fee '
+                  'for this band. The fee calculator for this '
+                  'band (i.e., this combination of size, level, '
+                  'country, and currency) will then return '
+                  'whatever fee you type in the fee field. '
+                  'Note: thie field has no effect on base bands, '
+                  'which do take a manually input fee.',
+    )
+    warnings = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Warning messages from the fee calculator',
+    )
     billing_agent = models.ForeignKey(
         BillingAgent,
         blank=True,
@@ -249,11 +264,6 @@ class Band(models.Model):
         default=False,
         help_text='Select if this is the base band to represent '
                   'the base fee, country, currency, size, and support level.',
-    )
-    warnings = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text='Warning messages from the fee calculator',
     )
 
     @property
@@ -294,6 +304,10 @@ class Band(models.Model):
                 )
 
         warnings = ''
+
+        if self.fixed_fee:
+            return self.fee, warnings
+
         fee = logic.get_base_band().fee
 
         # Account for size of institution
@@ -321,17 +335,7 @@ class Band(models.Model):
         return fee, warnings
 
     def determine_billing_agent(self):
-        try:
-            agent = BillingAgent.objects.get(country=self.country)
-            return agent
-        except BillingAgent.DoesNotExist:
-            try:
-                agent = BillingAgent.objects.get(default=True)
-                return agent
-            except BillingAgent.DoesNotExist:
-                raise ImproperlyConfigured(
-                    'No billing agent has been set as default'
-                )
+        return logic.determine_billing_agent(self.country)
 
     def save(self, *args, **kwargs):
         # Don't display base bands
@@ -342,11 +346,20 @@ class Band(models.Model):
         if not self.fee and not self.base:
             self.fee, self.warnings = self.calculate_fee()
 
+        # Update datetime on save for fixed fee bands only
+        # (others should retain original timestamp because
+        # they are designed to be superseded by new bands annually)
+        if self.fixed_fee:
+            self.datetime = timezone.now()
+
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.fee} {self.currency} ({self.datetime}): ' \
                f'{self.size}, {self.level}, {self.country.name}'
+
+    class Meta:
+        get_latest_by = 'datetime'
 
 
 def validate_ror(url):

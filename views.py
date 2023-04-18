@@ -47,6 +47,7 @@ def manager(request):
         'levels': models.SupportLevel.objects.all(),
         'currencies': models.Currency.objects.all(),
         'base_band': base_band,
+        'fixed_fee_bands': models.Band.objects.filter(fixed_fee=True),
         'latest_gni_data': latest_gni_data,
         'latest_exchange_rate_data': latest_exchange_rate_data,
         'settings': settings,
