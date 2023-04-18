@@ -315,6 +315,9 @@ class Band(models.Model):
         # Round to the nearest ten
         fee = int(round(fee, -1))
 
+        # Check against minimum fee (e.g. 100)
+        fee = max(fee, utils.setting('minimum_fee'))
+
         return fee, warnings
 
     def determine_billing_agent(self):

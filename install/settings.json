@@ -103,5 +103,20 @@
     "value": {
       "default": "Open Library of Humanities support confirmation"
     }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Minimum fee that calculator returns (e.g. 100)",
+      "is_translatable": false,
+      "name": "minimum_fee",
+      "pretty_name": "Minimum fee",
+      "type": "number"
+    },
+    "value": {
+      "default": 100
+    }
   }
 ]
