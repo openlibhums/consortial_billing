@@ -234,7 +234,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="banding",
             name="fee",
-            field=models.IntegerField(blank=True, null=True),
+            field=models.IntegerField(
+                blank=True,
+                null=True,
+                verbose_name='Annual fee',
+            ),
         ),
         migrations.AddField(
             model_name="banding",
