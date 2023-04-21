@@ -234,6 +234,7 @@ class Band(models.Model):
     fee = models.IntegerField(
         blank=True,
         null=True,
+        verbose_name='Annual fee',
     )
     fixed_fee = models.BooleanField(
         default=False,
