@@ -182,10 +182,8 @@ class Currency(models.Model):
             # This is needed during initial configuration
             base_key = '---'
 
-        warning = f"""
-                   <p>We don't have currency data for the region {self.region},
-                   so we could not factor that in to the fee calculation</p>
-                   """
+        warning = utils.setting('missing_data_exchange_rate')
+
         return logic.latest_multiplier_for_indicator(
             plugin_settings.RATE_INDICATOR,
             self.region,
@@ -276,10 +274,7 @@ class Band(models.Model):
                  matching country data could not be found
         """
         base_key = logic.get_base_band().country.alpha3
-        warning = f"""
-                   <p>We don't have data for {self.country.name},
-                   so we could not factor that in to the fee calculation</p>
-                   """
+        warning = utils.setting('missing_data_economic_disparity')
 
         return logic.latest_multiplier_for_indicator(
             plugin_settings.DISPARITY_INDICATOR,
@@ -310,6 +305,10 @@ class Band(models.Model):
             return self.fee, warnings
 
         fee = logic.get_base_band().fee
+        if fee is None:
+            raise ImproperlyConfigured(
+                'No fee has been set on base band'
+            )
 
         # Account for size of institution
         fee *= self.size.multiplier
