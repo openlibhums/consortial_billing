@@ -118,5 +118,35 @@
     "value": {
       "default": 100
     }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Message warning end user that country data could not be found while calculating exchange rate",
+      "is_translatable": true,
+      "name": "missing_data_exchange_rate",
+      "pretty_name": "Missing exchange rate data",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "<p>We don't have data for the currency selected, so we could not adjust the exchange rate, but you can still sign up! Please contact us for a custom quote.</p>"
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Message warning end user that country data could not be found while calculating GNI per capita",
+      "is_translatable": true,
+      "name": "missing_data_economic_disparity",
+      "pretty_name": "Missing economic disparity data",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "<p>We don't have data for the country selected, so we could not adjust the GNI per capita accordingly, but you can still sign up! Please contact us for a custom quote.</p>"
+    }
   }
 ]
