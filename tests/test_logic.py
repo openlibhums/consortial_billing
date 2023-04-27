@@ -16,8 +16,8 @@ class LogicTests(test_models.TestCaseWithData):
     def test_get_display_bands(self):
         display_bands = logic.get_display_bands()
         self.assertEqual(
-            display_bands[-1][3],
-            '1000&ndash;1001 GBP',
+            display_bands[-1]['GBP'],
+            '1000&ndash;1001',
         )
 
     def test_get_indicator_by_country(self):
