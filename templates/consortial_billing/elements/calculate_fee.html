@@ -8,10 +8,9 @@
 </div>
 
 <div class="row">
-    {{ band_form.fee|materializecss:"s6 m5 l4" }}
-    <div class="col s6 m4 l3">
+    <div class="col s12 m10 l8">
         <button
-            class="btn-large waves-effect waves-light"
+            class="btn baustel dijon black-text waves-effect waves-light"
             name="calculate"
             type="submit">
             {% if band_form.fee.value %}
@@ -23,6 +22,9 @@
         </button>
     </div>
 </div>
+<div class="row">
+    {{ band_form.fee|materializecss:"s12 m10 l8" }}
+</div>
 
 {% include 'core/elements/warnings.html' with warnings=band.warnings %}
 
@@ -31,7 +33,7 @@
         <div class="col s12 m10 l8">
             <button
                 type="submit"
-                class="btn-large baustel dijon black-text waves-effect waves-light"
+                class="btn btn-large waves-effect waves-light"
                 name="start_signup">
                 Start Signup
                 <i class="material-icons right">start</i>
