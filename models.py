@@ -78,7 +78,10 @@ class BillingAgent(models.Model):
         return self.users.first().last_name if self.users else None
 
     def __str__(self):
-        return self.name
+        if self.default:
+            return f'{self.name} (default)'
+        elif self.country:
+            return f'{self.name} ({self.country})'
 
 
 class SupporterSize(models.Model):
@@ -115,7 +118,7 @@ class SupporterSize(models.Model):
             return self.name
 
     class Meta:
-        ordering = ('is_consortium', '-multiplier', 'name')
+        ordering = ('is_consortium', 'name')
 
 
 class SupportLevel(models.Model):
@@ -145,7 +148,10 @@ class SupportLevel(models.Model):
         ordering = ('-multiplier', 'name')
 
     def __str__(self):
-        return f'{self.name} support'
+        if self.description:
+            return f'{self.name} ({self.description})'
+        else:
+            return f'{self.name}'
 
 
 class Currency(models.Model):

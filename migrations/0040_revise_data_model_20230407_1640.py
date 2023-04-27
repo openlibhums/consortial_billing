@@ -123,7 +123,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "ordering": ("is_consortium", "-multiplier", "name"),
+                "ordering": ("is_consortium", "name"),
             },
         ),
 
