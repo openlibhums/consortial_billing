@@ -1,1 +1,2 @@
 django-countries==7.5.1
+tqdm==4.65.0
