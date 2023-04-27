@@ -172,6 +172,7 @@ def migrate_data(apps, schema_editor):
             datetime__year=year,
             billing_agent=billing_agent,
             display=display,
+            base=False,
         )
         return band
 
