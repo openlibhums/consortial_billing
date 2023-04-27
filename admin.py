@@ -28,9 +28,6 @@ class BillingAgentAdmin(admin.ModelAdmin):
     raw_id_fields = (
         'users',
     )
-    inlines = [
-        BandInline,
-    ]
 
 
 class SupporterSizeAdmin(admin.ModelAdmin):
@@ -52,9 +49,6 @@ class SupporterSizeAdmin(admin.ModelAdmin):
     list_filter = (
         'is_consortium',
     )
-    inlines = [
-        BandInline,
-    ]
 
 
 class SupportLevelAdmin(admin.ModelAdmin):
@@ -71,9 +65,6 @@ class SupportLevelAdmin(admin.ModelAdmin):
         'multiplier',
         'internal_notes',
     )
-    inlines = [
-        BandInline,
-    ]
 
 
 class CurrencyAdmin(admin.ModelAdmin):
@@ -92,9 +83,6 @@ class CurrencyAdmin(admin.ModelAdmin):
     readonly_fields = (
         '_exchange_rate',
     )
-    inlines = [
-        BandInline,
-    ]
 
     def _exchange_rate(self, obj):
         if obj:
