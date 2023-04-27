@@ -37,6 +37,7 @@ class BandForm(forms.ModelForm):
                 currency=band.currency,
                 billing_agent=billing_agent,
                 fixed_fee=True,
+                base=False,
             ).latest('datetime')
             return saved_band
         except models.Band.DoesNotExist:
@@ -55,6 +56,7 @@ class BandForm(forms.ModelForm):
                     billing_agent=band.billing_agent,
                     datetime__year=timezone.now().year,
                     display=True,
+                    base=False,
                 )
             return band
 
