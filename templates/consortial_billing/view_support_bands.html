@@ -10,25 +10,32 @@
             <h1>Support Bands</h1>
         </div>
     </div>
-    <div class="row">
-        <div class="col">
-            <table class="striped centered">
-                <thead>
-                    <th>Support Level</th>
-                    <th>Supporter Size</th>
-                    <th>Countries</th>
-                    <th>Fee</th>
-                </thead>
-                <tbody>
-                    {% for band in display_bands %}
-                    <tr>
-                        {% for cell in band %}
-                        <td>{{ cell|safe }}</td>
+    {% regroup display_bands by level as bands_by_level %}
+    {% for level, bands in bands_by_level %}
+        <div class="row">
+            <div class="col">
+                <h2>{{ level }}</h2>
+                <table class="striped centered">
+                    <thead>
+                        <th>Supporter Size</th>
+                        <th>Countries</th>
+                        <th>EUR</th>
+                        <th>GBP</th>
+                        <th>USD</th>
+                    </thead>
+                    <tbody>
+                        {% for row in bands %}
+                        <tr>
+                            <td>{{ row.size|safe }}</td>
+                            <td>{{ row.countries|safe }}</td>
+                            <td>{{ row.EUR|safe }}</td>
+                            <td>{{ row.GBP|safe }}</td>
+                            <td>{{ row.USD|safe }}</td>
+                        </tr>
                         {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    {% endfor %}
 {% endblock body %}

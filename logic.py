@@ -24,23 +24,23 @@ def get_display_bands():
     def build_display_band(level, size, currency, kwargs):
         bands = models.Band.objects.filter(**kwargs)
 
-        display_band = []
+        display_band = {}
 
-        display_band.append(level)
+        display_band['level'] = level
 
-        display_band.append(size)
+        display_band['size'] = size.name
 
         countries = sorted(
             set(band.country.name for band in bands)
         )
-        display_band.append(', '.join(countries))
+        display_band['countries'] = ', '.join(countries)
 
         min_fee = bands.order_by('fee').first().fee
         max_fee = bands.order_by('fee').last().fee
         if min_fee == max_fee:
-            display_band.append(f'{min_fee} {currency}')
+            display_band[currency.code] = min_fee
         else:
-            display_band.append(f'{min_fee}&ndash;{max_fee} {currency}')
+            display_band[currency.code] = f'{min_fee}&ndash;{max_fee}'
         return display_band
 
     def build_segments(level, size, currency, kwargs):
@@ -54,11 +54,16 @@ def get_display_bands():
             ]
         else:
             segments = [
-                (.75, 1),
-                (.5, .74999),
-                (.25, .49999),
-                (0, .24999),
+                (.666667, 1),
+                (.333334, .666666),
+                (0, .333333),
             ]
+            # segments = [
+            #     (.75, 1),
+            #     (.5, .74999),
+            #     (.25, .49999),
+            #     (0, .24999),
+            # ]
         for start, end in segments:
             lower_end = min(fees) + (span * start)
             higher_end = min(fees) + (span * end)
