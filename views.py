@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.template import TemplateDoesNotExist
 from django.urls import reverse
 from django.core.management import call_command
 from django.contrib.admin.views.decorators import staff_member_required
@@ -118,8 +119,6 @@ def signup(request):
                         supporter,
                     )
 
-    template = 'consortial_billing/signup.html'
-
     context = {
         'band_form': band_form,
         'band': band,
@@ -129,6 +128,11 @@ def signup(request):
         'redirect_text': redirect_text,
         'complete_text': complete_text,
     }
+
+    if request.press.theme == 'hourglass':
+        template = 'custom/supporter-signup.html'
+    else:
+        template = 'consortial_billing/signup.html'
 
     return render(request, template, context)
 
@@ -144,7 +148,10 @@ def view_support_bands(request):
         'display_bands': display_bands,
     }
 
-    template = 'consortial_billing/view_support_bands.html'
+    if request.press.theme == 'hourglass':
+        template = 'custom/view-support-bands.html'
+    else:
+        template = 'consortial_billing/view_support_bands.html'
 
     return render(request, template, context)
 
@@ -156,7 +163,10 @@ def supporters(request):
         display=True,
     )
 
-    template = 'consortial_billing/supporters_press.html'
+    if request.press.theme == 'hourglass':
+        template = 'custom/supporters.html'
+    else:
+        template = 'consortial_billing/supporters_press.html'
 
     context = {
         'supporters': supporters,
