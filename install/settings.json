@@ -26,7 +26,7 @@
       "type": "rich-text"
     },
     "value": {
-      "default": "Thank you for signing up. You should receive a confirmation email soon. We will then be in touch to confirm billing details."
+      "default": "<p>Thank you for signing up. You should receive a confirmation email soon. We will then be in touch to confirm billing details.</p>"
     }
   },
   {
@@ -41,7 +41,7 @@
       "type": "rich-text"
     },
     "value": {
-      "default": "We work with {{ supporter.billing_agent }} to handle billing for supporters in your band. Please follow the link to their website to complete the signup process."
+      "default": "<p>We work with {{ supporter.billing_agent }} to handle billing for supporters in your band. Please follow the link to their website to complete the signup process.</p>"
     }
   },
   {
@@ -146,7 +146,7 @@
       "type": "rich-text"
     },
     "value": {
-      "default": "<p>We don't have data for the country selected, so we could not adjust the GNI per capita accordingly, but you can still sign up! Please contact us for a custom quote.</p>"
+      "default": "<p>Note: We don't have data for the country selected, so we could not adjust the GNI per capita accordingly, but you can still sign up! Please contact us for a custom quote.</p>"
     }
   }
 ]
