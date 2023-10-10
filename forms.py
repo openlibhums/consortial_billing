@@ -67,6 +67,7 @@ class SupporterForm(forms.ModelForm):
         model = models.Supporter
         fields = [
             'name',
+            'ror',
             'address',
             'postal_code',
             'display',
