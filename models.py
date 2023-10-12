@@ -93,7 +93,7 @@ class SupporterSize(models.Model):
         max_length=200,
         blank=True,
         help_text='How size is determined, e.g. 0-4999 FTE staff '
-                  'for an institution, or 10-19 members for a consortium '
+                  'for an institution'
     )
     multiplier = models.FloatField(
         default=1,
@@ -106,10 +106,6 @@ class SupporterSize(models.Model):
         help_text="Internal notes on how this was configured, "
                   "for when it needs updating next",
     )
-    is_consortium = models.BooleanField(
-        default=False,
-        help_text="Whether this is a consortium",
-    )
 
     def __str__(self):
         if self.description:
@@ -118,7 +114,7 @@ class SupporterSize(models.Model):
             return self.name
 
     class Meta:
-        ordering = ('is_consortium', 'name')
+        ordering = ('-multiplier',)
 
 
 class SupportLevel(models.Model):
@@ -132,10 +128,10 @@ class SupportLevel(models.Model):
         max_length=255,
         blank=True,
     )
-    multiplier = models.FloatField(
-        default=1,
-        help_text="The base rate is multiplied by this "
-                  "as part of the support fee calculation",
+    order = models.IntegerField(
+        blank=True,
+        null=True,
+        help_text="The order in which to display the levels",
     )
     internal_notes = models.CharField(
         max_length=255,
@@ -145,7 +141,7 @@ class SupportLevel(models.Model):
     )
 
     class Meta:
-        ordering = ('-multiplier', 'name')
+        ordering = ('order', 'name')
 
     def __str__(self):
         if self.description:
@@ -160,6 +156,11 @@ class Currency(models.Model):
         max_length=3,
         help_text="Three-letter currency code, e.g. EUR",
     )
+    symbol = models.CharField(
+        blank=True,
+        max_length=2,
+        help_text="Currency symbol, e.g. €",
+    )
     region = models.CharField(
         max_length=3,
         choices=CURRENCY_REGION_CHOICES,
@@ -173,15 +174,17 @@ class Currency(models.Model):
                   "for when it needs updating next",
     )
 
-    @property
-    def exchange_rate(self):
+    def exchange_rate(self, base_band=None):
         """
         Gets most up-to-date multiplier for exchange rate
-        based on latest GNI per capita figure
+        based on latest World Bank data,
+        which is oriented around USD
         :return: tuple with the rate as int plus a string warning if
                  matching country data could not be found
         """
-        base_band = logic.get_base_band()
+        if not base_band:
+            base_band = logic.get_base_band()
+
         if base_band:
             base_key = base_band.country.alpha3
         else:
@@ -212,7 +215,7 @@ class Band(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-        verbose_name="Institution/consortium size",
+        verbose_name="Institution size",
     )
     country = CountryField(
         blank=True,
@@ -268,7 +271,8 @@ class Band(models.Model):
     base = models.BooleanField(
         default=False,
         help_text='Select if this is the base band to represent '
-                  'the base fee, country, currency, size, and support level.',
+                  'the base fee, country, and currency for a '
+                  'given support level.',
     )
 
     @property
@@ -279,7 +283,8 @@ class Band(models.Model):
         :return: tuple of the indicator as int plus a string warning if
                  matching country data could not be found
         """
-        base_key = logic.get_base_band().country.alpha3
+        base_band = logic.get_base_band(self.level)
+        base_key = base_band.country.alpha3
         warning = utils.setting('missing_data_economic_disparity')
 
         return logic.latest_multiplier_for_indicator(
@@ -288,6 +293,27 @@ class Band(models.Model):
             base_key,
             warning,
         )
+
+    @property
+    def size_difference(self):
+        """
+        Returns multiplier representing the
+        difference between the institution size
+        and the base band institution size
+        :return: integer
+        """
+        base_band = logic.get_base_band(self.level)
+        return self.size.multiplier / base_band.size.multiplier
+
+    @property
+    def exchange_rate(self):
+        """
+        Returns exchange rate between this
+        band's currency and the base band currency
+        :return: integer
+        """
+        base_band = logic.get_base_band(self.level)
+        return self.currency.exchange_rate(base_band)
 
     def calculate_fee(self):
         """
@@ -310,17 +336,14 @@ class Band(models.Model):
         if self.fixed_fee:
             return self.fee, warnings
 
-        fee = logic.get_base_band().fee
+        fee = logic.get_base_band(self.level).fee
         if fee is None:
             raise ImproperlyConfigured(
                 'No fee has been set on base band'
             )
 
         # Account for size of institution
-        fee *= self.size.multiplier
-
-        # Account for support level chosen
-        fee *= self.level.multiplier
+        fee *= self.size_difference
 
         # Account for country
         disparity, warning = self.economic_disparity
@@ -328,7 +351,7 @@ class Band(models.Model):
         warnings += warning
 
         # Convert into preferred currency
-        rate, warning = self.currency.exchange_rate
+        rate, warning = self.exchange_rate
         fee *= rate
         warnings += warning
 
@@ -382,7 +405,7 @@ class Supporter(models.Model):
         max_length=200,
         blank=True,
         null=True,
-        verbose_name="Institution/consortium name",
+        verbose_name="Institution name",
     )
     ror = models.URLField(
         blank=True,

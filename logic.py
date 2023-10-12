@@ -13,6 +13,9 @@ from django.conf import settings
 from core import models as core_models
 from cms import models as cms_models
 from plugins.consortial_billing import utils, models, plugin_settings
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_display_bands():
@@ -107,18 +110,37 @@ def get_indicator_by_country(indicator, year):
     return {each['countryiso3code']: each['value'] for each in data}
 
 
-def get_base_band():
+def get_base_bands():
+    # We create the result set this crude way to avoid being
+    # reliant on postgreSQL for order_by + distinct.
+    # base_bands will only ever be a handful of items.
+    base_bands = []
+    for level in models.SupportLevel.objects.all():
+        try:
+            base_band = models.Band.objects.filter(
+                base=True,
+                level=level,
+            ).latest()
+            base_bands.append(base_band)
+        except models.Band.DoesNotExist:
+            logger.warning('Missing base bands for some support levels')
+    return base_bands
+
+
+def get_base_band(level=None):
     try:
-        return models.Band.objects.filter(
-            base=True
-        ).latest('datetime')
-    except models.Band.DoesNotExist:
-        if models.Band.objects.count():
-            raise ImproperlyConfigured('No base band found')
+        if level:
+            return models.Band.objects.filter(
+                base=True,
+                level=level,
+            ).latest()
         else:
-            # If there are no bands, the plugin is still
-            # being configured in the admin interface
-            return None
+            return models.Band.objects.filter(
+                base=True
+            ).latest()
+
+    except models.Band.DoesNotExist:
+        logger.warning('No base band found for support level ' + str(level))
 
 
 def latest_multiplier_for_indicator(indicator, measure_key, base_key, warning):

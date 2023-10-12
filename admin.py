@@ -34,20 +34,15 @@ class SupporterSizeAdmin(admin.ModelAdmin):
     list_display = (
         'pk',
         'name',
-        'is_consortium',
         'description',
         'multiplier',
         'internal_notes',
     )
     list_editable = (
         'name',
-        'is_consortium',
         'description',
         'multiplier',
         'internal_notes',
-    )
-    list_filter = (
-        'is_consortium',
     )
 
 
@@ -56,13 +51,13 @@ class SupportLevelAdmin(admin.ModelAdmin):
         'pk',
         'name',
         'description',
-        'multiplier',
+        'order',
         'internal_notes',
     )
     list_editable = (
         'name',
         'description',
-        'multiplier',
+        'order',
         'internal_notes',
     )
 
@@ -71,12 +66,14 @@ class CurrencyAdmin(admin.ModelAdmin):
     list_display = (
         'pk',
         'code',
+        'symbol',
         'region',
         '_exchange_rate',
         'internal_notes',
     )
     list_editable = (
         'code',
+        'symbol',
         'region',
         'internal_notes',
     )
@@ -86,7 +83,7 @@ class CurrencyAdmin(admin.ModelAdmin):
 
     def _exchange_rate(self, obj):
         if obj:
-            rate, warnings = obj.exchange_rate
+            rate, warnings = obj.exchange_rate()
             return rate
         else:
             return ''

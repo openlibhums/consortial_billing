@@ -11,7 +11,7 @@
       "type": "rich-text"
     },
     "value": {
-      "default": "<p>By submitting this form you agree to these terms:</p><ul class='browser-default'><li>You are the named representative of the institution or consortium named above.</li><li>You are authorised to commit to expenditure of the institution or consortium named above.</li><li>We have the right to reject funds from any organization or individual for any reason.</li></ul>"
+      "default": "<p>By submitting this form you agree to these terms:</p><ul class='browser-default'><li>You are the named representative of the institution named above.</li><li>You are authorised to commit to expenditure of the institution named above.</li><li>We have the right to reject funds from any organization or individual for any reason.</li></ul>"
     }
   },
   {
