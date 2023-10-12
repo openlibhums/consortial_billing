@@ -24,19 +24,19 @@ def manager(request):
             indicator = request.POST.get('fetch_data', None)
             call_command('fetch_world_bank_data', indicator)
 
-    try:
-        base_band = logic.get_base_band()
-    except ImproperlyConfigured:
-        # This is OK on the manager page
-        # because it may be accessed before a base band is created.
-        # The template can handle no base band.
-        base_band = None
+        elif 'update_demo' in request.POST:
+            call_command('update_demo_band_data')
+
+    base_bands = logic.get_base_bands()
 
     latest_gni_data = logic.latest_dataset_for_indicator(
         plugin_settings.DISPARITY_INDICATOR,
     )
     latest_exchange_rate_data = logic.latest_dataset_for_indicator(
         plugin_settings.RATE_INDICATOR,
+    )
+    latest_demo_data = logic.latest_dataset_for_indicator(
+        utils.DEMO_DATA_FILENAME,
     )
     settings = logic.get_settings_for_display()
 
@@ -47,10 +47,11 @@ def manager(request):
         'sizes': models.SupporterSize.objects.all(),
         'levels': models.SupportLevel.objects.all(),
         'currencies': models.Currency.objects.all(),
-        'base_band': base_band,
+        'base_bands': base_bands,
         'fixed_fee_bands': models.Band.objects.filter(fixed_fee=True),
         'latest_gni_data': latest_gni_data,
         'latest_exchange_rate_data': latest_exchange_rate_data,
+        'latest_demo_data': latest_demo_data,
         'settings': settings,
         'plugin_settings': plugin_settings,
     }
@@ -177,6 +178,11 @@ def supporters(request):
 
 def view_custom_page(request, page_name):
 
+    if request.GET and 'start_signup' in request.GET:
+        url = reverse('supporter_signup')
+        params = request.GET.urlencode()
+        return redirect(f'{url}?{params}')
+
     page = get_object_or_404(
         cms_models.Page,
         name=page_name,
@@ -184,35 +190,9 @@ def view_custom_page(request, page_name):
         object_id=request.site_type.pk
     )
 
-    currencies = models.Currency.objects.all()
-    supporters = models.Supporter.objects.filter(
-        active=True,
-        display=True,
-    )
-    band_form = forms.BandForm()
-    band = None
-
-    if request.GET:
-        if 'calculate' in request.GET:
-            band_form = forms.BandForm(request.GET)
-            if band_form.is_valid():
-                band = band_form.save(commit=False)
-                band_form = forms.BandForm(
-                    instance=band,
-                )
-
-        elif 'start_signup' in request.GET:
-            url = reverse('supporter_signup')
-            params = request.GET.urlencode()
-            return redirect(f'{url}?{params}')
-
     template = 'consortial_billing/custom.html'
     context = {
         'page': page,
-        'supporters': supporters,
-        'band_form': band_form,
-        'band': band,
-        'currencies': currencies,
     }
 
     return render(request, template, context)
