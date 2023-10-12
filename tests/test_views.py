@@ -27,7 +27,7 @@ class ViewTests(test_models.TestCaseWithData):
 
     @patch('plugins.consortial_billing.logic.get_base_band')
     def test_manager_loads_with_no_base_band(self, get_base):
-        get_base.side_effect = ImproperlyConfigured('No base')
+        get_base.return_value = None
         self.client.force_login(self.user_staff)
         response = self.client.get(
             reverse('supporters_manager'),
@@ -46,9 +46,9 @@ class ViewTests(test_models.TestCaseWithData):
             plugin_settings.SHORT_NAME,
             response.context['plugin'],
         )
-        self.assertEqual(
-            self.band_base,
-            response.context['base_band'],
+        self.assertListEqual(
+            [self.band_base_level_other, self.band_base],
+            response.context['base_bands'],
         )
         self.assertEqual(
             plugin_settings,
@@ -207,20 +207,6 @@ class ViewTests(test_models.TestCaseWithData):
             response,
             'consortial_billing/custom.html',
         )
-
-    @patch('plugins.consortial_billing.views.render')
-    @patch('plugins.consortial_billing.forms.BandForm.save')
-    def test_view_custom_page_get_calculate(self, band_save, render):
-        type(self.request).user = self.user_supporter
-        type(self.request).GET = {
-            'country': 'NL',
-            'size': self.size_other.pk,
-            'level': self.level_other.pk,
-            'currency': self.currency_other.pk,
-            'calculate': '',
-        }
-        views.view_custom_page(self.request, self.custom_page.name)
-        band_save.assert_called_once_with(commit=False)
 
     @patch('plugins.consortial_billing.views.render')
     @patch('plugins.consortial_billing.views.redirect')

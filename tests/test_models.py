@@ -58,11 +58,9 @@ class TestCaseWithData(TestCase):
         )
         cls.level_base, _c = models.SupportLevel.objects.get_or_create(
             name='Standard',
-            multiplier=1.0,
         )
         cls.level_other, _c = models.SupportLevel.objects.get_or_create(
             name='Higher',
-            multiplier=2.0,
         )
         cls.currency_base, _c = models.Currency.objects.get_or_create(
             code='GBP',
@@ -78,6 +76,15 @@ class TestCaseWithData(TestCase):
             currency=cls.currency_base,
             level=cls.level_base,
             fee=1000,
+            billing_agent=cls.agent_default,
+            base=True,
+        )
+        cls.band_base_level_other, _c = models.Band.objects.get_or_create(
+            size=cls.size_base,
+            country='GB',
+            currency=cls.currency_base,
+            level=cls.level_other,
+            fee=5000,
             billing_agent=cls.agent_default,
             base=True,
         )
@@ -215,7 +222,7 @@ class ModelTests(TestCaseWithData):
         with patch(
             'plugins.consortial_billing.logic.latest_multiplier_for_indicator'
         ) as latest_multiplier:
-            self.currency_other.exchange_rate
+            self.currency_other.exchange_rate()
             self.assertIn(
                 plugin_settings.RATE_INDICATOR,
                 latest_multiplier.call_args.args,
@@ -253,7 +260,13 @@ class ModelTests(TestCaseWithData):
             return_value=(0.85, ''),
         ) as latest_multiplier:
             fee, warnings = self.band_other_two.calculate_fee()
-            expected_fee = round(1000 * 0.6 * 2.0 * 0.85 * 0.85, -1)
+            expected_fee = round(
+                5000        # base
+                * 0.6       # size
+                * 0.85      # Patched GNI
+                * 0.85,     # Patched exchange rate
+                -1
+            )
             latest_multiplier.assert_called()
             self.assertEqual(fee, expected_fee)
 

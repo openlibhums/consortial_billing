@@ -9,6 +9,9 @@ from django.core.exceptions import ImproperlyConfigured
 
 from plugins.consortial_billing import logic
 from plugins.consortial_billing.tests import test_models
+from utils.logger import get_logger
+
+logic_logger = get_logger(logic.__name__)
 
 
 class LogicTests(test_models.TestCaseWithData):
@@ -43,30 +46,16 @@ class LogicTests(test_models.TestCaseWithData):
 
     def test_get_base_band(self):
 
-        base_band = logic.get_base_band()
+        base_band = logic.get_base_band(self.level_base)
         self.assertEqual(
             self.band_base,
             base_band,
         )
-
-    def test_get_base_band_with_no_base_band(self):
-
-        base_band = logic.get_base_band()
+        other_base_band = logic.get_base_band(self.level_other)
         self.assertEqual(
-            self.band_base,
-            base_band,
+            self.band_base_level_other,
+            other_base_band,
         )
-
-        # Make it so there is no base band
-        self.band_base.base = False
-        self.band_base.save()
-
-        with self.assertRaises(ImproperlyConfigured):
-            base_band = logic.get_base_band()
-
-        # Restore data
-        self.band_base.base = True
-        self.band_base.save()
 
     @patch('plugins.consortial_billing.models.Band.objects.count')
     def test_get_base_band_with_no_bands_at_all(self, band_count):
@@ -76,6 +65,8 @@ class LogicTests(test_models.TestCaseWithData):
         # Make it so there is no base band
         self.band_base.base = False
         self.band_base.save()
+        self.band_base_level_other.base = False
+        self.band_base_level_other.save()
 
         band_count.return_value = 0
         base_band = logic.get_base_band()
@@ -87,6 +78,8 @@ class LogicTests(test_models.TestCaseWithData):
         # Restore data
         self.band_base.base = True
         self.band_base.save()
+        self.band_base_level_other.base = True
+        self.band_base_level_other.save()
 
     def test_latest_multiplier_for_indicator(self):
 
