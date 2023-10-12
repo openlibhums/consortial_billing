@@ -93,8 +93,7 @@ class Migration(migrations.Migration):
                     models.CharField(
                         blank=True,
                         help_text="How size is determined, e.g. 0-4999 FTE "
-                                  "staff for an institution, or 10-19 members "
-                                  "for a consortium ",
+                                  "staff for an institution",
                         max_length=200,
                     ),
                 ),
@@ -211,8 +210,8 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 default=False,
                 help_text="Select if this is the base band to represent "
-                          "the base fee, country, currency, size, "
-                          "and support level.",
+                          "the base fee, country, and currency for a "
+                          "given support level.",
             ),
         ),
         migrations.AddField(
@@ -270,7 +269,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
                 to="consortial_billing.supportersize",
-                verbose_name="Institution/consortium size",
+                verbose_name="Institution size",
             ),
         ),
         migrations.AddField(
@@ -383,7 +382,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 max_length=200,
                 null=True,
-                verbose_name="Institution/consortium name",
+                verbose_name="Institution name",
             ),
         ),
         migrations.AlterField(
