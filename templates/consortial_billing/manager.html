@@ -60,15 +60,15 @@
                     <h2>Configuration</h2>
                 </div>
                 <div class="content">
-                    {% if not agents or not sizes or not levels or not currencies or not base_band %}
+                    {% if not agents or not sizes or not levels or not currencies or not base_bands %}
                     <p>
                         The plugin expects at least one of each of the following items
                         to function properly. These are all components of bands, so configure
-                        them before creating a base band.
+                        them before creating base bands.
                     </p>
                     {% endif %}
                     <p>
-                        Size and support level factor in to bands according to custom 
+                        Size factors in to bands according to custom
                         multipliers. Country and currency factor in according to
                         data from the World Bank, including GNI per capita, as shown in
                         the data section.
@@ -79,7 +79,7 @@
                             class="button secondary"
                             target="_blank">
                             {% if agents %}
-                                Billing agents ({{ agents.count }})
+                                Billing agents ({{ agents|length }})
                             {% else %}
                                 <i class="fa fa-plus"></i>
                                 Create a billing agent
@@ -90,10 +90,10 @@
                             class="button secondary"
                             target="_blank">
                             {% if sizes %}
-                                Institution and consortium sizes ({{ sizes.count }})
+                                Institution sizes ({{ sizes|length }})
                             {% else %}
                                 <i class="fa fa-plus"></i>
-                                Create an institution or consortium size
+                                Create an institution size
                             {% endif %}
                         </a>
                         <a
@@ -101,7 +101,7 @@
                             class="button secondary"
                             target="_blank">
                             {% if levels %}
-                                Support levels ({{ levels.count }})
+                                Support levels ({{ levels|length }})
                             {% else %}
                                 <i class="fa fa-plus"></i>
                                 Create a support level
@@ -112,19 +112,19 @@
                             class="button secondary"
                             target="_blank">
                             {% if currencies %}
-                                Currencies ({{ currencies.count }})
+                                Currencies ({{ currencies|length }})
                             {% else %}
                                 <i class="fa fa-plus"></i>
                                 Create a currency
                             {% endif %}
                         </a>
-                        {% if not base_band %}
+                        {% if not base_bands %}
                             <a
                                 href="/admin/consortial_billing/band/add/?display=False&base=True"
                                 class="button secondary"
                                 target="_blank">
                                 <i class="fa fa-plus"></i>
-                                Create base band
+                                Create a base band
                             </a>
                         {% endif %}
                     </div>
@@ -155,25 +155,27 @@
             {% endif %}
         </div>
         <div class="large-6 columns">
-            {% if base_band %}
+            {% if base_bands %}
             <div class="box">
                 <div class="title-area">
-                    <h2>Current Base Band</h2>
+                    <h2>Current Base Bands</h2>
                 </div>
-                <div class="content">
-                    <ul>
-                        <li>{{ base_band.fee }} {{ base_band.currency }}</li>
-                        <li>{{ base_band.size }}</li>
-                        <li>{{ base_band.country.name }}</li>
-                        <li>{{ base_band.level }}</li>
-                        <li>Created on {{ base_band.datetime|date:"j F Y" }}</li>
-                    </ul>
-                </div>
+                {% for base_band in base_bands %}
+                    <div class="content">
+                        <h3>{{ base_band.level }}</h3>
+                        <ul>
+                            <li>{{ base_band.fee }} {{ base_band.currency }}</li>
+                            <li>{{ base_band.size }}</li>
+                            <li>{{ base_band.country.name }}</li>
+                            <li>Created on {{ base_band.datetime|date:"j F Y" }}</li>
+                        </ul>
+                    </div>
+                {% endfor %}
             </div>
                 {% if currencies %}
                 <div class="box">
                     <div class="title-area">
-                        <h2>Current Exchange Rates (from {{ base_band.currency }})</h2>
+                        <h2>Current Exchange Rates (from {{ base_bands.0.currency }})</h2>
                     </div>
                     <div class="content">
                         <ul>
@@ -219,27 +221,36 @@
                         </button>
                     </div>
                     <p>
-                        The base band needs replacing every year
+                        The base bands need replacing every year
                         to keep track of inflation. <a
                             href="/admin/consortial_billing/band/?base=True"
                             target="_blank">Older base bands</a>
-                        are kept on record. The button below takes you to a form
-                        where you can select parameters for a new base band.
+                        are kept on record. Each button below takes
+                        you to form where you can select parameters
+                        for a new base band for that level.
                     </p>
                     <div class="stacked button-group">
-                        <a
-                            href="/admin/consortial_billing/band/add/?display=False&base=True"
-                            class="button warning"
-                            target="_blank">
-                            {% if base_band %}
-                                <i class="fa fa-plus"></i>
-                                Replace base band
-                                <br>
-                                (latest is {{ base_band.datetime }})
-                            {% else %}
-                                Create base band
-                            {% endif %}
-                        </a>
+                        {% if base_bands %}
+                            {% for base_band in base_bands %}
+                                <a
+                                    href="/admin/consortial_billing/band/add/?display=False&base=True&level={{ base_band.level.pk }}"
+                                    class="button warning"
+                                    target="_blank">
+                                    <i class="fa fa-plus"></i>
+                                    Replace {{ base_band.level }} band
+                                    <br>
+                                    (created {{ base_band.datetime }})
+                                </a>
+                            {% endfor %}
+                        {% endif %}
+                        {% if base_bands|length == 0 or base_bands|length != levels|length %}
+                            <a
+                                href="/admin/consortial_billing/band/add/?display=False&base=True"
+                                class="button warning"
+                                target="_blank">
+                                Create another base band
+                            </a>
+                        {% endif %}
                     </div>
                     {% if fixed_fee_bands %}
                         <p>
@@ -256,6 +267,23 @@
                             </a>
                         </div>
                     {% endif %}
+                    <p>
+                        If you've recently changed any configuration options
+                        you can update the demo bands shown on the fees page
+                        with this button.
+                    </p>
+                    <div class="stacked button-group">
+                        <button
+                            name="update_demo"
+                            value=""
+                            type="submit"
+                            class="button warning">
+                            <i class="fa fa-refresh"></i>
+                            Update demo band data
+                            <br>
+                            (last updated {{ latest_demo_data.uploaded|default:'never' }})
+                        </button>
+                    </div>
                 </div>
             </div>
             </form>
