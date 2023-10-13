@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from django.utils import timezone
 from django.core.files.base import ContentFile
+from django.conf import settings
 
 from cms import models as cms_models
 from utils import setting_handler
@@ -117,7 +118,11 @@ def generate_new_demo_data():
     data['tbody'] = {}
     for size in models.SupporterSize.objects.all().order_by('multiplier'):
         data['tbody'][size.name] = {}
-        for country, curr_code, region in tqdm(DEMO_COUNTRIES):
+        if settings.IN_TEST_RUNNER:
+            demo_countries = DEMO_COUNTRIES
+        else:
+            demo_countries = tqdm(DEMO_COUNTRIES)
+        for country, curr_code, region in demo_countries:
             for level in levels:
                 currency, _ = models.Currency.objects.get_or_create(
                     code=curr_code,
