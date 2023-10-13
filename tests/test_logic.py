@@ -57,6 +57,14 @@ class LogicTests(test_models.TestCaseWithData):
             other_base_band,
         )
 
+    def test_get_base_bands(self):
+
+        base_bands = logic.get_base_bands()
+        self.assertListEqual(
+            [self.band_base_level_other, self.band_base],
+            base_bands,
+        )
+
     @patch('plugins.consortial_billing.models.Band.objects.count')
     def test_get_base_band_with_no_bands_at_all(self, band_count):
         # In other words, the plugin is being

@@ -65,10 +65,12 @@ class TestCaseWithData(TestCase):
         cls.currency_base, _c = models.Currency.objects.get_or_create(
             code='GBP',
             region='GBR',
+            symbol='£',
         )
         cls.currency_other, _c = models.Currency.objects.get_or_create(
             code='EUR',
             region='EMU',
+            symbol='€',
         )
         cls.band_base, _c = models.Band.objects.get_or_create(
             size=cls.size_base,

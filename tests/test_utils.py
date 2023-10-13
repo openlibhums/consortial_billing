@@ -8,6 +8,8 @@ from unittest.mock import patch, Mock, PropertyMock
 from plugins.consortial_billing import utils
 from plugins.consortial_billing.tests import test_models
 
+CB = 'plugins.consortial_billing'
+
 
 class UtilsTests(test_models.TestCaseWithData):
 
@@ -67,3 +69,37 @@ class UtilsTests(test_models.TestCaseWithData):
                 )
                 save_file.assert_not_called()
                 self.assertEqual(status_code, 404)
+
+    def test_generate_new_demo_data(self):
+        with patch(
+            'plugins.consortial_billing.logic.latest_multiplier_for_indicator',
+            return_value=(0.85, ''),
+        ):
+            data = utils.generate_new_demo_data()
+            self.assertEqual(
+                data['thead'][0],
+                'Standard'
+            )
+            self.assertEqual(
+                data['tbody']['Small']['UK']['Higher']['currency'],
+                '£'
+            )
+            self.assertGreater(
+                data['tbody']['Large']['USA']['Standard']['fee'],
+                0
+            )
+
+    @patch(f'{CB}.utils.save_media_file')
+    @patch(f'{CB}.utils.generate_new_demo_data')
+    def test_update_demo_band_data(self, generate_new, save_media_file):
+        generate_new.return_value = {}
+        utils.update_demo_band_data()
+        generate_new.assert_called()
+        save_media_file.assert_called()
+
+    @patch('json.loads')
+    @patch('cms.models.MediaFile.objects.get')
+    def test_get_saved_demo_band_data(self, media_get, json_loads):
+        utils.get_saved_demo_band_data()
+        media_get.assert_called()
+        json_loads.assert_called()
