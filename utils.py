@@ -117,7 +117,8 @@ def generate_new_demo_data():
 
     data['tbody'] = {}
     for size in models.SupporterSize.objects.all().order_by('multiplier'):
-        data['tbody'][size.name] = {}
+        size_display = str(size)
+        data['tbody'][size_display] = {}
         if settings.IN_TEST_RUNNER:
             demo_countries = DEMO_COUNTRIES
         else:
@@ -142,13 +143,13 @@ def generate_new_demo_data():
                     country_name = 'USA'
                 elif country_name == 'United Kingdom':
                     country_name = 'UK'
-                if country_name not in data['tbody'][size.name]:
-                    data['tbody'][size.name][country_name] = {}
+                if country_name not in data['tbody'][size_display]:
+                    data['tbody'][size_display][country_name] = {}
                 cell = {
                     'fee': band.fee,
                     'currency': band.currency.symbol
                 }
-                data['tbody'][size.name][country_name][level.name] = cell
+                data['tbody'][size_display][country_name][level.name] = cell
 
     return data
 
