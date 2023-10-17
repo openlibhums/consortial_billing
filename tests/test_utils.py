@@ -80,12 +80,14 @@ class UtilsTests(test_models.TestCaseWithData):
                 data['thead'][0],
                 'Standard'
             )
+            small = data['tbody']['Small (0-4,999 students)']
             self.assertEqual(
-                data['tbody']['Small']['UK']['Higher']['currency'],
+                small['UK']['Higher']['currency'],
                 '£'
             )
+            large = data['tbody']['Large (10,000+ students)']
             self.assertGreater(
-                data['tbody']['Large']['USA']['Standard']['fee'],
+                large['USA']['Standard']['fee'],
                 0
             )
 

@@ -65,6 +65,22 @@ class LogicTests(test_models.TestCaseWithData):
             base_bands,
         )
 
+    def test_get_base_band_for_level_falls_back(self):
+
+        # Make it so the base band for one level is missing
+        self.band_base_level_other.base = False
+        self.band_base_level_other.save()
+
+        base_band = logic.get_base_band(self.level_other)
+        self.assertEqual(
+            self.band_base,
+            base_band,
+        )
+
+        # Restore data
+        self.band_base_level_other.base = True
+        self.band_base_level_other.save()
+
     @patch('plugins.consortial_billing.models.Band.objects.count')
     def test_get_base_band_with_no_bands_at_all(self, band_count):
         # In other words, the plugin is being
