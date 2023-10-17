@@ -48,12 +48,12 @@ class TestCaseWithData(TestCase):
         cls.agent_other.save()
         cls.size_base, _c = models.SupporterSize.objects.get_or_create(
             name='Large',
-            description='10,000+ FTE',
+            description='10,000+ students',
             multiplier=1,
         )
         cls.size_other, _c = models.SupporterSize.objects.get_or_create(
             name='Small',
-            description='0-4,999 FTE',
+            description='0-4,999 students',
             multiplier=0.6,
         )
         cls.level_base, _c = models.SupportLevel.objects.get_or_create(

@@ -128,19 +128,22 @@ def get_base_bands():
 
 
 def get_base_band(level=None):
-    try:
-        if level:
+    if level:
+        try:
             return models.Band.objects.filter(
                 base=True,
                 level=level,
             ).latest()
-        else:
+        except models.Band.DoesNotExist:
+            logger.warning('No base band found for support level ' + str(level))
+            return get_base_band()
+    else:
+        try:
             return models.Band.objects.filter(
                 base=True
             ).latest()
-
-    except models.Band.DoesNotExist:
-        logger.warning('No base band found for support level ' + str(level))
+        except models.Band.DoesNotExist:
+            logger.warning('No base band found')
 
 
 def latest_multiplier_for_indicator(indicator, measure_key, base_key, warning):
