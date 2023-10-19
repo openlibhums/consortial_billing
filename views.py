@@ -162,6 +162,8 @@ def supporters(request):
     supporters = models.Supporter.objects.filter(
         active=True,
         display=True,
+    ).order_by(
+        'country', 'name'
     )
 
     if request.press.theme == 'hourglass':
