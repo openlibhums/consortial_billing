@@ -33,46 +33,49 @@ class TestCaseWithData(TestCase):
         cls.user_agent = helpers.create_user('user_agent@example.org')
         cls.user_agent.is_active = True
         cls.user_agent.save()
-        cls.agent_default, _c = models.BillingAgent.objects.get_or_create(
+        cls.agent_default = models.BillingAgent.objects.create(
             name='Open Library of Humanities',
             default=True,
         )
         cls.agent_default.users.add(cls.user_staff)
         cls.agent_default.save()
-        cls.agent_other, _c = models.BillingAgent.objects.get_or_create(
+        cls.agent_other = models.BillingAgent.objects.create(
             name='Diamond OA Association',
             country='BE',
             redirect_url='example.org'
         )
         cls.agent_other.users.add(cls.user_agent)
         cls.agent_other.save()
-        cls.size_base, _c = models.SupporterSize.objects.get_or_create(
+        cls.size_base = models.SupporterSize.objects.create(
             name='Large',
             description='10,000+ students',
             multiplier=1,
         )
-        cls.size_other, _c = models.SupporterSize.objects.get_or_create(
+        cls.size_other = models.SupporterSize.objects.create(
             name='Small',
             description='0-4,999 students',
             multiplier=0.6,
         )
-        cls.level_base, _c = models.SupportLevel.objects.get_or_create(
+        cls.level_base = models.SupportLevel.objects.create(
             name='Standard',
+            order=2,
+            default=True,
         )
-        cls.level_other, _c = models.SupportLevel.objects.get_or_create(
+        cls.level_other = models.SupportLevel.objects.create(
             name='Higher',
+            order=1,
         )
-        cls.currency_base, _c = models.Currency.objects.get_or_create(
+        cls.currency_base = models.Currency.objects.create(
             code='GBP',
             region='GBR',
             symbol='£',
         )
-        cls.currency_other, _c = models.Currency.objects.get_or_create(
+        cls.currency_other = models.Currency.objects.create(
             code='EUR',
             region='EMU',
             symbol='€',
         )
-        cls.band_base, _c = models.Band.objects.get_or_create(
+        cls.band_base = models.Band.objects.create(
             size=cls.size_base,
             country='GB',
             currency=cls.currency_base,
@@ -81,7 +84,7 @@ class TestCaseWithData(TestCase):
             billing_agent=cls.agent_default,
             base=True,
         )
-        cls.band_base_level_other, _c = models.Band.objects.get_or_create(
+        cls.band_base_level_other = models.Band.objects.create(
             size=cls.size_base,
             country='GB',
             currency=cls.currency_base,
@@ -90,7 +93,7 @@ class TestCaseWithData(TestCase):
             billing_agent=cls.agent_default,
             base=True,
         )
-        cls.band_other_one, _c = models.Band.objects.get_or_create(
+        cls.band_other_one = models.Band.objects.create(
             size=cls.size_base,
             country='GB',
             currency=cls.currency_base,
@@ -98,7 +101,7 @@ class TestCaseWithData(TestCase):
             fee=1001,
             billing_agent=cls.agent_default,
         )
-        cls.band_other_two, _c = models.Band.objects.get_or_create(
+        cls.band_other_two = models.Band.objects.create(
             size=cls.size_other,
             country='BE',
             currency=cls.currency_other,
@@ -107,7 +110,7 @@ class TestCaseWithData(TestCase):
             fee=2000,
             warnings='Oh no!'
         )
-        cls.band_other_three, _c = models.Band.objects.get_or_create(
+        cls.band_other_three = models.Band.objects.create(
             size=cls.size_base,
             country='GB',
             currency=cls.currency_base,
@@ -115,7 +118,7 @@ class TestCaseWithData(TestCase):
             fee=1500,
             billing_agent=cls.agent_default,
         )
-        cls.band_fixed_fee, _c = models.Band.objects.get_or_create(
+        cls.band_fixed_fee = models.Band.objects.create(
             size=cls.size_other,
             country='FR',
             currency=cls.currency_other,
@@ -124,7 +127,7 @@ class TestCaseWithData(TestCase):
             fixed_fee=True,
             billing_agent=cls.agent_other,
         )
-        cls.supporter_one, _c = models.Supporter.objects.get_or_create(
+        cls.supporter_one = models.Supporter.objects.create(
             name='Birkbeck, University of London',
             ror='https://ror.org/02mb95055',
             band=cls.band_base,
@@ -132,21 +135,21 @@ class TestCaseWithData(TestCase):
         )
         cls.supporter_one.contacts.add(cls.user_supporter)
         cls.supporter_one.save()
-        cls.supporter_two, _c = models.Supporter.objects.get_or_create(
+        cls.supporter_two = models.Supporter.objects.create(
             name='University of Sussex',
             band=cls.band_other_one,
             active=True,
         )
         cls.supporter_two.contacts.add(cls.user_supporter)
         cls.supporter_two.save()
-        cls.supporter_three, _c = models.Supporter.objects.get_or_create(
+        cls.supporter_three = models.Supporter.objects.create(
             name='University of Essex',
             band=cls.band_other_three,
             active=True,
         )
         cls.supporter_three.contacts.add(cls.user_supporter)
         cls.supporter_three.save()
-        cls.supporter_four, _c = models.Supporter.objects.get_or_create(
+        cls.supporter_four = models.Supporter.objects.create(
             name='University of Antwerp',
             band=cls.band_other_two,
             active=True,
@@ -154,7 +157,7 @@ class TestCaseWithData(TestCase):
         cls.supporter_four.contacts.add(cls.user_supporter)
         cls.supporter_four.save()
         cls.fake_indicator = 'ABC.DEF.GHI'
-        cls.custom_page, created = Page.objects.get_or_create(
+        cls.custom_page = Page.objects.create(
             content_type=ContentType.objects.get_for_model(cls.press),
             object_id=cls.press.pk,
             name='become-a-supporter',
@@ -261,10 +264,10 @@ class ModelTests(TestCaseWithData):
             'plugins.consortial_billing.logic.latest_multiplier_for_indicator',
             return_value=(0.85, ''),
         ) as latest_multiplier:
-            fee, warnings = self.band_other_two.calculate_fee()
+            fee, _ = self.band_other_two.calculate_fee()
             expected_fee = round(
                 5000        # base
-                * 0.6       # size
+                # * 0.6       # size does not matter for higher level
                 * 0.85      # Patched GNI
                 * 0.85,     # Patched exchange rate
                 -1

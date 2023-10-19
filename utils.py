@@ -105,12 +105,111 @@ def open_saved_world_bank_data(indicator, year):
         return json.loads(file_ref.read())
 
 
-def generate_new_demo_data():
+def get_abstract_band(size, level, country, currency):
     from plugins.consortial_billing import forms
-    data = {}
+    band_form = forms.BandForm({
+        'size': size,
+        'level': level,
+        'country': country,
+        'currency': currency,
+    })
+    if not band_form.is_valid():
+        logger.error(band_form.errors)
+    return band_form.save(commit=False)
 
+
+def abbreviate_us_uk(country):
+    country_name = country.name
+    if country_name == 'United States of America':
+        return 'USA'
+    elif country_name == 'United Kingdom':
+        return 'UK'
+    else:
+        return country_name
+
+
+def iter_demo_countries():
+    if not settings.IN_TEST_RUNNER:
+        return tqdm(DEMO_COUNTRIES)
+    else:
+        return DEMO_COUNTRIES
+
+
+def get_standard_support_level():
+    """
+    :return: SupportLevel object or None
+    """
+    try:
+        return models.SupportLevel.objects.get(default=True)
+    except models.SupportLevel.DoesNotExist:
+        return models.SupportLevel.objects.all().last()
+
+
+def make_table_of_higher_supporters_by_country_and_level():
+    standard_level = get_standard_support_level()
+    levels = models.SupportLevel.objects.exclude(
+        pk=standard_level.pk
+    ).order_by('-order')
+    size = models.SupporterSize.objects.all().first()
+
+    data = {}
+    data['thead'] = []
+    for level in levels:
+        data['thead'].append(str(level))
+
+    data['tbody'] = {}
+    for country, curr_code, region in iter_demo_countries():
+        currency, _ = models.Currency.objects.get_or_create(
+            code=curr_code,
+            region=region,
+        )
+        for level in levels:
+            band = get_abstract_band(size, level, country, currency)
+            country_name = abbreviate_us_uk(band.country)
+            if country_name not in data['tbody']:
+                data['tbody'][country_name] = {}
+            cell = {
+                'fee': band.fee,
+                'currency': band.currency.symbol
+            }
+            data['tbody'][country_name][str(level)] = cell
+
+    return data
+
+
+def make_table_of_standard_supporters_by_country_and_size():
+    sizes = models.SupporterSize.objects.all().order_by('multiplier')
+    standard_level = get_standard_support_level()
+
+    data = {}
+    data['thead'] = []
+    for size in sizes:
+        data['thead'].append(str(size))
+
+    data['tbody'] = {}
+    for country, curr_code, region in iter_demo_countries():
+        currency, _ = models.Currency.objects.get_or_create(
+            code=curr_code,
+            region=region,
+        )
+        for size in sizes:
+            band = get_abstract_band(size, standard_level, country, currency)
+            country_name = abbreviate_us_uk(band.country)
+            if country_name not in data['tbody']:
+                data['tbody'][country_name] = {}
+            cell = {
+                'fee': band.fee,
+                'currency': band.currency.symbol
+            }
+            data['tbody'][country_name][str(size)] = cell
+
+    return data
+
+
+def make_table_showing_all_levels_by_country_and_size():
     levels = models.SupportLevel.objects.all().order_by('-order')
 
+    data = {}
     data['thead'] = []
     for level in levels:
         data['thead'].append(level.name)
@@ -119,30 +218,14 @@ def generate_new_demo_data():
     for size in models.SupporterSize.objects.all().order_by('multiplier'):
         size_display = str(size)
         data['tbody'][size_display] = {}
-        if settings.IN_TEST_RUNNER:
-            demo_countries = DEMO_COUNTRIES
-        else:
-            demo_countries = tqdm(DEMO_COUNTRIES)
-        for country, curr_code, region in demo_countries:
+        for country, curr_code, region in iter_demo_countries():
             for level in levels:
                 currency, _ = models.Currency.objects.get_or_create(
                     code=curr_code,
                     region=region,
                 )
-                band_form = forms.BandForm({
-                    'size': size,
-                    'level': level,
-                    'country': country,
-                    'currency': currency,
-                })
-                if not band_form.is_valid():
-                    logger.error(band_form.errors)
-                band = band_form.save(commit=False)
-                country_name = band.country.name
-                if country_name == 'United States of America':
-                    country_name = 'USA'
-                elif country_name == 'United Kingdom':
-                    country_name = 'UK'
+                band = get_abstract_band(size, level, country, currency)
+                country_name = abbreviate_us_uk(band.country)
                 if country_name not in data['tbody'][size_display]:
                     data['tbody'][size_display][country_name] = {}
                 cell = {
@@ -154,9 +237,15 @@ def generate_new_demo_data():
     return data
 
 
+def generate_new_demo_data():
+    return [
+        make_table_of_higher_supporters_by_country_and_level(),
+        make_table_of_standard_supporters_by_country_and_size()
+    ]
+
+
 def update_demo_band_data():
-    data = generate_new_demo_data()
-    data_json = json.dumps(data, separators=(',', ':'))
+    data_json = json.dumps(generate_new_demo_data(), separators=(',', ':'))
     filename = os.path.join(plugin_settings.SHORT_NAME, DEMO_DATA_FILENAME)
     return save_media_file(filename, data_json)
 

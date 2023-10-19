@@ -23,7 +23,8 @@ class Migration(migrations.Migration):
             name='order',
             field=models.IntegerField(
                 blank=True,
-                help_text='The order in which to display the levels',
+                help_text='The order in which to display the levels '
+                          'from highest to lowest.',
                 null=True
             ),
         ),
