@@ -229,3 +229,19 @@ def determine_billing_agent(country):
             raise ImproperlyConfigured(
                 'No billing agent has been set as default'
             )
+
+
+def keep_default_unique(obj):
+    """
+    Checks other instances to see if there is one with default=True
+    and sets it to default=False
+    :obj: an unsaved model instance with a property named 'default'
+    """
+    if obj.default:
+        try:
+            other = type(obj).objects.get(default=True)
+            if obj != other:
+                other.default = False
+                other.save()
+        except type(obj).DoesNotExist:
+            pass

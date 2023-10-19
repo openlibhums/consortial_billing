@@ -53,16 +53,9 @@ class BillingAgent(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        # Keep self.default unique
         if self.default:
             self.country = None
-            try:
-                other = BillingAgent.objects.get(default=True)
-                if self != other:
-                    other.default = False
-                    other.save()
-            except BillingAgent.DoesNotExist:
-                pass
+        logic.keep_default_unique(self)
         super().save(*args, **kwargs)
 
     @property
@@ -122,7 +115,7 @@ class SupportLevel(models.Model):
         max_length=30,
         blank=True,
         null=True,
-        help_text="The level of support, e.g. Standard or Higher"
+        help_text="The level of support, e.g. Standard or Gold"
     )
     description = models.CharField(
         max_length=255,
@@ -131,7 +124,16 @@ class SupportLevel(models.Model):
     order = models.IntegerField(
         blank=True,
         null=True,
-        help_text="The order in which to display the levels",
+        help_text="The order in which to display the levels "
+                  "from highest to lowest.",
+    )
+    default = models.BooleanField(
+        default=False,
+        help_text="Designates this band as the standard level, set "
+                  "apart from higher levels. "
+                  "If checked, institution size will be factored "
+                  "in to fees on this level. If unchecked, institution "
+                  "size will not matter.",
     )
     internal_notes = models.CharField(
         max_length=255,
@@ -148,6 +150,10 @@ class SupportLevel(models.Model):
             return f'{self.name} ({self.description})'
         else:
             return f'{self.name}'
+
+    def save(self, *args, **kwargs):
+        logic.keep_default_unique(self)
+        super().save(*args, **kwargs)
 
 
 class Currency(models.Model):
@@ -343,7 +349,10 @@ class Band(models.Model):
             )
 
         # Account for size of institution
-        fee *= self.size_difference
+        # but only for standard support levels,
+        # not higher supporters
+        if self.level.default:
+            fee *= self.size_difference
 
         # Account for country
         disparity, warning = self.economic_disparity

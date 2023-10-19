@@ -160,7 +160,7 @@ class Migration(migrations.Migration):
             name="name",
             field=models.CharField(
                 blank=True,
-                help_text="The level of support, e.g. Standard or Higher",
+                help_text="The level of support, e.g. Standard or Gold",
                 max_length=30,
                 null=True,
             ),

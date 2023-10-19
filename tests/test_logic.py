@@ -160,3 +160,17 @@ class LogicTests(test_models.TestCaseWithData):
         settings = logic.get_settings_for_display()
         setting_names = [setting.name for setting in settings]
         self.assertIn('complete_text', setting_names)
+
+    def test_keep_default_unique(self):
+
+        self.assertTrue(self.level_base.default)
+
+        self.level_other.default = True
+        logic.keep_default_unique(self.level_other)
+
+        self.level_base.refresh_from_db()
+        self.assertFalse(self.level_base.default)
+
+        # Restore data
+        self.level_base.default = True
+        self.level_base.save()

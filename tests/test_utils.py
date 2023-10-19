@@ -70,12 +70,12 @@ class UtilsTests(test_models.TestCaseWithData):
                 save_file.assert_not_called()
                 self.assertEqual(status_code, 404)
 
-    def test_generate_new_demo_data(self):
+    def test_make_table_showing_all_levels_by_country_and_size(self):
         with patch(
             'plugins.consortial_billing.logic.latest_multiplier_for_indicator',
             return_value=(0.85, ''),
         ):
-            data = utils.generate_new_demo_data()
+            data = utils.make_table_showing_all_levels_by_country_and_size()
             self.assertEqual(
                 data['thead'][0],
                 'Standard'
@@ -91,10 +91,55 @@ class UtilsTests(test_models.TestCaseWithData):
                 0
             )
 
+    @patch(f'{CB}.logic.latest_multiplier_for_indicator')
+    def test_make_table_of_higher_supporters_by_country_and_level(self, mult):
+        mult.return_value = (0.85, '')
+        data = utils.make_table_showing_all_levels_by_country_and_size()
+        self.assertEqual(
+            data['thead'][0],
+            'Standard'
+        )
+        small = data['tbody']['Small (0-4,999 students)']
+        self.assertEqual(
+            small['UK']['Higher']['currency'],
+            '£'
+        )
+        large = data['tbody']['Large (10,000+ students)']
+        self.assertGreater(
+            large['USA']['Standard']['fee'],
+            0
+        )
+
+    @patch(f'{CB}.logic.latest_multiplier_for_indicator')
+    def test_make_table_of_higher_supporters_by_country_and_level(self, mult):
+        mult.return_value = (0.85, '')
+        data = utils.make_table_of_higher_supporters_by_country_and_level()
+        self.assertEqual(
+            data['thead'][0],
+            'Higher'
+        )
+        self.assertEqual(
+            data['tbody']['UK']['Higher']['currency'],
+            '£'
+        )
+
+    @patch(f'{CB}.logic.latest_multiplier_for_indicator')
+    def test_make_table_of_standard_supporters_by_country_and_size(self, mult):
+        mult.return_value = (0.85, '')
+        data = utils.make_table_of_standard_supporters_by_country_and_size()
+        self.assertEqual(
+            data['thead'][0],
+            'Small (0-4,999 students)'
+        )
+        self.assertEqual(
+            data['tbody']['UK']['Small (0-4,999 students)']['currency'],
+            '£'
+        )
+
     @patch(f'{CB}.utils.save_media_file')
     @patch(f'{CB}.utils.generate_new_demo_data')
     def test_update_demo_band_data(self, generate_new, save_media_file):
-        generate_new.return_value = {}
+        generate_new.return_value = []
         utils.update_demo_band_data()
         generate_new.assert_called()
         save_media_file.assert_called()
@@ -105,3 +150,20 @@ class UtilsTests(test_models.TestCaseWithData):
         utils.get_saved_demo_band_data()
         media_get.assert_called()
         json_loads.assert_called()
+
+    def test_get_standard_support_level(self):
+        level = utils.get_standard_support_level()
+        self.assertEqual(level, self.level_base)
+
+    def test_get_standard_support_level_no_default(self):
+
+        # Make it so there is no default
+        self.level_base.default = False
+        self.level_base.save()
+
+        level = utils.get_standard_support_level()
+        self.assertEqual(level, self.level_base)
+
+        # Restore data
+        self.level_base.default = True
+        self.level_base.save()
