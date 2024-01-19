@@ -192,7 +192,10 @@ def view_custom_page(request, page_name):
         object_id=request.site_type.pk
     )
 
-    template = 'consortial_billing/custom.html'
+    if page.template:
+        template = page.template
+    else:
+        template = 'consortial_billing/custom.html'
     context = {
         'page': page,
     }
