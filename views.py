@@ -599,7 +599,7 @@ def display_journals(request):
 
     if request.POST:
         journal_pks = request.POST.getlist('journal')
-        plugin = utils_models.Plugin.objects.filter(
+        plugin = utils_models.Plugin.objects.get(
             name=plugin_settings.SHORT_NAME
         )
         setting_handler.save_plugin_setting(

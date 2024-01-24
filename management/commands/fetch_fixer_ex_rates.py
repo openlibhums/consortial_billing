@@ -20,7 +20,7 @@ class Command(BaseCommand):
         :param options: None
         :return: None
         """
-        plugin = utils_models.Plugin.objects.filter(
+        plugin = utils_models.Plugin.objects.get(
             name=plugin_settings.SHORT_NAME
         )
         base_currency = setting_handler.get_setting(

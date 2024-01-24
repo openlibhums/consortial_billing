@@ -61,7 +61,7 @@ def users_not_supporting(institutions, authors, editors):
 
 
 def get_signup_email_content(request, institution, currency, amount, host, url, display, user):
-    plugin = utils_models.Plugin.objects.filter(
+    plugin = utils_models.Plugin.objects.get(
         name=plugin_settings.SHORT_NAME
     )
     context = {'institution': institution, 'currency': currency, 'amount': amount, 'host': host, 'url': url,
@@ -254,7 +254,7 @@ def process_poll_increases(options):
 
 
 def get_poll_email_content(request, poll, institution):
-    plugin = utils_models.Plugin.objects.filter(
+    plugin = utils_models.Plugin.objects.get(
         name=plugin_settings.SHORT_NAME
     )
     short_name = setting_handler.get_setting(
