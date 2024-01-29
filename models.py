@@ -129,7 +129,7 @@ class SupportLevel(models.Model):
     )
     default = models.BooleanField(
         default=False,
-        help_text="Designates this band as the standard level, set "
+        help_text="Designates this level as the standard level, set "
                   "apart from higher levels. "
                   "If checked, institution size will be factored "
                   "in to fees on this level. If unchecked, institution "
