@@ -168,23 +168,6 @@ class ViewTests(test_models.TestCaseWithData):
         self.assertTrue(context['redirect_text'])
         self.assertFalse(context['complete_text'])
 
-    def test_view_support_bands_loads(self):
-
-        # This login is only needed
-        # during beta testing while the page has a
-        # staff_member_required check
-        self.client.force_login(self.user_staff)
-
-        response = self.client.get(
-            reverse('view_support_bands'),
-            SERVER_NAME=self.press.domain,
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(
-            response,
-            'consortial_billing/view_support_bands.html',
-        )
-
     def test_supporters_loads(self):
         response = self.client.get(
             reverse('supporters_list'),

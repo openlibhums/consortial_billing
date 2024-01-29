@@ -138,25 +138,6 @@ def signup(request):
     return render(request, template, context)
 
 
-# Temporarily adding this security decorator
-# so that we can test versions of this view on the beta site
-# without displaying support data publicly
-@staff_member_required
-def view_support_bands(request):
-    display_bands = logic.get_display_bands()
-
-    context = {
-        'display_bands': display_bands,
-    }
-
-    if request.press.theme == 'hourglass':
-        template = 'custom/view-support-bands.html'
-    else:
-        template = 'consortial_billing/view_support_bands.html'
-
-    return render(request, template, context)
-
-
 def supporters(request):
 
     supporters = models.Supporter.objects.filter(

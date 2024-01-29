@@ -9,11 +9,6 @@ urlpatterns = [
         name='supporters_list',
     ),
     re_path(
-        r'^support-bands/$',
-        views.view_support_bands,
-        name='view_support_bands',
-    ),
-    re_path(
         r'^manager/$',
         views.manager,
         name='supporters_manager',
