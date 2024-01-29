@@ -2,13 +2,14 @@ from utils import plugins
 from utils.install import update_settings
 from events import logic as events_logic
 from django.core.management import call_command
+from django.conf import settings
 
 PLUGIN_NAME = 'Consortial Billing'
 DISPLAY_NAME = 'Supporters'
 SHORT_NAME = 'consortial_billing'
 MANAGER_URL = 'supporters_manager'
 DESCRIPTION = 'This plugin helps presses manage consortial support'
-AUTHOR = 'Martin Paul Eve & Joseph Muller'
+AUTHOR = 'Open Library of Humanities'
 VERSION = '2.0'
 JANEWAY_VERSION = "1.5.0"
 IS_WORKFLOW_PLUGIN = False
@@ -40,7 +41,7 @@ def install(fetch_data=True):
     update_settings(
         file_path=f'plugins/{SHORT_NAME}/install/settings.json'
     )
-    if fetch_data:
+    if fetch_data and not settings.IN_TEST_RUNNER:
         call_command('fetch_world_bank_data', RATE_INDICATOR)
         call_command('fetch_world_bank_data', DISPARITY_INDICATOR)
 
