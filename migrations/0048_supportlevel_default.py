@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='supportlevel',
             name='default',
-            field=models.BooleanField(default=False, help_text='Designates this band as the standard level, set apart from higher levels. If checked, institution size will be factored in to fees on this level. If unchecked, institution size will not matter.'),
+            field=models.BooleanField(default=False, help_text='Designates this level as the standard level, set apart from higher levels. If checked, institution size will be factored in to fees on this level. If unchecked, institution size will not matter.'),
         ),
     ]
