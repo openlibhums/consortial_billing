@@ -28,7 +28,7 @@ class Command(BaseCommand):
                     )
                 )
             else:
-                logger.info(
+                logger.warning(
                     self.style.WARNING(
                         f'Could not get {year} data'
                     )
