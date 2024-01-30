@@ -1,6 +1,8 @@
 import uuid
 import os
 import re
+import decimal
+from typing import Tuple
 
 from django.db import models
 from django.utils import timezone
@@ -88,10 +90,13 @@ class SupporterSize(models.Model):
         help_text='How size is determined, e.g. 0-4999 FTE staff '
                   'for an institution'
     )
-    multiplier = models.FloatField(
+    multiplier = models.DecimalField(
         default=1,
-        help_text="The base rate is multiplied by this "
-                  "as part of the support fee calculation",
+        decimal_places=2,
+        max_digits=3,
+        help_text="Usually a decimal number between 0.00 and 5.00. "
+                  "The base rate is multiplied by this number "
+                  "as part of the support fee calculation.",
     )
     internal_notes = models.CharField(
         max_length=255,
@@ -180,12 +185,12 @@ class Currency(models.Model):
                   "for when it needs updating next",
     )
 
-    def exchange_rate(self, base_band=None):
+    def exchange_rate(self, base_band=None) -> Tuple[decimal.Decimal, str]:
         """
         Gets most up-to-date multiplier for exchange rate
         based on latest World Bank data,
         which is oriented around USD
-        :return: tuple with the rate as int plus a string warning if
+        :return: tuple with the rate as decimal.Decimal plus a string warning if
                  matching country data could not be found
         """
         if not base_band:
@@ -282,11 +287,11 @@ class Band(models.Model):
     )
 
     @property
-    def economic_disparity(self):
+    def economic_disparity(self) -> Tuple[decimal.Decimal, str]:
         """
         Gets most up-to-date multiplier for economic disparity
         based on latest GNI per capita figure
-        :return: tuple of the indicator as int plus a string warning if
+        :return: tuple of the indicator as decimal.Decimal plus a string warning if
                  matching country data could not be found
         """
         base_band = logic.get_base_band(self.level)
@@ -301,30 +306,33 @@ class Band(models.Model):
         )
 
     @property
-    def size_difference(self):
+    def size_difference(self) -> decimal.Decimal:
         """
         Returns multiplier representing the
         difference between the institution size
         and the base band institution size
-        :return: integer
+        :return: decimal.Decimal
         """
         base_band = logic.get_base_band(self.level)
         return self.size.multiplier / base_band.size.multiplier
 
     @property
-    def exchange_rate(self):
+    def exchange_rate(self) -> Tuple[decimal.Decimal, str]:
         """
         Returns exchange rate between this
         band's currency and the base band currency
-        :return: integer
+        :return: a tuple with the rate as decimal.Decimal
+        and a string warning if no data
         """
         base_band = logic.get_base_band(self.level)
         return self.currency.exchange_rate(base_band)
 
-    def calculate_fee(self):
+    def calculate_fee(self) -> Tuple[int, str]:
         """
         Given institution size, supporter level, country,
         and exchange rate, calculates supporter fee
+        :returns: The fee, as an int rounded to the nearest ten, and
+        a string containing warnings for the end user
         """
         for field in [
             self.size,
@@ -349,8 +357,8 @@ class Band(models.Model):
             )
 
         # Account for size of institution
-        # but only for standard support levels,
-        # not higher supporters
+        # but only for standard (default) support levels,
+        # not for higher supporters
         if self.level.default:
             fee *= self.size_difference
 
@@ -368,7 +376,7 @@ class Band(models.Model):
         fee = int(round(fee, -1))
 
         # Check against minimum fee (e.g. 100)
-        fee = max(fee, utils.setting('minimum_fee'))
+        fee = max(fee, int(utils.setting('minimum_fee')))
 
         return fee, warnings
 
