@@ -6,6 +6,8 @@ __maintainer__ = "Open Library of Humanities"
 import os
 import requests
 import json
+import decimal
+from typing import List
 from tqdm import tqdm
 
 from django.utils import timezone
@@ -89,11 +91,24 @@ def fetch_world_bank_data(indicator, year):
     return response.status_code
 
 
-def open_saved_world_bank_data(indicator, year):
+def load_json_with_decimals(file_ref):
+    """
+    Loads a JSON media file with decimals for all numbers.
+    :file_ref: An open file reference
+    :returns: Python-loaded JSON with decimal.Decimal for numbers
+    """
+    return json.loads(
+        file_ref.read(),
+        parse_float=decimal.Decimal,
+        parse_int=decimal.Decimal,
+    )
+
+
+def open_saved_world_bank_data(indicator: str, year: int) -> List:
     """
     Opens saved API data for indicator
     :indicator: A world bank indicator string such as PA.NUS.FCRF
-    :return: a Pythonic JSON object
+    :return: a Pythonic JSON object with decimal.Decimal for all numbers
     """
 
     filename = os.path.join(
@@ -102,7 +117,7 @@ def open_saved_world_bank_data(indicator, year):
     )
     file = cms_models.MediaFile.objects.get(label=filename)
     with file.file.open('r') as file_ref:
-        return json.loads(file_ref.read())
+        return load_json_with_decimals(file_ref)
 
 
 def get_abstract_band(size, level, country, currency):
@@ -250,8 +265,8 @@ def update_demo_band_data():
     return save_media_file(filename, data_json)
 
 
-def get_saved_demo_band_data():
+def get_saved_demo_band_data() -> List:
     filename = os.path.join(plugin_settings.SHORT_NAME, DEMO_DATA_FILENAME)
     file = cms_models.MediaFile.objects.get(label=filename)
     with file.file.open('r') as file_ref:
-        return json.loads(file_ref.read())
+        return load_json_with_decimals(file_ref)

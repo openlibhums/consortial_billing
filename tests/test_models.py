@@ -4,6 +4,7 @@ __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
 from unittest.mock import patch, Mock
+import decimal
 
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
@@ -262,14 +263,14 @@ class ModelTests(TestCaseWithData):
     def test_band_calculate_fee(self):
         with patch(
             'plugins.consortial_billing.logic.latest_multiplier_for_indicator',
-            return_value=(0.85, ''),
+            return_value=(decimal.Decimal(0.85), ''),
         ) as latest_multiplier:
             fee, _ = self.band_other_two.calculate_fee()
             expected_fee = round(
-                5000        # base
-                # * 0.6       # size does not matter for higher level
-                * 0.85      # Patched GNI
-                * 0.85,     # Patched exchange rate
+                5000                      # base
+                # * decimal.Decimal(0.6)  # size does not matter for higher level
+                * decimal.Decimal(0.85)   # Patched GNI
+                * decimal.Decimal(0.85),  # Patched exchange rate
                 -1
             )
             latest_multiplier.assert_called()

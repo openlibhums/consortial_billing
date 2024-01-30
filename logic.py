@@ -5,6 +5,8 @@ __maintainer__ = "Open Library of Humanities"
 
 import os
 import json
+import decimal
+from typing import Tuple
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
@@ -103,8 +105,11 @@ def last_five_years():
     return [timezone.now().year - num for num in [5, 4, 3, 2, 1]]
 
 
-def get_indicator_by_country(indicator, year):
-    metadata, data = utils.open_saved_world_bank_data(indicator, year)
+def get_indicator_by_country(
+        indicator: str,
+        year: int
+    ) -> dict[str, decimal.Decimal]:
+    _metadata, data = utils.open_saved_world_bank_data(indicator, year)
     if not data:
         return {}
     return {each['countryiso3code']: each['value'] for each in data}
@@ -123,7 +128,7 @@ def get_base_bands():
             ).latest()
             base_bands.append(base_band)
         except models.Band.DoesNotExist:
-            logger.warning('Missing base bands for some support levels')
+            logger.warning(f'Missing base band for level: {level}')
     return base_bands
 
 
@@ -146,21 +151,27 @@ def get_base_band(level=None):
             logger.warning('No base band found')
 
 
-def latest_multiplier_for_indicator(indicator, measure_key, base_key, warning):
+def latest_multiplier_for_indicator(
+        indicator: str,
+        measure_key: str,
+        base_key: str,
+        warning: str,
+    ) -> Tuple[decimal.Decimal, str]:
     """
     Checks last five years for specified indicator
     :indicator: Word Bank indicator code such as PA.NUS.FCRF or NY.GNP.PCAP.CD
     :measure_key: the key to use for the record being calculated, e.g. USA
     :base_key: the key to use from the base band, e.g. GBR
     :warning: the string to display to the end user explaining the lack of data
-    :return: tuple with the measure as int plus a string warning if
+    :return: tuple with the measure as decimal.Decimal plus a string warning if
              matching data could not be found
     """
+
+    multiplier = decimal.Decimal(1)
 
     if base_key == '---':
         # The plugin is being configured
         # via the admin interface
-        multiplier = 1
         warning = ''
         return multiplier, warning
 
@@ -177,7 +188,6 @@ def latest_multiplier_for_indicator(indicator, measure_key, base_key, warning):
     if base_improperly_configured == 5:
         raise ImproperlyConfigured(f'{base_key} not found in {indicator} data')
 
-    multiplier = 1
     return multiplier, warning
 
 
@@ -203,7 +213,7 @@ def get_settings_for_display():
     )
     display_settings = []
     with open(file_path, 'r') as file_ref:
-        for default_setting in json.loads(file_ref.read()):
+        for default_setting in utils.load_json_with_decimals(file_ref):
             setting = core_models.Setting.objects.get(
                 group__name=default_setting['group']['name'],
                 name=default_setting['setting']['name'],

@@ -4,6 +4,7 @@ __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
 from unittest.mock import patch, Mock, PropertyMock
+import decimal
 
 from plugins.consortial_billing import utils
 from plugins.consortial_billing.tests import test_models
@@ -26,7 +27,7 @@ class UtilsTests(test_models.TestCaseWithData):
             'plugins.consortial_billing.utils.save_media_file'
         ) as save_label:
             with patch('cms.models.MediaFile.objects.get') as get_label:
-                with patch('json.loads'):
+                with patch(f'{CB}.utils.load_json_with_decimals'):
                     utils.save_file_for_indicator_and_year(
                         self.fake_indicator,
                         2023,
@@ -73,7 +74,7 @@ class UtilsTests(test_models.TestCaseWithData):
     def test_make_table_showing_all_levels_by_country_and_size(self):
         with patch(
             'plugins.consortial_billing.logic.latest_multiplier_for_indicator',
-            return_value=(0.85, ''),
+            return_value=(decimal.Decimal(0.85), ''),
         ):
             data = utils.make_table_showing_all_levels_by_country_and_size()
             self.assertEqual(
@@ -88,27 +89,8 @@ class UtilsTests(test_models.TestCaseWithData):
             large = data['tbody']['Large (10,000+ students)']
             self.assertGreater(
                 large['USA']['Standard']['fee'],
-                0
+                decimal.Decimal(0)
             )
-
-    @patch(f'{CB}.logic.latest_multiplier_for_indicator')
-    def test_make_table_of_higher_supporters_by_country_and_level(self, mult):
-        mult.return_value = (0.85, '')
-        data = utils.make_table_showing_all_levels_by_country_and_size()
-        self.assertEqual(
-            data['thead'][0],
-            'Standard'
-        )
-        small = data['tbody']['Small (0-4,999 students)']
-        self.assertEqual(
-            small['UK']['Higher']['currency'],
-            '£'
-        )
-        large = data['tbody']['Large (10,000+ students)']
-        self.assertGreater(
-            large['USA']['Standard']['fee'],
-            0
-        )
 
     @patch(f'{CB}.logic.latest_multiplier_for_indicator')
     def test_make_table_of_higher_supporters_by_country_and_level(self, mult):
@@ -125,7 +107,7 @@ class UtilsTests(test_models.TestCaseWithData):
 
     @patch(f'{CB}.logic.latest_multiplier_for_indicator')
     def test_make_table_of_standard_supporters_by_country_and_size(self, mult):
-        mult.return_value = (0.85, '')
+        mult.return_value = (decimal.Decimal(0.85), '')
         data = utils.make_table_of_standard_supporters_by_country_and_size()
         self.assertEqual(
             data['thead'][0],
@@ -144,12 +126,26 @@ class UtilsTests(test_models.TestCaseWithData):
         generate_new.assert_called()
         save_media_file.assert_called()
 
-    @patch('json.loads')
+    @patch(f'{CB}.utils.load_json_with_decimals')
     @patch('cms.models.MediaFile.objects.get')
-    def test_get_saved_demo_band_data(self, media_get, json_loads):
+    def test_get_saved_demo_band_data(self, media_get, load_json):
         utils.get_saved_demo_band_data()
         media_get.assert_called()
-        json_loads.assert_called()
+        load_json.assert_called()
+
+    @patch('builtins.open')
+    @patch('json.loads')
+    def test_load_json_with_decimals(self, json_loads, patched_open):
+        with patched_open('fake/path/to/file', 'r') as file_ref:
+            utils.load_json_with_decimals(file_ref)
+            self.assertIn(
+                ('parse_float', decimal.Decimal),
+                json_loads.call_args.kwargs.items(),
+            )
+            self.assertIn(
+                ('parse_int', decimal.Decimal),
+                json_loads.call_args.kwargs.items(),
+            )
 
     def test_get_standard_support_level(self):
         level = utils.get_standard_support_level()
