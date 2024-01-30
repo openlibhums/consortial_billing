@@ -24,6 +24,10 @@
                         You can control them using Configuration below.
                     </p>
                     <div class="stacked button-group">
+                        {% comment %}
+                          Some admin URLs are hard-coded because the admin: prefix
+                          is dropped by Janeway when trying to match plugin URLs.
+                        {% endcomment %}
                         <a
                             href="/admin/consortial_billing/supporter/"
                             class="button secondary"
