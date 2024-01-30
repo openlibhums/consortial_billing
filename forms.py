@@ -25,6 +25,11 @@ class BandForm(forms.ModelForm):
         self.fields['fee'].disabled = True
 
     def save(self, commit=True):
+        """
+        Populates a band object matching the form input.
+        If there is already a matching object, it is returned
+        rather than a new one to prevent duplicate bands from proliferating.
+        """
         band = super().save(commit=False)
         try:
             # First check if there's a fixed fee band
