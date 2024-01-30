@@ -25,32 +25,37 @@
                     </p>
                     <div class="stacked button-group">
                         <a
-                            href="{% url 'admin:consortial_billing_supporter' %}"
-                            class="button secondary">
+                            href="/admin/consortial_billing/supporter/"
+                            class="button secondary"
+                            target="_blank">
                             <i class="fa fa-users"></i>
                             All supporters
                         </a>
                         <a
-                            href="{% url 'admin:consortial_billing_band' %}"
-                            class="button secondary">
+                            href="/admin/consortial_billing/band/"
+                            class="button secondary"
+                            target="_blank">
                             <i class="fa fa-table"></i>
                             All bands
                         </a>
                         <a
-                            href="{% url 'admin:cms_mediafile' %}?q={{ plugin_settings.DISPARITY_INDICATOR }}"
-                            class="button secondary">
+                            href="/admin/cms/mediafile/?q={{ plugin_settings.DISPARITY_INDICATOR }}"
+                            class="button secondary"
+                            target="_blank">
                             <i class="fa fa-globe"></i>
                             All GNI per capita data
                         </a>
                         <a
-                            href="{% url 'admin:cms_mediafile' %}?q={{ plugin_settings.RATE_INDICATOR }}"
-                            class="button secondary">
+                            href="/admin/cms/mediafile/?q={{ plugin_settings.RATE_INDICATOR }}"
+                            class="button secondary"
+                            target="_blank">
                             <i class="fa fa-gbp"></i>
                             All exchange rates
                         </a>
                         <a
-                            href="{% url 'admin:cms_mediafile' %}?q=demo"
-                            class="button secondary">
+                            href="/admin/cms/mediafile/?q=demo"
+                            class="button secondary"
+                            target="_blank">
                             <i class="fa fa-table"></i>
                             Demo band data
                         </a>
@@ -77,8 +82,9 @@
                     </p>
                     <div class="stacked button-group">
                         <a
-                            href="{% url 'admin:consortial_billing_billingagent' %}"
-                            class="button secondary">
+                            href="/admin/consortial_billing/billingagent/"
+                            class="button secondary"
+                            target="_blank">
                             {% if agents %}
                                 Billing agents ({{ agents|length }})
                             {% else %}
@@ -87,8 +93,9 @@
                             {% endif %}
                         </a>
                         <a
-                            href="{% url 'admin:consortial_billing_supportersize' %}"
-                            class="button secondary">
+                            href="/admin/consortial_billing/supportersize/"
+                            class="button secondary"
+                            target="_blank">
                             {% if sizes %}
                                 Institution sizes ({{ sizes|length }})
                             {% else %}
@@ -97,8 +104,9 @@
                             {% endif %}
                         </a>
                         <a
-                            href="{% url 'admin:consortial_billing_supportlevel' %}"
-                            class="button secondary">
+                            href="/admin/consortial_billing/supportlevel/"
+                            class="button secondary"
+                            target="_blank">
                             {% if levels %}
                                 Support levels ({{ levels|length }})
                             {% else %}
@@ -107,8 +115,9 @@
                             {% endif %}
                         </a>
                         <a
-                            href="{% url 'admin:consortial_billing_currency' %}"
-                            class="button secondary">
+                            href="/admin/consortial_billing/currency/"
+                            class="button secondary"
+                            target="_blank">
                             {% if currencies %}
                                 Currencies ({{ currencies|length }})
                             {% else %}
@@ -118,8 +127,9 @@
                         </a>
                         {% if not base_bands %}
                             <a
-                                href="{% url 'admin:consortial_billing_band' %}?display=False&base=True"
-                                class="button secondary">
+                                href="/admin/consortial_billing/band/add/?display=False&base=True"
+                                class="button secondary"
+                                target="_blank">
                                 <i class="fa fa-plus"></i>
                                 Create a base band
                             </a>
@@ -139,8 +149,9 @@
                     <div class="stacked button-group">
                         {% for setting in settings %}
                         <a
-                            href="{% url 'admin:core_setting_change' setting.pk %}"
-                            class="button secondary">
+                            class="button secondary"
+                            target="_blank"
+                            href="{% url 'admin:core_setting_change' setting.pk %}">
                             <i class="fa fa-pencil"></i>
                             {{ setting.pretty_name }}
                         </a>
@@ -161,9 +172,7 @@
                         <h3>{{ base_band.level }}</h3>
                         <ul>
                             <li>{{ base_band.fee }} {{ base_band.currency }}</li>
-                            {% if base_band.level.default %}
-                              <li>{{ base_band.size }}</li>
-                            {% endif %}
+                            <li>{{ base_band.size }}</li>
                             <li>{{ base_band.country.name }}</li>
                             <li>Created on {{ base_band.datetime|date:"j F Y" }}</li>
                         </ul>
@@ -221,8 +230,8 @@
                     <p>
                         The base bands need replacing every year
                         to keep track of inflation. <a
-                        href="{% url 'admin:consortial_billing_band' %}?base=True">Older
-                        base bands</a>
+                            href="/admin/consortial_billing/band/?base=True"
+                            target="_blank">Older base bands</a>
                         are kept on record. Each button below takes
                         you to form where you can select parameters
                         for a new base band for that level.
@@ -231,8 +240,9 @@
                         {% if base_bands %}
                             {% for base_band in base_bands %}
                                 <a
-                                    href="{% url 'admin:consortial_billing_band_add' %}?display=False&base=True&level={{ base_band.level.pk }}"
-                                    class="button warning">
+                                    href="/admin/consortial_billing/band/add/?display=False&base=True&level={{ base_band.level.pk }}"
+                                    class="button warning"
+                                    target="_blank">
                                     <i class="fa fa-plus"></i>
                                     Replace {{ base_band.level }} band
                                     <br>
@@ -242,8 +252,9 @@
                         {% endif %}
                         {% if base_bands|length == 0 or base_bands|length != levels|length %}
                             <a
-                                href="{% url 'admin:consortial_billing_band_add' %}?display=False&base=True"
-                                class="button warning">
+                                href="/admin/consortial_billing/band/add/?display=False&base=True"
+                                class="button warning"
+                                target="_blank">
                                 Create another base band
                             </a>
                         {% endif %}
@@ -254,8 +265,9 @@
                         </p>
                         <div class="stacked button-group">
                             <a
-                                href="{% url 'admin:consortial_billing_band' %}?fixed_fee__exact=True"
-                                class="button secondary">
+                                href="/admin/consortial_billing/band/?fixed_fee__exact=True"
+                                class="button secondary"
+                                target="_blank">
                                 <i class="fa fa-pencil"></i>
                                 Edit fixed fee bands
                                 (oldest is {{ fixed_fee_bands.earliest.datetime }})
