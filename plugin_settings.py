@@ -36,7 +36,7 @@ class ConsortialBillingPlugin(plugins.Plugin):
     press_wide = True
 
 
-def install(fetch_data=True):
+def install(fetch_data=False):
     ConsortialBillingPlugin.install()
     update_settings(
         file_path=f'plugins/{SHORT_NAME}/install/settings.json'
