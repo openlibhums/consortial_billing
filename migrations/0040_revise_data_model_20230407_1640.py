@@ -352,7 +352,6 @@ class Migration(migrations.Migration):
             name='ror',
             field=models.URLField(
                 blank=True,
-                null=True,
                 validators=[plugins.consortial_billing.models.validate_ror],
                 help_text='Research Organization Registry identifier (URL)',
                 verbose_name='ROR',
@@ -391,7 +390,6 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 blank=True,
                 max_length=200,
-                null=True,
                 verbose_name="Institution name",
             ),
         ),

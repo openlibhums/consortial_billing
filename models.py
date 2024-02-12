@@ -49,7 +49,6 @@ class BillingAgent(models.Model):
     )
     redirect_url = models.URLField(
         blank=True,
-        null=True,
         help_text='If populated, the user will be redirected here '
                   'to complete the sign-up process',
     )
@@ -119,7 +118,6 @@ class SupportLevel(models.Model):
     name = models.CharField(
         max_length=30,
         blank=True,
-        null=True,
         help_text="The level of support, e.g. Standard or Gold"
     )
     description = models.CharField(
@@ -421,12 +419,10 @@ class Supporter(models.Model):
     name = models.CharField(
         max_length=200,
         blank=True,
-        null=True,
         verbose_name="Institution name",
     )
     ror = models.URLField(
         blank=True,
-        null=True,
         validators=[validate_ror],
         verbose_name='ROR',
         help_text='Research Organization Registry identifier (URL)',
@@ -434,13 +430,11 @@ class Supporter(models.Model):
     address = models.TextField(
         max_length=255,
         blank=True,
-        null=True,
         verbose_name="Billing address",
     )
     postal_code = models.CharField(
         max_length=255,
         blank=True,
-        null=True,
     )
     country = CountryField(
         blank=True,
