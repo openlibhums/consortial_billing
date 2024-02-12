@@ -76,6 +76,8 @@ class BillingAgent(models.Model):
             return f'{self.name} (default)'
         elif self.country:
             return f'{self.name} ({self.country})'
+        else:
+            return self.name
 
 
 class SupporterSize(models.Model):
