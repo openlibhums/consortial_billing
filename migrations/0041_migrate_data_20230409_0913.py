@@ -21,7 +21,7 @@ def migrate_data(apps, schema_editor):
             if 'Higher' in supporter.supporter_level.name:
                 level_name += 'Higher'
         for metal in ['Gold', 'Silver', 'Bronze']:
-            if metal in supporter.banding.name:
+            if supporter.banding and metal in supporter.banding.name:
                 level_name += f' ({metal})'
         if not level_name:
             level_name = 'Standard'
@@ -34,13 +34,8 @@ def migrate_data(apps, schema_editor):
     # Institution.banding.size -> Institution.band_temp.size_temp
     def determine_size(supporter):
 
-        if supporter.consortial_billing:
-            type_descriptor = 'Consortium'
-        else:
-            type_descriptor = 'Institution'
-
         size_descriptor = supporter.banding.size.capitalize()
-        name = f'{size_descriptor} {type_descriptor}'
+        name = f'{size_descriptor}'
 
         if '0-5' in supporter.banding.name:
             description = '0-4,999 FTE'
@@ -83,6 +78,7 @@ def migrate_data(apps, schema_editor):
         'Switzerland': 'CH',
         'The Netherlands': 'NL',
         'The United Kingdom': 'GB',
+        'United States': 'US',
         'The United States of America': 'US',
         'United States of America': 'US',
         'USA': 'US',
@@ -154,48 +150,58 @@ def migrate_data(apps, schema_editor):
 
     # Institution.banding -> Institution.band_temp
     def determine_band(supporter):
-        level = determine_level(supporter)
-        size_temp = determine_size(supporter)
-        country = determine_country(supporter)
-        currency_temp = determine_currency(supporter)
-        fee = determine_fee(supporter)
-        year = timezone.now().year
-        billing_agent = supporter.billing_agent
-        display = supporter.banding.display
 
-        band, created = Banding.objects.get_or_create(
-            level=level,
-            size_temp=size_temp,
-            country=country,
-            currency_temp=currency_temp,
-            fee=fee,
-            datetime__year=year,
-            billing_agent=billing_agent,
-            display=display,
-            base=False,
-        )
+        if not supporter.banding:
+            return Banding.objects.filter(base=True).order_by('-datetime').first()
+
+        now = timezone.now()
+
+        kwargs = {
+            'level': determine_level(supporter),
+            'size_temp': determine_size(supporter),
+            'country': determine_country(supporter),
+            'currency_temp': determine_currency(supporter),
+            'fee': determine_fee(supporter),
+            'datetime__year': now.year,
+            'billing_agent': supporter.billing_agent,
+            'display': supporter.banding.display,
+        }
+
+        try:
+            band = Banding.objects.get(**kwargs)
+        except Banding.DoesNotExist:
+            kwargs.pop('datetime__year')
+            kwargs['datetime'] = now
+            band = Banding.objects.create(**kwargs)
         return band
 
     # Institution.email_address -> Institution.contacts.email
     # Institution.first_name -> Institution.contacts.first_name
     # Institution.last_name -> Institution.contacts.last_name
     def determine_contact(supporter):
-        account, created = Account.objects.get_or_create(
-            email=supporter.email_address,
-        )
-        if created:
-            account.username = supporter.email_address
-            account.first_name = supporter.first_name
-            account.last_name = supporter.last_name
-            account.save()
+        if not supporter.email_address:
+            return
+        email = supporter.email_address.lower()
+
+        try:
+            account = Account.objects.get(email=email)
+        except Account.DoesNotExist:
+            account = Account.objects.create(
+                email=email,
+                username=email,
+                first_name=supporter.first_name,
+                last_name=supporter.last_name,
+            )
         return account
 
     for supporter in Institution.objects.all():
         band_temp = determine_band(supporter)
-        supporter.band_temp = band_temp
-        supporter.country_temp = band_temp.country
+        if band_temp:
+            supporter.band_temp = band_temp
+            supporter.country_temp = band_temp.country
         contact = determine_contact(supporter)
-        supporter.contacts.add(contact)
+        if contact:
+            supporter.contacts.add(contact)
         supporter.save()
 
 

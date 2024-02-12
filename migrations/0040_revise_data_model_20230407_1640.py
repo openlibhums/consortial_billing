@@ -292,6 +292,16 @@ class Migration(migrations.Migration):
                 to="consortial_billing.billingagent",
             ),
         ),
+        migrations.AlterField(
+            model_name="banding",
+            name="name",
+            field=models.CharField(
+                blank=True,
+                null=True,
+                unique=False,
+                max_length=200,
+            ),
+        ),
 
 
         # ADD AND ALTER FIELDS -- INSTITUTION
