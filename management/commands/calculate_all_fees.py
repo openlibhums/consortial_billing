@@ -28,12 +28,28 @@ class Command(BaseCommand):
         for supporter in models.Supporter.objects.all():
             try:
                 old_band = supporter.band
+                if old_band.fixed_fee:
+                    logger.warning(
+                        self.style.WARNING(
+                            'Fixed fee needing manual updating: '
+                            f'{str(supporter.id).rjust(3)} - {supporter.name}'
+                        )
+                    )
                 new_band_form = forms.BandForm({
                     'size': old_band.size,
                     'level': old_band.level,
                     'country': old_band.country,
                     'currency': old_band.currency,
                 })
+            except AttributeError:
+                logger.warning(
+                    self.style.WARNING(
+                        'Not enough data to recalculate band for '
+                        f'{str(supporter.id).rjust(3)} - {supporter.name}'
+                    )
+                )
+                continue
+            try:
                 if new_band_form.is_valid():
                     new_band = new_band_form.save(commit=False)
                 if old_band.fee == new_band.fee:
@@ -68,3 +84,4 @@ class Command(BaseCommand):
                         f'{str(supporter.id).rjust(3)} - {supporter.name}'
                     )
                 )
+
