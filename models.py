@@ -401,7 +401,8 @@ class Band(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.fee} {self.currency} ({self.datetime}): ' \
+        yyyy_mm_dd = self.datetime.strftime("%Y-%m-%d")
+        return f'{self.fee if self.fee else "?"} {self.currency} ({yyyy_mm_dd}): ' \
                f'{self.size}, {self.level}, {self.country.name}'
 
     class Meta:
@@ -476,6 +477,12 @@ class Supporter(models.Model):
     active = models.BooleanField(
         default=False,
         help_text="Whether the supporter is active",
+    )
+
+    internal_notes = models.TextField(
+        max_length=500,
+        blank=True,
+        help_text="Internal notes on this supporter",
     )
 
     @property

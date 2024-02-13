@@ -53,12 +53,14 @@ class SupportLevelAdmin(admin.ModelAdmin):
         'description',
         'order',
         'internal_notes',
+        'default',
     )
     list_editable = (
         'name',
         'description',
         'order',
         'internal_notes',
+        'default',
     )
 
 
@@ -168,6 +170,7 @@ class SupporterAdmin(admin.ModelAdmin):
         'contacts__first_name',
         'contacts__last_name',
         'contacts__email',
+        'internal_notes',
     )
     list_filter = (
         'active',
