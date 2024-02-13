@@ -3,6 +3,7 @@ __author__ = "Open Library of Humanities"
 __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
+import decimal
 from unittest.mock import patch
 
 from django.http import QueryDict
@@ -16,7 +17,9 @@ from core import include_urls  # imported so that urls will load
 
 class ViewTests(test_models.TestCaseWithData):
 
-    def test_manager_loads(self):
+    @patch('plugins.consortial_billing.logic.latest_multiplier_for_indicator')
+    def test_manager_loads(self, latest_multiplier):
+        latest_multiplier.return_value = (decimal.Decimal('1.000'), '')
         self.client.force_login(self.user_staff)
         response = self.client.get(
             reverse('supporters_manager'),
@@ -36,7 +39,9 @@ class ViewTests(test_models.TestCaseWithData):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'consortial_billing/manager.html')
 
-    def test_manager_context_essential(self):
+    @patch('plugins.consortial_billing.logic.latest_multiplier_for_indicator')
+    def test_manager_context_essential(self, latest_multiplier):
+        latest_multiplier.return_value = (decimal.Decimal('1.000'), '')
         self.client.force_login(self.user_staff)
         response = self.client.get(
             reverse('supporters_manager'),
@@ -55,9 +60,11 @@ class ViewTests(test_models.TestCaseWithData):
             response.context['plugin_settings'],
         )
 
+    @patch('plugins.consortial_billing.logic.latest_multiplier_for_indicator')
     @patch('plugins.consortial_billing.views.render')
     @patch('plugins.consortial_billing.views.call_command')
-    def test_manager_post_fetch_data(self, call_command, render):
+    def test_manager_post_fetch_data(self, call_command, render, latest_multiplier):
+        latest_multiplier.return_value = (decimal.Decimal('1.000'), '')
         type(self.request).user = self.user_staff
         type(self.request).POST = {'fetch_data': None}
         views.manager(self.request)

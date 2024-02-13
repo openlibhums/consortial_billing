@@ -190,8 +190,8 @@
                     </div>
                     <div class="content">
                         <ul>
-                            {% for currency in currencies %}
-                                <li>{{ currency.exchange_rate.0|floatformat:3 }} {{currency.code }}</li>
+                            {% for rate, currency in currencies %}
+                                <li>{{ rate }} {{ currency }}</li>
                             {% endfor %}
                         </ul>
                     </div>

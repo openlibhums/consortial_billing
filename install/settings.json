@@ -86,7 +86,7 @@
       "type": "rich-text"
     },
     "value": {
-      "default": "<p>Thank you for signing up to support us. Here are the details you submitted:</p>{% include 'consortial_billing/elements/supporter_printout.html' with supporter=supporter %}"
+      "default": "<p>Thank you for signing up to support us. Here are the details you submitted:</p>\n{% include 'consortial_billing/elements/supporter_printout.html' with supporter=supporter %}"
     }
   },
   {

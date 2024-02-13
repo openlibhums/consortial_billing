@@ -1,3 +1,5 @@
+import decimal
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.template import TemplateDoesNotExist
 from django.urls import reverse
@@ -39,6 +41,11 @@ def manager(request):
         utils.DEMO_DATA_FILENAME,
     )
     settings = logic.get_settings_for_display()
+    currencies = []
+    for curr in models.Currency.objects.all():
+        rate, _warning = curr.exchange_rate()
+        rate = rate.quantize(decimal.Decimal('1.000'))
+        currencies.append((rate, curr.code))
 
     context = {
         'plugin': plugin_settings.SHORT_NAME,
@@ -46,7 +53,7 @@ def manager(request):
         'agents': models.BillingAgent.objects.all(),
         'sizes': models.SupporterSize.objects.all(),
         'levels': models.SupportLevel.objects.all(),
-        'currencies': models.Currency.objects.all(),
+        'currencies': currencies,
         'base_bands': base_bands,
         'fixed_fee_bands': models.Band.objects.filter(fixed_fee=True),
         'latest_gni_data': latest_gni_data,
