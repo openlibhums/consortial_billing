@@ -164,15 +164,23 @@ def migrate_data(apps, schema_editor):
         if not supporter.banding:
             return Banding.objects.filter(base=True).order_by('-datetime').first()
 
-        band_temp = supporter.banding
-        band_temp.level = determine_level(supporter)
-        band_temp.size_temp = determine_size(supporter)
-        band_temp.country = determine_country(supporter)
-        band_temp.currency_temp = determine_currency(supporter)
-        band_temp.fee = determine_fee(supporter)
-        band_temp.datetime = NOW
-        band_temp.billing_agent = supporter.billing_agent
-        band_temp.save()
+        kwargs = {
+            'level': determine_level(supporter),
+            'size_temp': determine_size(supporter),
+            'country': determine_country(supporter),
+            'currency_temp': determine_currency(supporter),
+            'fee': determine_fee(supporter),
+            'datetime__year': NOW.year,
+            'billing_agent': supporter.billing_agent,
+            'display': supporter.banding.display,
+        }
+
+        try:
+            band_temp = Banding.objects.get(**kwargs)
+        except Banding.DoesNotExist:
+            kwargs.pop('datetime__year')
+            kwargs['datetime'] = NOW
+            band_temp = Banding.objects.create(**kwargs)
         return band_temp
 
     # Institution.email_address -> Institution.contacts.email
