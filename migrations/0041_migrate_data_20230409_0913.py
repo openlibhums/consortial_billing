@@ -3,6 +3,8 @@
 from django.db import migrations
 from django.utils import timezone
 
+NOW = timezone.now()
+
 
 def migrate_data(apps, schema_editor):
 
@@ -13,22 +15,28 @@ def migrate_data(apps, schema_editor):
     Banding = apps.get_model('consortial_billing', 'Banding')
     Account = apps.get_model('core', 'Account')
 
+    def record_old_band(supporter):
+        if not supporter.banding:
+            return
+
+        supporter.internal_notes = \
+            f'Pre-2024 banding:\n'\
+            f'{supporter.banding.name}\n'\
+            f'Fee: {supporter.banding.default_price} {supporter.banding.currency}\n'\
+            f'Agent: {supporter.banding.billing_agent.name if supporter.banding.billing_agent else ""}\n'\
+            f'Display: {"Yes" if supporter.banding.display else "No"}\n'\
+            f'Redirect URL: {supporter.banding.redirect_url if supporter.banding.redirect_url else ""}\n'\
+            f'Size: {supporter.banding.size}'\
+
     # Institution.supporter_level -> Institution.band_temp.level
-    # Institution.banding.name -> Institution.band_temp.level
     def determine_level(supporter):
-        level_name = ''
-        if supporter.supporter_level:
-            if 'Higher' in supporter.supporter_level.name:
-                level_name += 'Higher'
-        for metal in ['Gold', 'Silver', 'Bronze']:
-            if supporter.banding and metal in supporter.banding.name:
-                level_name += f' ({metal})'
-        if not level_name:
-            level_name = 'Standard'
-        level, created = SupportLevel.objects.get_or_create(
-            name=level_name,
-        )
-        return level
+        # Regarding levels, it is not worth trying to parse Gold, Silver, etc.,
+        # because those bandings are not actually used in the old data.
+        if supporter.supporter_level and 'higher' in supporter.supporter_level.name.lower():
+            return supporter.supporter_level
+        else:
+            level, created = SupportLevel.objects.get_or_create(name='Standard')
+            return level
 
     # Institution.banding.name -> Institution.band_temp.size_temp
     # Institution.banding.size -> Institution.band_temp.size_temp
@@ -38,18 +46,20 @@ def migrate_data(apps, schema_editor):
         name = f'{size_descriptor}'
 
         if '0-5' in supporter.banding.name:
-            description = '0-4,999 FTE'
+            description = '0-4,999 students'
         elif '000-9' in supporter.banding.name:
-            description = '5,000-9,999 FTE'
+            description = '5,000-9,999 students'
         elif '10' in supporter.banding.name:
-            description = '10,000+ FTE'
+            description = '10,000+ students'
         else:
             description = ''
 
         size_temp, created = SupporterSize.objects.get_or_create(
             name=name,
-            description=description,
         )
+        if description and not size_temp.description:
+            size_temp.description = description
+            size_temp.save()
         return size_temp
 
     # Country setup
@@ -154,26 +164,16 @@ def migrate_data(apps, schema_editor):
         if not supporter.banding:
             return Banding.objects.filter(base=True).order_by('-datetime').first()
 
-        now = timezone.now()
-
-        kwargs = {
-            'level': determine_level(supporter),
-            'size_temp': determine_size(supporter),
-            'country': determine_country(supporter),
-            'currency_temp': determine_currency(supporter),
-            'fee': determine_fee(supporter),
-            'datetime__year': now.year,
-            'billing_agent': supporter.billing_agent,
-            'display': supporter.banding.display,
-        }
-
-        try:
-            band = Banding.objects.get(**kwargs)
-        except Banding.DoesNotExist:
-            kwargs.pop('datetime__year')
-            kwargs['datetime'] = now
-            band = Banding.objects.create(**kwargs)
-        return band
+        band_temp = supporter.banding
+        band_temp.level = determine_level(supporter)
+        band_temp.size_temp = determine_size(supporter)
+        band_temp.country = determine_country(supporter)
+        band_temp.currency_temp = determine_currency(supporter)
+        band_temp.fee = determine_fee(supporter)
+        band_temp.datetime = NOW
+        band_temp.billing_agent = supporter.billing_agent
+        band_temp.save()
+        return band_temp
 
     # Institution.email_address -> Institution.contacts.email
     # Institution.first_name -> Institution.contacts.first_name
@@ -195,6 +195,7 @@ def migrate_data(apps, schema_editor):
         return account
 
     for supporter in Institution.objects.all():
+        record_old_band(supporter)
         band_temp = determine_band(supporter)
         if band_temp:
             supporter.band_temp = band_temp

@@ -357,6 +357,15 @@ class Migration(migrations.Migration):
                 verbose_name='ROR',
             ),
         ),
+        migrations.AddField(
+            model_name="institution",
+            name="internal_notes",
+            field=models.TextField(
+                max_length=500,
+                blank=True,
+                help_text='Internal notes on this supporter',
+            ),
+        ),
         migrations.AlterField(
             model_name="institution",
             name="active",
