@@ -35,6 +35,7 @@ class Command(BaseCommand):
                             f'{str(supporter.id).rjust(3)} - {supporter.name}'
                         )
                     )
+                    continue
                 new_band_form = forms.BandForm({
                     'size': old_band.size,
                     'level': old_band.level,
