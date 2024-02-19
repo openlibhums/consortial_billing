@@ -104,6 +104,21 @@ def load_json_with_decimals(file_ref):
     )
 
 
+def open_media_file(filename):
+    """
+    Opens a JSON file saved as a Janeway media file.
+    Logs an error if the file is not found.
+    """
+    try:
+        file = cms_models.MediaFile.objects.get(label=filename)
+        with file.file.open('r') as file_ref:
+            return load_json_with_decimals(file_ref)
+    except cms_models.MediaFile.DoesNotExist as e:
+        logger.error(e)
+        logger.error(f'...while trying to load {filename}')
+        return []
+
+
 def open_saved_world_bank_data(indicator: str, year: int) -> List:
     """
     Opens saved API data for indicator
@@ -115,9 +130,7 @@ def open_saved_world_bank_data(indicator: str, year: int) -> List:
         plugin_settings.SHORT_NAME,
         f'{indicator}_{year}.json',
     )
-    file = cms_models.MediaFile.objects.get(label=filename)
-    with file.file.open('r') as file_ref:
-        return load_json_with_decimals(file_ref)
+    return open_media_file(filename)
 
 
 def get_abstract_band(size, level, country, currency):
@@ -267,6 +280,4 @@ def update_demo_band_data():
 
 def get_saved_demo_band_data() -> List:
     filename = os.path.join(plugin_settings.SHORT_NAME, DEMO_DATA_FILENAME)
-    file = cms_models.MediaFile.objects.get(label=filename)
-    with file.file.open('r') as file_ref:
-        return load_json_with_decimals(file_ref)
+    return open_media_file(filename)
