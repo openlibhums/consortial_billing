@@ -51,18 +51,25 @@ class BandForm(forms.ModelForm):
             band.billing_agent = band.determine_billing_agent()
             band.fee, band.warnings = band.calculate_fee()
             if commit:
-                band, created = models.Band.objects.get_or_create(
-                    level=band.level,
-                    size=band.size,
-                    country=band.country,
-                    currency=band.currency,
-                    fee=band.fee,
-                    warnings=band.warnings,
-                    billing_agent=band.billing_agent,
-                    datetime__year=timezone.now().year,
-                    display=True,
-                    base=False,
-                )
+                now = timezone.now()
+                kwargs = {
+                    "level": band.level,
+                    "size": band.size,
+                    "country": band.country,
+                    "currency": band.currency,
+                    "fee": band.fee,
+                    "warnings": band.warnings,
+                    "billing_agent": band.billing_agent,
+                    "datetime__year": now.year,
+                    "display": True,
+                    "base": False,
+                }
+                try:
+                    band = models.Band.objects.filter(**kwargs).latest()
+                except models.Band.DoesNotExist:
+                    kwargs.pop('datetime__year')
+                    kwargs['datetime'] = now
+                    band = models.Band.objects.create(**kwargs)
             return band
 
 
