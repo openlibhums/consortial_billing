@@ -8,11 +8,6 @@ from plugins.consortial_billing import models
 from core import files
 
 
-class BandInline(admin.TabularInline):
-    model = models.Band
-    extra = 0
-
-
 class BillingAgentAdmin(admin.ModelAdmin):
     list_display = (
         'pk',
@@ -150,6 +145,10 @@ class BandAdmin(admin.ModelAdmin):
 
 
 class SupporterAdmin(admin.ModelAdmin):
+
+    # For performance
+    list_per_page = 25
+
     list_display = (
         'name',
         'address',
@@ -179,19 +178,16 @@ class SupporterAdmin(admin.ModelAdmin):
         'band__currency',
         'band__country',
     )
-    list_editable = (
-        'active',
-        'display',
+    filter_horizontal = (
+        'contacts',
+        'old_bands',
     )
     raw_id_fields = (
-        'contacts',
         'band',
-        'old_bands',
     )
 
     actions = [
         'export_supporters',
-        'test_action',
     ]
 
     @admin.action(description="Export selected supporters")
