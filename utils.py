@@ -104,7 +104,7 @@ def load_json_with_decimals(file_ref):
     )
 
 
-def open_media_file(filename):
+def open_json_media_file(filename):
     """
     Opens a JSON file saved as a Janeway media file.
     Logs an error if the file is not found.
@@ -130,7 +130,7 @@ def open_saved_world_bank_data(indicator: str, year: int) -> List:
         plugin_settings.SHORT_NAME,
         f'{indicator}_{year}.json',
     )
-    return open_media_file(filename)
+    return open_json_media_file(filename)
 
 
 def get_abstract_band(size, level, country, currency):
@@ -280,4 +280,4 @@ def update_demo_band_data():
 
 def get_saved_demo_band_data() -> List:
     filename = os.path.join(plugin_settings.SHORT_NAME, DEMO_DATA_FILENAME)
-    return open_media_file(filename)
+    return open_json_media_file(filename)
