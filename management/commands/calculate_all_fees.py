@@ -42,6 +42,12 @@ class Command(BaseCommand):
                     'country': old_band.country,
                     'currency': old_band.currency,
                 })
+                if new_band_form.is_valid():
+                    new_band = new_band_form.save(commit=bool(options['save']))
+                    if old_band == new_band:
+                        continue
+                else:
+                    raise AttributeError
             except AttributeError:
                 logger.warning(
                     self.style.WARNING(
@@ -51,12 +57,7 @@ class Command(BaseCommand):
                 )
                 continue
             try:
-                if new_band_form.is_valid():
-                    new_band = new_band_form.save(commit=False)
-                if old_band.fee == new_band.fee:
-                    continue
                 if options['save']:
-                    new_band.save()
                     supporter.band = new_band
                     supporter.old_bands.add(old_band)
                     supporter.save()
@@ -85,4 +86,3 @@ class Command(BaseCommand):
                         f'{str(supporter.id).rjust(3)} - {supporter.name}'
                     )
                 )
-
