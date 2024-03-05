@@ -30,46 +30,41 @@ class BandForm(forms.ModelForm):
         If there is already a matching object, it is returned
         rather than a new one to prevent duplicate bands from proliferating.
         """
-        band = super().save(commit=False)
+
+        # Get an abstract band for matching purposes
+        abstract_band = super().save(commit=False)
+        abstract_band.billing_agent = logic.determine_billing_agent(abstract_band.country)
+        abstract_band.fee, abstract_band.warnings = abstract_band.calculate_fee()
+        kwargs = {
+            'level': abstract_band.level,
+            'size': abstract_band.size,
+            'country': abstract_band.country,
+            'currency': abstract_band.currency,
+            'billing_agent': abstract_band.billing_agent,
+            'display': True,
+            'base': False,
+        }
+
         try:
-            # First check if there's a fixed fee band
-            # that should be used for this supporter
-            billing_agent = logic.determine_billing_agent(band.country)
-            saved_band = models.Band.objects.filter(
-                level=band.level,
-                size=band.size,
-                country=band.country,
-                currency=band.currency,
-                billing_agent=billing_agent,
-                fixed_fee=True,
-                base=False,
-            ).latest('datetime')
-            return saved_band
+            # If there's an appropriate fixed-fee band, use it.
+            kwargs['fixed_fee'] = True
+            band = models.Band.objects.filter(**kwargs).latest()
+
         except models.Band.DoesNotExist:
-            # Otherwise, build the band in all its detail
-            # and create it if no identical one already exists
-            band.billing_agent = band.determine_billing_agent()
-            band.fee, band.warnings = band.calculate_fee()
+            try:
+                # Otherwise, if there's an appropriate dynamic-fee band, use it.
+                kwargs['fixed_fee'] = False
+                kwargs['fee'] = abstract_band.fee
+                kwargs['warnings'] = abstract_band.warnings
+                kwargs['datetime__year'] = timezone.now().year
+                band = models.Band.objects.filter(**kwargs).latest()
+            except models.Band.DoesNotExist:
+                # Otherwise, use the abstract band.
+                band = abstract_band
+
+        finally:
             if commit:
-                now = timezone.now()
-                kwargs = {
-                    "level": band.level,
-                    "size": band.size,
-                    "country": band.country,
-                    "currency": band.currency,
-                    "fee": band.fee,
-                    "warnings": band.warnings,
-                    "billing_agent": band.billing_agent,
-                    "datetime__year": now.year,
-                    "display": True,
-                    "base": False,
-                }
-                try:
-                    band = models.Band.objects.filter(**kwargs).latest()
-                except models.Band.DoesNotExist:
-                    kwargs.pop('datetime__year')
-                    kwargs['datetime'] = now
-                    band = models.Band.objects.create(**kwargs)
+                band.save()
             return band
 
 
