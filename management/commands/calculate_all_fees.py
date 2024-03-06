@@ -1,5 +1,3 @@
-import argparse
-
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ValidationError
 
@@ -20,7 +18,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--save',
-            action=argparse.BooleanOptionalAction,
+            action='store_true',
             help='Save the new fee, replacing the old'
         )
 
@@ -43,7 +41,7 @@ class Command(BaseCommand):
                     'currency': old_band.currency,
                 })
                 if new_band_form.is_valid():
-                    new_band = new_band_form.save(commit=bool(options['save']))
+                    new_band = new_band_form.save(commit=options['save'])
                     if old_band == new_band:
                         continue
                 else:
