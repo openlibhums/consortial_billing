@@ -23,26 +23,30 @@ class LogicTests(test_models.TestCaseWithData):
             '1000&ndash;1001',
         )
 
-    def test_get_indicator_by_country(self):
-        with patch(
-            'plugins.consortial_billing.utils.open_saved_world_bank_data',
-        ) as open_saved:
-            open_saved.return_value = [{}, []]
-            data = logic.get_indicator_by_country(self.fake_indicator, 2050)
-            open_saved.assert_called()
-            self.assertEqual(data, {})
+    @patch('plugins.consortial_billing.utils.open_saved_world_bank_data')
+    def test_get_indicator_by_country(self, open_saved):
 
-            open_saved.return_value = [
-                {},
-                [
-                    {
-                        'countryiso3code': 'NLD',
-                        'value': 12345,
-                    }
-                ]
+        open_saved.return_value = []
+        data = logic.get_indicator_by_country(self.fake_indicator, 2050)
+        open_saved.assert_called()
+        self.assertEqual(data, {})
+
+        open_saved.return_value = ['something', None]
+        data = logic.get_indicator_by_country(self.fake_indicator, 2050)
+        open_saved.assert_called()
+        self.assertEqual(data, {})
+
+        open_saved.return_value = [
+            {},
+            [
+                {
+                    'countryiso3code': 'NLD',
+                    'value': 12345,
+                }
             ]
-            data = logic.get_indicator_by_country(self.fake_indicator, 2050)
-            self.assertEqual(data['NLD'], 12345)
+        ]
+        data = logic.get_indicator_by_country(self.fake_indicator, 2050)
+        self.assertEqual(data['NLD'], 12345)
 
     def test_get_base_band(self):
 
@@ -125,13 +129,14 @@ class LogicTests(test_models.TestCaseWithData):
             self.assertEqual(warning, '')
 
             get_indicator.return_value = {'dog': 5}
-            with self.assertRaises(ImproperlyConfigured):
-                multiplier, warning = logic.latest_multiplier_for_indicator(
-                    self.fake_indicator,
-                    measure_key,
-                    base_key,
-                    warning_text,
-                )
+            multiplier, warning = logic.latest_multiplier_for_indicator(
+                self.fake_indicator,
+                measure_key,
+                base_key,
+                warning_text,
+            )
+            self.assertEqual(multiplier, 1)
+            self.assertEqual(warning, warning_text)
 
             get_indicator.return_value = {'cat': 10}
             multiplier, warning = logic.latest_multiplier_for_indicator(

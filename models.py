@@ -352,7 +352,7 @@ class Band(models.Model):
 
         fee = logic.get_base_band(self.level).fee
         if fee is None:
-            raise ImproperlyConfigured(
+            logger.error(
                 'No fee has been set on base band'
             )
 
