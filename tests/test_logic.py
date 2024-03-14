@@ -61,7 +61,11 @@ class LogicTests(test_models.TestCaseWithData):
 
         base_bands = logic.get_base_bands()
         self.assertListEqual(
-            [self.band_base_level_other, self.band_base],
+            [
+                self.band_base_country_other,
+                self.band_base_level_other,
+                self.band_base
+            ],
             base_bands,
         )
 

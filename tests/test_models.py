@@ -66,6 +66,10 @@ class TestCaseWithData(TestCase):
             name='Higher',
             order=1,
         )
+        cls.level_third = models.SupportLevel.objects.create(
+            name='Even Higher',
+            order=0,
+        )
         cls.currency_base = models.Currency.objects.create(
             code='GBP',
             region='GBR',
@@ -90,6 +94,15 @@ class TestCaseWithData(TestCase):
             country='GB',
             currency=cls.currency_base,
             level=cls.level_other,
+            fee=5000,
+            billing_agent=cls.agent_default,
+            base=True,
+        )
+        cls.band_base_country_other = models.Band.objects.create(
+            size=cls.size_other,
+            country='DE',
+            currency=cls.currency_other,
+            level=cls.level_third,
             fee=5000,
             billing_agent=cls.agent_default,
             base=True,
@@ -174,9 +187,12 @@ class TestCaseWithData(TestCase):
         cls.supporter_one.delete()
         cls.band_other_two.delete()
         cls.band_other_one.delete()
+        cls.band_base_country_other.delete()
+        cls.band_base_level_other.delete()
         cls.band_base.delete()
         cls.currency_other.delete()
         cls.currency_base.delete()
+        cls.level_third.delete()
         cls.level_other.delete()
         cls.level_base.delete()
         cls.size_other.delete()
@@ -224,23 +240,41 @@ class ModelTests(TestCaseWithData):
         self.assertFalse(other_has_country)
         self.assertFalse(default_still_default)
 
-    def test_currency_exchange_rate(self):
-        with patch(
-            'plugins.consortial_billing.logic.latest_multiplier_for_indicator'
-        ) as latest_multiplier:
-            self.currency_other.exchange_rate()
-            self.assertIn(
-                plugin_settings.RATE_INDICATOR,
-                latest_multiplier.call_args.args,
-            )
-            self.assertIn(
-                self.currency_other.region,
-                latest_multiplier.call_args.args,
-            )
-            self.assertIn(
-                self.currency_other.region,
-                latest_multiplier.call_args.args,
-            )
+    @patch('plugins.consortial_billing.logic.latest_multiplier_for_indicator')
+    def test_currency_exchange_rate_with_typical_args(self, latest_multiplier):
+        self.currency_base.exchange_rate(base_band=self.band_base_country_other)
+        self.assertIn(
+            plugin_settings.RATE_INDICATOR,
+            latest_multiplier.call_args.args,
+        )
+        # Target currency
+        self.assertIn(
+            self.currency_base.region,
+            latest_multiplier.call_args.args,
+        )
+        # Base currency generated with specified base band
+        self.assertIn(
+            self.currency_other.region,
+            latest_multiplier.call_args.args,
+        )
+
+    @patch('plugins.consortial_billing.logic.latest_multiplier_for_indicator')
+    def test_currency_exchange_rate_with_no_args(self, latest_multiplier):
+        self.currency_other.exchange_rate()
+        self.assertIn(
+            plugin_settings.RATE_INDICATOR,
+            latest_multiplier.call_args.args,
+        )
+        # Target currency
+        self.assertIn(
+            self.currency_other.region,
+            latest_multiplier.call_args.args,
+        )
+        # Base currency generated with default base band
+        self.assertIn(
+            self.currency_other.region,
+            latest_multiplier.call_args.args,
+        )
 
     def test_band_economic_disparity(self):
         with patch(

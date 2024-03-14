@@ -144,11 +144,13 @@ def get_base_band(level=None):
             return get_base_band()
     else:
         try:
+            default_level = models.SupportLevel.objects.get(default=True)
             return models.Band.objects.filter(
-                base=True
+                base=True,
+                level=default_level,
             ).latest()
         except models.Band.DoesNotExist:
-            logger.warning('No base band found')
+            logger.warning('No default base band found.')
 
 
 def latest_multiplier_for_indicator(

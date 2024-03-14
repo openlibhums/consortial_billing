@@ -197,7 +197,7 @@ class Currency(models.Model):
             base_band = logic.get_base_band()
 
         if base_band:
-            base_key = base_band.country.alpha3
+            base_key = base_band.currency.region
         else:
             # This is needed during initial configuration
             base_key = '---'
