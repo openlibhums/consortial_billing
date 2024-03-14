@@ -31,16 +31,16 @@ class BandForm(forms.ModelForm):
         rather than a new one to prevent duplicate bands from proliferating.
         """
 
-        # Get an abstract band for matching purposes
-        abstract_band = super().save(commit=False)
-        abstract_band.billing_agent = logic.determine_billing_agent(abstract_band.country)
-        abstract_band.fee, abstract_band.warnings = abstract_band.calculate_fee()
+        # Get an unsaved band for matching purposes
+        unsaved_band = super().save(commit=False)
+        unsaved_band.billing_agent = logic.determine_billing_agent(unsaved_band.country)
+        unsaved_band.fee, unsaved_band.warnings = unsaved_band.calculate_fee()
         kwargs = {
-            'level': abstract_band.level,
-            'size': abstract_band.size,
-            'country': abstract_band.country,
-            'currency': abstract_band.currency,
-            'billing_agent': abstract_band.billing_agent,
+            'level': unsaved_band.level,
+            'size': unsaved_band.size,
+            'country': unsaved_band.country,
+            'currency': unsaved_band.currency,
+            'billing_agent': unsaved_band.billing_agent,
             'display': True,
             'base': False,
         }
@@ -54,13 +54,13 @@ class BandForm(forms.ModelForm):
             try:
                 # Otherwise, if there's an appropriate dynamic-fee band, use it.
                 kwargs['fixed_fee'] = False
-                kwargs['fee'] = abstract_band.fee
-                kwargs['warnings'] = abstract_band.warnings
+                kwargs['fee'] = unsaved_band.fee
+                kwargs['warnings'] = unsaved_band.warnings
                 kwargs['datetime__year'] = timezone.now().year
                 band = models.Band.objects.filter(**kwargs).latest()
             except models.Band.DoesNotExist:
-                # Otherwise, use the abstract band.
-                band = abstract_band
+                # Otherwise, use the unsaved band.
+                band = unsaved_band
 
         finally:
             if commit:
