@@ -56,8 +56,8 @@ class Command(BaseCommand):
                 continue
             try:
                 if options['save']:
+                    models.OldBand.objects.get_or_create(supporter=supporter, band=old_band)
                     supporter.band = new_band
-                    supporter.old_bands.add(old_band)
                     supporter.save()
                     status = 'Saved new fee: '
                 else:

@@ -20,7 +20,7 @@ class EmailTests(test_models.TestCaseWithData):
             supporter=self.supporter_two,
         )
         self.assertIn(
-            self.supporter_two.band.billing_agent.users.first().email,
+            self.supporter_two.band.billing_agent.agentcontact_set.first().email,
             send_email.call_args.args[3],
         )
         self.assertIn(
@@ -40,7 +40,7 @@ class EmailTests(test_models.TestCaseWithData):
             supporter=self.supporter_two,
         )
         self.assertIn(
-            self.supporter_two.contacts.first().email,
+            self.supporter_two.supportercontact_set.first().email,
             send_email.call_args.args[3],
         )
         self.assertIn(

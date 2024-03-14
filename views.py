@@ -113,11 +113,17 @@ def signup(request):
                 if supporter_form.is_valid():
                     supporter = supporter_form.save(commit=True)
                     if supporter.band:
-                        supporter.old_bands.add(supporter.band)
+                        models.OldBand.objects.get_or_create(
+                            supporter=supporter,
+                            band=supporter.band,
+                        )
                     supporter.band = band
                     supporter.country = band.country
-                    supporter.contacts.add(request.user)
                     supporter.save()
+                    models.SupporterContact.objects.get_or_create(
+                        supporter=supporter,
+                        account=request.user
+                    )
                     if band.billing_agent.redirect_url:
                         redirect_text = utils.setting('redirect_text')
                     else:
