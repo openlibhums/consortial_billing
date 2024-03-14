@@ -109,10 +109,15 @@ def get_indicator_by_country(
         indicator: str,
         year: int
     ) -> dict[str, decimal.Decimal]:
-    _metadata, data = utils.open_saved_world_bank_data(indicator, year)
+    data = utils.open_saved_world_bank_data(indicator, year)
+    # The next few lines are written defensively because of the variation
+    # in the JSON received from the World Bank API.
     if not data:
         return {}
-    return {each['countryiso3code']: each['value'] for each in data}
+    _metadata, country_records = data
+    if not country_records:
+        return {}
+    return {each['countryiso3code']: each['value'] for each in country_records}
 
 
 def get_base_bands():
@@ -186,7 +191,11 @@ def latest_multiplier_for_indicator(
             return multiplier, warning
 
     if base_improperly_configured == 5:
-        raise ImproperlyConfigured(f'{base_key} not found in {indicator} data')
+        logger.error(
+            f'{base_key} not found in the data for indicator {indicator}. '
+            f'World Bank data may be missing or the base band '
+            f'may not be properly configured.'
+        )
 
     return multiplier, warning
 
@@ -236,7 +245,7 @@ def determine_billing_agent(country):
             agent = models.BillingAgent.objects.get(default=True)
             return agent
         except models.BillingAgent.DoesNotExist:
-            raise ImproperlyConfigured(
+            logger.error(
                 'No billing agent has been set as default'
             )
 
