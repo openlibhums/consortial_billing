@@ -55,12 +55,11 @@ class CommandTests(test_models.TestCaseWithData):
         band_form_save,
         band_save,
     ):
-        band_save.return_value = self.band_other_one
         band_form_save.return_value = self.band_other_one
         supporter_save.return_value = self.supporter_one
         call_command('calculate_all_fees', '--save')
-        band_save.assert_called()
-        band_form_save.assert_called_with(commit=False)
+        band_save.assert_not_called()
+        band_form_save.assert_called_with(commit=True)
         supporter_save.assert_called()
         info.assert_called()
         warning.assert_not_called()
