@@ -15,7 +15,7 @@ def email_agent_about_signup(**kwargs):
         'target': supporter,
     }
 
-    to = [user.email for user in supporter.band.billing_agent.users.all()]
+    to = [contact.email for contact in supporter.band.billing_agent.agentcontact_set.all()]
     context = {
         'supporter': supporter,
         'supporter_url': supporter_url,
@@ -47,7 +47,7 @@ def email_supporter_to_confirm(**kwargs):
         'target': supporter,
     }
 
-    to = [user.email for user in supporter.contacts.all()]
+    to = [contact.email for contact in supporter.supportercontact_set.all()]
     context = {
         'supporter': supporter,
     }

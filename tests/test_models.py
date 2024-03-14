@@ -38,15 +38,21 @@ class TestCaseWithData(TestCase):
             name='Open Library of Humanities',
             default=True,
         )
-        cls.agent_default.users.add(cls.user_staff)
         cls.agent_default.save()
+        models.AgentContact.objects.get_or_create(
+            agent=cls.agent_default,
+            account=cls.user_staff,
+        )
         cls.agent_other = models.BillingAgent.objects.create(
             name='Diamond OA Association',
             country='BE',
             redirect_url='example.org'
         )
-        cls.agent_other.users.add(cls.user_agent)
         cls.agent_other.save()
+        models.AgentContact.objects.get_or_create(
+            agent=cls.agent_other,
+            account=cls.user_agent,
+        )
         cls.size_base = models.SupporterSize.objects.create(
             name='Large',
             description='10,000+ students',
@@ -134,29 +140,41 @@ class TestCaseWithData(TestCase):
             band=cls.band_base,
             active=True,
         )
-        cls.supporter_one.contacts.add(cls.user_supporter)
         cls.supporter_one.save()
+        models.SupporterContact.objects.get_or_create(
+            supporter=cls.supporter_one,
+            account=cls.user_supporter,
+        )
         cls.supporter_two = models.Supporter.objects.create(
             name='University of Sussex',
             band=cls.band_other_one,
             active=True,
         )
-        cls.supporter_two.contacts.add(cls.user_supporter)
         cls.supporter_two.save()
+        models.SupporterContact.objects.get_or_create(
+            supporter=cls.supporter_two,
+            account=cls.user_supporter,
+        )
         cls.supporter_three = models.Supporter.objects.create(
             name='University of Essex',
             band=cls.band_other_three,
             active=True,
         )
-        cls.supporter_three.contacts.add(cls.user_supporter)
         cls.supporter_three.save()
+        models.SupporterContact.objects.get_or_create(
+            supporter=cls.supporter_three,
+            account=cls.user_supporter,
+        )
         cls.supporter_four = models.Supporter.objects.create(
             name='University of Antwerp',
             band=cls.band_other_two,
             active=True,
         )
-        cls.supporter_four.contacts.add(cls.user_supporter)
         cls.supporter_four.save()
+        models.SupporterContact.objects.get_or_create(
+            supporter=cls.supporter_four,
+            account=cls.user_supporter,
+        )
         cls.fake_indicator = 'ABC.DEF.GHI'
         cls.custom_page = Page.objects.create(
             content_type=ContentType.objects.get_for_model(cls.press),

@@ -8,21 +8,60 @@ from plugins.consortial_billing import models
 from core import files
 
 
+class AgentContactInline(admin.TabularInline):
+    model = models.AgentContact
+    extra = 0
+    raw_id_fields = ('account', 'agent')
+
+
+class SupporterContactInline(admin.TabularInline):
+    model = models.SupporterContact
+    extra = 0
+    raw_id_fields = ('account', 'supporter')
+
+
+class SupporterInline(admin.TabularInline):
+    model = models.Supporter
+    fields = ('name', 'country')
+    readonly_fields = ('name', 'country')
+    show_change_link = True
+    can_delete = False
+
+    def has_add_permission(self, request, obj):
+        return False
+
+
+class OldBandInline(admin.TabularInline):
+    model = models.OldBand
+    raw_id_fields = ('band', 'supporter')
+    readonly_fields = ('band', 'supporter')
+    can_delete = False
+
+    def has_add_permission(self, request, obj):
+        return False
+
+
 class BillingAgentAdmin(admin.ModelAdmin):
     list_display = (
-        'pk',
         'name',
+        '_contacts',
         'country',
         'default',
     )
     list_editable = (
-        'name',
         'country',
         'default',
     )
-    raw_id_fields = (
-        'users',
-    )
+    inlines = [
+        AgentContactInline,
+    ]
+
+    def _contacts(self, obj):
+        if obj and obj.agentcontact_set.exists():
+            contacts = obj.agentcontact_set.all()
+            return ', '.join([str(contact) for contact in contacts])
+        else:
+            return ''
 
 
 class SupporterSizeAdmin(admin.ModelAdmin):
@@ -112,6 +151,10 @@ class BandAdmin(admin.ModelAdmin):
         'country',
     )
     date_hierarchy = 'datetime'
+    inlines = [
+        SupporterInline,
+        OldBandInline,
+    ]
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.fixed_fee:
@@ -151,6 +194,7 @@ class SupporterAdmin(admin.ModelAdmin):
 
     list_display = (
         'name',
+        '_contacts',
         'address',
         'postal_code',
         'country',
@@ -166,9 +210,9 @@ class SupporterAdmin(admin.ModelAdmin):
         'name',
         'address',
         'postal_code',
-        'contacts__first_name',
-        'contacts__last_name',
-        'contacts__email',
+        'supportercontact__account__first_name',
+        'supportercontact__account__last_name',
+        'supportercontact__account__email',
         'internal_notes',
     )
     list_filter = (
@@ -178,29 +222,39 @@ class SupporterAdmin(admin.ModelAdmin):
         'band__currency',
         'band__country',
     )
-    filter_horizontal = (
-        'contacts',
-        'old_bands',
-    )
     raw_id_fields = (
         'band',
     )
+
+    inlines = [
+        SupporterContactInline,
+        OldBandInline,
+    ]
 
     actions = [
         'export_supporters',
     ]
 
+    def _contacts(self, obj):
+        if obj and obj.supportercontact_set.exists():
+            contacts = obj.supportercontact_set.all()
+            return ', '.join([str(contact) for contact in contacts])
+        else:
+            return ''
+
     @admin.action(description="Export selected supporters")
     def export_supporters(self, request, queryset):
+        """
+        Basic way of exporting supporters.
+        It is better to use django's dumpdata if you have access to the command
+        line.
+        """
         fieldnames = [
             'name',
             'ror',
             'address',
             'postal_code',
             'country',
-            'email',
-            'first_name',
-            'last_name',
             'display',
             'active',
             'size',
@@ -236,12 +290,12 @@ class SupporterAdmin(admin.ModelAdmin):
 
 
 admin_list = [
+    (models.BillingAgent, BillingAgentAdmin),
     (models.SupporterSize, SupporterSizeAdmin),
     (models.SupportLevel, SupportLevelAdmin),
     (models.Currency, CurrencyAdmin),
-    (models.Supporter, SupporterAdmin),
     (models.Band, BandAdmin),
-    (models.BillingAgent, BillingAgentAdmin),
+    (models.Supporter, SupporterAdmin),
 ]
 
 

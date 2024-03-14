@@ -1,12 +1,16 @@
-<p>{{ supporter.name }}</p>
-<p>{{ supporter.ror|default:'' }}</p>
-<p>{{ supporter.billing_address|default:''  }}</p>
-<p>{{ supporter.postal_code|default:''  }}</p>
-<p>{{ supporter.band.country.name }}</p>
-<p>{{ supporter.band.size }}</p>
-<p>{{ supporter.band.level }}</p>
-<p>{{ supporter.band.fee }} {{ supporter.band.currency }}</p>
-{% if supporter.display %}
-    <p>OK to display</p>
-{% endif %}
-<p>Billed by {{ supporter.billing_agent }}</p>
+<p>Name:<br>{{ supporter.name }}</p>
+<p>ROR:<br>{{ supporter.ror|default:'' }}</p>
+<p>Contacts:<br>
+<ul>
+{% for contact in supporter.supportercontact_set.all %}
+  <li>{{ contact }}</li>
+{% endfor %}
+</ul>
+<p>Address:<br>{{ supporter.billing_address|default:''  }}</p>
+<p>Postal code:<br>{{ supporter.postal_code|default:''  }}</p>
+<p>Country:<br>{{ supporter.band.country.name }}</p>
+<p>Institution size:<br>{{ supporter.band.size }}</p>
+<p>Support level:<br>{{ supporter.band.level }}</p>
+<p>Calculated fee:<br>{{ supporter.band.fee }} {{ supporter.band.currency }}</p>
+<p>OK to display:<br>{% if supporter.display %}Yes{% else %}No{% endif %}</p>
+<p>Billed by:<br>{{ supporter.billing_agent }}</p>

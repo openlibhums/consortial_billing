@@ -32,11 +32,6 @@ class BillingAgent(models.Model):
     name = models.CharField(
         max_length=255,
     )
-    users = models.ManyToManyField(
-        'core.Account',
-        blank=True,
-        null=True,
-    )
     country = CountryField(
         blank=True,
         null=True,
@@ -59,18 +54,6 @@ class BillingAgent(models.Model):
         logic.keep_default_unique(self)
         super().save(*args, **kwargs)
 
-    @property
-    def email(self):
-        return self.users.first().email if self.users else None
-
-    @property
-    def first_name(self):
-        return self.users.first().first_name if self.users else None
-
-    @property
-    def last_name(self):
-        return self.users.first().last_name if self.users else None
-
     def __str__(self):
         if self.default:
             return f'{self.name} (default)'
@@ -78,6 +61,24 @@ class BillingAgent(models.Model):
             return f'{self.name} ({self.country})'
         else:
             return self.name
+
+
+class AgentContact(models.Model):
+    agent = models.ForeignKey(
+        'consortial_billing.BillingAgent',
+        on_delete=models.CASCADE
+    )
+    account = models.ForeignKey(
+        'core.Account',
+        on_delete=models.CASCADE
+    )
+
+    @property
+    def email(self):
+        return self.account.email
+
+    def __str__(self):
+        return f'{self.account} <{self.email}>'
 
 
 class SupporterSize(models.Model):
@@ -409,6 +410,19 @@ class Band(models.Model):
         get_latest_by = 'datetime'
 
 
+class OldBand(models.Model):
+    supporter = models.ForeignKey(
+        'consortial_billing.Supporter',
+        on_delete=models.CASCADE
+    )
+    band = models.ForeignKey(
+        Band,
+        on_delete=models.CASCADE
+    )
+    def __str__(self):
+        return f'{self.supporter}, {self.band}'
+
+
 def validate_ror(url):
     ror = os.path.split(url)[-1]
     ror_regex = '^0[a-hj-km-np-tv-z|0-9]{6}[0-9]{2}$'
@@ -448,13 +462,6 @@ class Supporter(models.Model):
         help_text="May we include your institution name "
                   "in our public list of supporters?",
     )
-    contacts = models.ManyToManyField(
-        'core.Account',
-        related_name="contact_for_supporter",
-        blank=True,
-        null=True,
-        help_text="Who can be contacted at this supporter",
-    )
 
     # Attached to supporter at signup or
     # recalculation with new data
@@ -464,13 +471,6 @@ class Supporter(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         help_text='Current band',
-    )
-    old_bands = models.ManyToManyField(
-        Band,
-        blank=True,
-        null=True,
-        help_text='Old bands for this supporter',
-        related_name='supporter_history',
     )
 
     # Determined for the user or entered in admin
@@ -514,18 +514,6 @@ class Supporter(models.Model):
         return self.band.billing_agent if self.band else None
 
     @property
-    def email(self):
-        return self.contacts.first().email if self.contacts else None
-
-    @property
-    def first_name(self):
-        return self.contacts.first().first_name if self.contacts else None
-
-    @property
-    def last_name(self):
-        return self.contacts.first().last_name if self.contacts else None
-
-    @property
     def url(self):
         return reverse(
             'admin:consortial_billing_supporter_change',
@@ -537,6 +525,24 @@ class Supporter(models.Model):
 
     class Meta:
         ordering = ('name',)
+
+
+class SupporterContact(models.Model):
+    supporter = models.ForeignKey(
+        Supporter,
+        on_delete=models.CASCADE
+    )
+    account = models.ForeignKey(
+        'core.Account',
+        on_delete=models.CASCADE
+    )
+
+    @property
+    def email(self):
+        return self.account.email
+
+    def __str__(self):
+        return f'{self.account} <{self.email}>'
 
 
 # Keep this for old migrations
