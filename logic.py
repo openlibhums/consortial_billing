@@ -144,11 +144,17 @@ def get_base_band(level=None):
             return get_base_band()
     else:
         try:
-            default_level = models.SupportLevel.objects.get(default=True)
-            return models.Band.objects.filter(
-                base=True,
-                level=default_level,
-            ).latest()
+            default_level = utils.get_standard_support_level()
+            if default_level:
+                return models.Band.objects.filter(
+                    base=True,
+                    level=default_level,
+                ).latest()
+            else:
+                return models.Band.objects.filter(
+                    base=True,
+                ).latest()
+
         except models.Band.DoesNotExist:
             logger.warning('No default base band found.')
 
