@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpRequest
 
 from plugins.consortial_billing import models, plugin_settings
+from plugins.consortial_billing import utils
 from utils.testing import helpers
 from press import models as press_models
 from cms.models import Page
@@ -243,36 +244,28 @@ class ModelTests(TestCaseWithData):
     @patch('plugins.consortial_billing.logic.latest_multiplier_for_indicator')
     def test_currency_exchange_rate_with_typical_args(self, latest_multiplier):
         self.currency_base.exchange_rate(base_band=self.band_base_country_other)
-        self.assertIn(
+        expected_args = (
             plugin_settings.RATE_INDICATOR,
-            latest_multiplier.call_args.args,
+            self.currency_base.region,  # Target currency
+            self.currency_other.region, # Specified base currency
+            utils.setting('missing_data_exchange_rate')
         )
-        # Target currency
-        self.assertIn(
-            self.currency_base.region,
-            latest_multiplier.call_args.args,
-        )
-        # Base currency generated with specified base band
-        self.assertIn(
-            self.currency_other.region,
+        self.assertTupleEqual(
+            expected_args,
             latest_multiplier.call_args.args,
         )
 
     @patch('plugins.consortial_billing.logic.latest_multiplier_for_indicator')
     def test_currency_exchange_rate_with_no_args(self, latest_multiplier):
         self.currency_other.exchange_rate()
-        self.assertIn(
+        expected_args = (
             plugin_settings.RATE_INDICATOR,
-            latest_multiplier.call_args.args,
+            self.currency_other.region,  # Target currency
+            self.currency_base.region, # Default base currency
+            utils.setting('missing_data_exchange_rate')
         )
-        # Target currency
-        self.assertIn(
-            self.currency_other.region,
-            latest_multiplier.call_args.args,
-        )
-        # Base currency generated with default base band
-        self.assertIn(
-            self.currency_other.region,
+        self.assertTupleEqual(
+            expected_args,
             latest_multiplier.call_args.args,
         )
 
