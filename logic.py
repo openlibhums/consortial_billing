@@ -256,10 +256,6 @@ def keep_default_unique(obj):
     :obj: an unsaved model instance with a property named 'default'
     """
     if obj.default:
-        try:
-            other = type(obj).objects.get(default=True)
-            if obj != other:
-                other.default = False
-                other.save()
-        except type(obj).DoesNotExist:
-            pass
+        type(obj).objects.filter(default=True).exclude(pk=obj.pk).update(
+            default=False,
+        )
