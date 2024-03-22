@@ -48,24 +48,53 @@ class LogicTests(test_models.TestCaseWithData):
         data = logic.get_indicator_by_country(self.fake_indicator, 2050)
         self.assertEqual(data['NLD'], 12345)
 
-    def test_get_base_band(self):
-
+    def test_get_base_band_base_level(self):
         base_band = logic.get_base_band(self.level_base)
         self.assertEqual(
             self.band_base,
             base_band,
         )
+
+    def test_get_base_band_other_level(self):
         other_base_band = logic.get_base_band(self.level_other)
         self.assertEqual(
             self.band_base_level_other,
             other_base_band,
         )
 
+    def test_get_base_band_no_args(self):
+        base_band = logic.get_base_band()
+        self.assertEqual(
+            self.band_base,
+            base_band,
+        )
+
+    def test_get_base_band_no_args_no_default_level(self):
+
+        # Make it so there is no default level
+        self.level_base.default = False
+        self.level_base.save()
+
+        base_band = logic.get_base_band()
+
+        # Restore data
+        self.level_base.default = True
+        self.level_base.save()
+
+        self.assertEqual(
+            self.band_base,
+            base_band,
+        )
+
     def test_get_base_bands(self):
 
         base_bands = logic.get_base_bands()
         self.assertListEqual(
-            [self.band_base_level_other, self.band_base],
+            [
+                self.band_base_country_other,
+                self.band_base_level_other,
+                self.band_base
+            ],
             base_bands,
         )
 

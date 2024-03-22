@@ -149,11 +149,19 @@ def get_base_band(level=None):
             return get_base_band()
     else:
         try:
-            return models.Band.objects.filter(
-                base=True
-            ).latest()
+            default_level = utils.get_standard_support_level()
+            if default_level:
+                return models.Band.objects.filter(
+                    base=True,
+                    level=default_level,
+                ).latest()
+            else:
+                return models.Band.objects.filter(
+                    base=True,
+                ).latest()
+
         except models.Band.DoesNotExist:
-            logger.warning('No base band found')
+            logger.warning('No default base band found.')
 
 
 def latest_multiplier_for_indicator(
@@ -257,10 +265,6 @@ def keep_default_unique(obj):
     :obj: an unsaved model instance with a property named 'default'
     """
     if obj.default:
-        try:
-            other = type(obj).objects.get(default=True)
-            if obj != other:
-                other.default = False
-                other.save()
-        except type(obj).DoesNotExist:
-            pass
+        type(obj).objects.filter(default=True).exclude(pk=obj.pk).update(
+            default=False,
+        )

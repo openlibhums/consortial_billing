@@ -170,6 +170,12 @@ def get_standard_support_level():
     try:
         return models.SupportLevel.objects.get(default=True)
     except models.SupportLevel.DoesNotExist:
+        logger.error(
+            'No default support level found. '
+            'Using the support level ordered last, '
+            'but that may produce unintended results. '
+            'For best results, set a level as the default.'
+        )
         return models.SupportLevel.objects.all().last()
 
 
