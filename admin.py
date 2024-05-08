@@ -21,6 +21,7 @@ class SupporterContactInline(admin.TabularInline):
 
 
 class SupporterInline(admin.TabularInline):
+    fk_name = 'band'
     model = models.Supporter
     fields = ('name', 'country')
     readonly_fields = ('name', 'country')
@@ -135,13 +136,10 @@ class BandAdmin(admin.ModelAdmin):
         'fee',
         'datetime',
         'billing_agent',
-        'display',
-        'base',
+        'category',
     )
     list_filter = (
-        'base',
-        'display',
-        'fixed_fee',
+        'category',
         'datetime',
         'size',
         'currency',
@@ -157,32 +155,20 @@ class BandAdmin(admin.ModelAdmin):
     ]
 
     def get_readonly_fields(self, request, obj=None):
-        if obj and obj.fixed_fee:
-            return (
-                'size',
-                'country',
-                'currency',
-                'level',
-                'warnings',
-                'datetime',
-                'base',
-            )
-        elif obj:
+        if obj and obj.category == 'base':
             return (
                 'size',
                 'country',
                 'currency',
                 'level',
                 'fee',
-                'fixed_fee',
                 'warnings',
                 'datetime',
                 'billing_agent',
-                'base',
+                'category'
             )
         else:
             return (
-                'warnings',
                 'datetime',
             )
 
@@ -224,6 +210,7 @@ class SupporterAdmin(admin.ModelAdmin):
     )
     raw_id_fields = (
         'band',
+        'prospective_band',
     )
 
     inlines = [

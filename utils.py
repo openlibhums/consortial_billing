@@ -13,6 +13,7 @@ from tqdm import tqdm
 from django.utils import timezone
 from django.core.files.base import ContentFile
 from django.conf import settings
+from django.contrib import admin
 
 from cms import models as cms_models
 from utils import setting_handler
@@ -140,20 +141,25 @@ def get_abstract_band(size, level, country, currency):
         'level': level,
         'country': country,
         'currency': currency,
+        'category': 'calculated',
     })
     if not band_form.is_valid():
         logger.error(band_form.errors)
     return band_form.save(commit=False)
 
 
-def abbreviate_us_uk(country):
-    country_name = country.name
-    if country_name == 'United States of America':
-        return 'USA'
-    elif country_name == 'United Kingdom':
-        return 'UK'
+def short_country_name(country, max_length=10):
+    special_abbreviations = {
+        'GB': 'UK',
+        'CH': 'Switz.',
+    }
+    if len(country.name) > max_length:
+        if country.code in special_abbreviations:
+            return special_abbreviations[country.code]
+        else:
+            return country.code
     else:
-        return country_name
+        return country.name
 
 
 def iter_demo_countries():
@@ -199,7 +205,7 @@ def make_table_of_higher_supporters_by_country_and_level():
         )
         for level in levels:
             band = get_abstract_band(size, level, country, currency)
-            country_name = abbreviate_us_uk(band.country)
+            country_name = short_country_name(band.country)
             if country_name not in data['tbody']:
                 data['tbody'][country_name] = {}
             cell = {
@@ -228,7 +234,7 @@ def make_table_of_standard_supporters_by_country_and_size():
         )
         for size in sizes:
             band = get_abstract_band(size, standard_level, country, currency)
-            country_name = abbreviate_us_uk(band.country)
+            country_name = short_country_name(band.country)
             if country_name not in data['tbody']:
                 data['tbody'][country_name] = {}
             cell = {
@@ -259,7 +265,7 @@ def make_table_showing_all_levels_by_country_and_size():
                     region=region,
                 )
                 band = get_abstract_band(size, level, country, currency)
-                country_name = abbreviate_us_uk(band.country)
+                country_name = short_country_name(band.country)
                 if country_name not in data['tbody'][size_display]:
                     data['tbody'][size_display][country_name] = {}
                 cell = {

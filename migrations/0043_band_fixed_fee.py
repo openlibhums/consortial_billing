@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                           'band (i.e., this combination of size, level, '
                           'country, and currency) will then return '
                           'whatever fee you type in the fee field. '
-                          'Note: thie field has no effect on base bands, '
+                          'Note: the field has no effect on base bands, '
                           'which do take a manually input fee.',
             ),
         ),

@@ -4,17 +4,16 @@ __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
 import os
-import json
 import decimal
 from typing import Tuple
 
-from django.core.exceptions import ImproperlyConfigured
 from django.utils import timezone
 from django.conf import settings
+from django.db.models import Sum, Q
 
 from core import models as core_models
 from cms import models as cms_models
-from plugins.consortial_billing import utils, models, plugin_settings
+from plugins.consortial_billing import utils, models as supporter_models, plugin_settings
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -27,7 +26,7 @@ def get_display_bands():
     """
 
     def build_display_band(level, size, currency, kwargs):
-        bands = models.Band.objects.filter(**kwargs)
+        bands = supporter_models.Band.objects.filter(**kwargs)
 
         display_band = {}
 
@@ -50,7 +49,7 @@ def get_display_bands():
 
     def build_segments(level, size, currency, kwargs):
         display_bands = []
-        bands = models.Band.objects.filter(**kwargs)
+        bands = supporter_models.Band.objects.filter(**kwargs)
         fees = [band.fee for band in bands]
         span = max(fees) - min(fees)
         if span == 0:
@@ -74,7 +73,7 @@ def get_display_bands():
             higher_end = min(fees) + (span * end)
             kwargs['fee__gte'] = lower_end
             kwargs['fee__lte'] = higher_end
-            bands = models.Band.objects.filter(**kwargs)
+            bands = supporter_models.Band.objects.filter(**kwargs)
             if not bands:
                 continue
             display_band = build_display_band(level, size, currency, kwargs)
@@ -82,17 +81,17 @@ def get_display_bands():
         return display_bands
 
     display_band_table = []
-    for level in models.SupportLevel.objects.all():
-        for size in models.SupporterSize.objects.all():
-            for currency in models.Currency.objects.all():
+    for level in supporter_models.SupportLevel.objects.all():
+        for size in supporter_models.SupporterSize.objects.all():
+            for currency in supporter_models.Currency.objects.all():
                 kwargs = {
-                    'supporter__active': True,
+                    'current_supporter__active': True,
                     'fee__isnull': False,
                     'level': level,
                     'size': size,
                     'currency': currency,
                 }
-                bands = models.Band.objects.filter(**kwargs)
+                bands = supporter_models.Band.objects.filter(**kwargs)
                 if not bands:
                     continue
                 display_bands = build_segments(level, size, currency, kwargs)
@@ -120,48 +119,66 @@ def get_indicator_by_country(
     return {each['countryiso3code']: each['value'] for each in country_records}
 
 
+def countries_with_billing_agents():
+    return {
+        a.country for a in supporter_models.BillingAgent.objects.filter(
+            country__isnull=False
+        )
+    }
+
+
+def get_base_band(level=None, country=None):
+    bases = supporter_models.Band.objects.filter(category='base')
+    query = Q()
+
+    # Check if there is a base for this country on each level.
+    # If so, filter by the country. If not, exclude bands
+    # that fall under a country-specific billing agent.
+    bases_for_country = bases.all().filter(country=country).count()
+    num_levels = supporter_models.SupportLevel.objects.count()
+    agent_countries = countries_with_billing_agents()
+    if country in agent_countries and bases_for_country == num_levels:
+        query &= Q(country=country)
+    else:
+        query &= ~Q(country__in=agent_countries)
+
+    # Check if there is a base on this level for each country
+    # (plus one for the default: no country).
+    # If so, filter by the level.
+    level = level or utils.get_standard_support_level()
+    bases_on_level = bases.all().filter(level=level).count()
+    if level and bases_on_level == len(agent_countries) + 1:
+        query &= Q(level=level)
+
+    try:
+        return bases.filter(query).latest()
+    except supporter_models.Band.DoesNotExist:
+        logger.warning('No base band found for parameters ' + str(query))
+        try:
+            return bases.latest()
+        except supporter_models.Band.DoesNotExist:
+            logger.warning('No base bands found.')
+
+
 def get_base_bands():
     # We create the result set this crude way to avoid being
     # reliant on postgreSQL for order_by + distinct.
     # base_bands will only ever be a handful of items.
-    base_bands = []
-    for level in models.SupportLevel.objects.all():
-        try:
-            base_band = models.Band.objects.filter(
-                base=True,
-                level=level,
-            ).latest()
-            base_bands.append(base_band)
-        except models.Band.DoesNotExist:
-            logger.warning(f'Missing base band for level: {level}')
-    return base_bands
-
-
-def get_base_band(level=None):
-    if level:
-        try:
-            return models.Band.objects.filter(
-                base=True,
-                level=level,
-            ).latest()
-        except models.Band.DoesNotExist:
-            logger.warning('No base band found for support level ' + str(level))
-            return get_base_band()
-    else:
-        try:
-            default_level = utils.get_standard_support_level()
-            if default_level:
-                return models.Band.objects.filter(
-                    base=True,
-                    level=default_level,
-                ).latest()
+    base_bands = set()
+    # Get any country-specific base bands (by billing agent)
+    for country in countries_with_billing_agents():
+        for level in supporter_models.SupportLevel.objects.all():
+            band = get_base_band(level=level, country=country)
+            if band:
+                base_bands.add(band)
             else:
-                return models.Band.objects.filter(
-                    base=True,
-                ).latest()
-
-        except models.Band.DoesNotExist:
-            logger.warning('No default base band found.')
+                logger.warning(f'Missing base band for level {level} in country {country}')
+    # Get non-country-specific base bands
+    for level in supporter_models.SupportLevel.objects.all():
+        band = get_base_band(level=level, country=None)
+        if band:
+            base_bands.add(band)
+    return base_bands
 
 
 def latest_multiplier_for_indicator(
@@ -246,13 +263,13 @@ def determine_billing_agent(country):
     :return: BillingAgent
     """
     try:
-        agent = models.BillingAgent.objects.get(country=country)
+        agent = supporter_models.BillingAgent.objects.get(country=country)
         return agent
-    except models.BillingAgent.DoesNotExist:
+    except supporter_models.BillingAgent.DoesNotExist:
         try:
-            agent = models.BillingAgent.objects.get(default=True)
+            agent = supporter_models.BillingAgent.objects.get(default=True)
             return agent
-        except models.BillingAgent.DoesNotExist:
+        except supporter_models.BillingAgent.DoesNotExist:
             logger.error(
                 'No billing agent has been set as default'
             )
@@ -268,3 +285,26 @@ def keep_default_unique(obj):
         type(obj).objects.filter(default=True).exclude(pk=obj.pk).update(
             default=False,
         )
+
+
+def get_total_revenue(currency=None):
+    if not currency:
+        base_band = get_base_band(level=None, country=None)
+        if base_band:
+            currency = base_band.currency
+        else:
+            return 0, None
+    revenue = 0
+    for supporter_currency in supporter_models.Currency.objects.all():
+        revenue_in_currency = supporter_models.Supporter.objects.filter(
+            active=True,
+            band__isnull=False,
+            band__currency=supporter_currency
+        ).aggregate(
+            Sum('band__fee')
+        )['band__fee__sum']
+        target_exchange_rate, _warnings = currency.exchange_rate()
+        origin_exchange_rate, _warnings = supporter_currency.exchange_rate()
+        revenue += revenue_in_currency * (target_exchange_rate / origin_exchange_rate)
+
+    return round(revenue), currency

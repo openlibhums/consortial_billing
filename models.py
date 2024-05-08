@@ -1,8 +1,11 @@
 import uuid
 import os
 import re
+import json
 import decimal
 from typing import Tuple
+from urllib.parse import urlencode
+import requests
 
 from django.db import models
 from django.utils import timezone
@@ -25,6 +28,13 @@ CURRENCY_REGION_CHOICES = [
     ('EMU', 'Euro area'),
     ('GBR', 'United Kingdom'),
     ('USA', 'United States'),
+]
+
+
+BAND_CATEGORY_CHOICES = [
+    ('calculated', 'Calculated'),
+    ('special', 'Special'),
+    ('base', 'Base'),
 ]
 
 
@@ -212,6 +222,16 @@ class Currency(models.Model):
             warning,
         )
 
+    def convert_from(self, value, origin_currency):
+        if not isinstance(origin_currency, Currency):
+            try:
+                currency = Currency.objects.get(code=origin_currency)
+            except Currency.DoesNotExist:
+                logger.error(f'{origin_currency} is not a recognized currency code.')
+        target_exchange_rate, _warnings = self.exchange_rate()
+        origin_exchange_rate, _warnings = origin_currency.exchange_rate()
+        return value * (target_exchange_rate / origin_exchange_rate)
+
     def __str__(self):
         return self.code
 
@@ -221,7 +241,6 @@ class Currency(models.Model):
 
 
 class Band(models.Model):
-
     size = models.ForeignKey(
         SupporterSize,
         blank=True,
@@ -255,16 +274,6 @@ class Band(models.Model):
         null=True,
         verbose_name='Annual fee',
     )
-    fixed_fee = models.BooleanField(
-        default=False,
-        help_text='Select if you want to manually set the fee '
-                  'for this band. The fee calculator for this '
-                  'band (i.e., this combination of size, level, '
-                  'country, and currency) will then return '
-                  'whatever fee you type in the fee field. '
-                  'Note: thie field has no effect on base bands, '
-                  'which do take a manually input fee.',
-    )
     warnings = models.CharField(
         max_length=255,
         blank=True,
@@ -277,14 +286,13 @@ class Band(models.Model):
         on_delete=models.SET_NULL,
         help_text="Who is responsible for billing this supporter",
     )
-    display = models.BooleanField(
-        default=True,
-    )
-    base = models.BooleanField(
-        default=False,
-        help_text='Select if this is the base band to represent '
-                  'the base fee, country, and currency for a '
-                  'given support level.',
+    category = models.CharField(
+        max_length=10,
+        default='calculated',
+        choices=BAND_CATEGORY_CHOICES,
+        help_text='Controls how the band functions, either as the basis '
+                  'or result of fee calculation, or as a special band '
+                  'for one supporter with a manually set fee.',
     )
 
     @property
@@ -295,7 +303,7 @@ class Band(models.Model):
         :return: tuple of the indicator as decimal.Decimal plus a string warning if
                  matching country data could not be found
         """
-        base_band = logic.get_base_band(self.level)
+        base_band = logic.get_base_band(level=self.level, country=self.country)
         base_key = base_band.country.alpha3
         warning = utils.setting('missing_data_economic_disparity')
 
@@ -315,6 +323,7 @@ class Band(models.Model):
         :return: decimal.Decimal
         """
         base_band = logic.get_base_band(self.level)
+        base_band = logic.get_base_band(level=self.level, country=self.country)
         return self.size.multiplier / base_band.size.multiplier
 
     @property
@@ -325,8 +334,19 @@ class Band(models.Model):
         :return: a tuple with the rate as decimal.Decimal
         and a string warning if no data
         """
-        base_band = logic.get_base_band(self.level)
-        return self.currency.exchange_rate(base_band)
+        base_band = logic.get_base_band(level=self.level, country=self.country)
+        return self.currency.exchange_rate(base_band=base_band)
+
+    def fee_in_currency(self, currency):
+        if not isinstance(currency, Currency):
+            try:
+                currency = Currency.objects.get(code=currency)
+            except Currency.DoesNotExist:
+                logger.error(f'{currency} is not a recognized currency code.')
+
+        target_exchange_rate, _warnings = currency.exchange_rate()
+        origin_exchange_rate, _warnings = self.exchange_rate
+        return self.fee * (target_exchange_rate / origin_exchange_rate)
 
     def calculate_fee(self) -> Tuple[int, str]:
         """
@@ -348,10 +368,10 @@ class Band(models.Model):
 
         warnings = ''
 
-        if self.fixed_fee:
-            return self.fee, warnings
-
-        fee = logic.get_base_band(self.level).fee
+        if self.country in logic.countries_with_billing_agents():
+            fee = logic.get_base_band(level=self.level, country=self.country).fee
+        else:
+            fee = logic.get_base_band(level=self.level).fee
         if fee is None:
             logger.error(
                 'No fee has been set on base band'
@@ -385,26 +405,20 @@ class Band(models.Model):
         return logic.determine_billing_agent(self.country)
 
     def save(self, *args, **kwargs):
-        # Don't display base bands
-        if self.base:
-            self.display = False
-
-        # Calculate fee if empty
-        if not self.fee and not self.base:
+        # Calculate fee if appropriate
+        if not self.fee and self.category == 'calculated':
             self.fee, self.warnings = self.calculate_fee()
 
-        # Update datetime on save for fixed fee bands only
-        # (others should retain original timestamp because
-        # they are designed to be superseded by new bands annually)
-        if self.fixed_fee:
-            self.datetime = timezone.now()
+        # to do: change the type if the fee entered is
+        # different than the calculated one
 
         super().save(*args, **kwargs)
 
     def __str__(self):
         yyyy_mm_dd = self.datetime.strftime("%Y-%m-%d")
-        return f'{self.fee if self.fee else "?"} {self.currency} ({yyyy_mm_dd}): ' \
-               f'{self.size}, {self.level}, {self.country.name}'
+        return f'{self.currency.symbol}{self.fee if self.fee else "?"}, ' \
+               f'{self.level.name}, {self.size.name}, {self.country.name}, ' \
+               f'{ self.get_category_display() }, created {yyyy_mm_dd}'
 
     class Meta:
         get_latest_by = 'datetime'
@@ -467,10 +481,20 @@ class Supporter(models.Model):
     # recalculation with new data
     band = models.ForeignKey(
         Band,
+        related_name='current_supporter',
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
         help_text='Current band',
+    )
+
+    prospective_band = models.ForeignKey(
+        Band,
+        related_name='prospective_supporter',
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        help_text='Prospective band',
     )
 
     # Determined for the user or entered in admin
@@ -516,9 +540,27 @@ class Supporter(models.Model):
     @property
     def url(self):
         return reverse(
-            'admin:consortial_billing_supporter_change',
+            'edit_supporter_band',
             args=(self.pk, ),
         )
+
+    def get_ror(self, save=False, overwrite=False):
+        base = 'https://api.ror.org/organizations'
+        params = { 'affiliation': self.name }
+        response = requests.get(f'{ base }?{ urlencode(params) }')
+        if response.status_code == 200:
+            content = json.loads(response.content)
+            record = content['items'].pop() if content['items'] else None
+            if record and record['chosen'] and record['matching_type'] == 'EXACT':
+                ror = record['organization']['id']
+                try:
+                    validate_ror(ror)
+                    if save and (not self.ror or overwrite):
+                        self.ror = ror
+                        self.save()
+                    return ror
+                except ValidationError:
+                    logger.error(f'ROR API returned invalid ROR!')
 
     def __str__(self):
         return self.name
