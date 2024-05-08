@@ -270,6 +270,7 @@ def edit_supporter_band(request, supporter_id=None):
 
     supporter = None
     band = None
+    add_band = False
     if supporter_id:
         supporter = supporter_models.Supporter.objects.get(pk=supporter_id)
         band = supporter.band
@@ -277,7 +278,7 @@ def edit_supporter_band(request, supporter_id=None):
     band_form = forms.EditBandForm(instance=band)
     user_search_form = forms.AccountAdminSearchForm()
     user_search_results = []
-    next_url = request.GET.get('next')
+    next_url = request.GET.get('return')
 
     if request.method == 'POST':
         supporter_form = forms.EditSupporterForm(
@@ -298,8 +299,8 @@ def edit_supporter_band(request, supporter_id=None):
                 if band_form.is_valid():
                     message = f'Band { band.pk } saved:\n { band }.'
                     messages.add_message(request, messages.SUCCESS, message)
-                else:
-                    message = 'Something went wrong. Please try again.',
+                elif band:
+                    message = 'Something went wrong. Please try again.'
                     messages.add_message(request, messages.WARNING, message)
 
             if 'autofill_ror' in request.POST:
@@ -343,6 +344,8 @@ def edit_supporter_band(request, supporter_id=None):
                 )
                 message = f'Contact added: { contact }.'
                 messages.add_message(request, messages.SUCCESS, message)
+            elif 'add_band' in request.POST:
+                add_band = True
             elif 'save_continue' in request.POST:
                 user_search_form = forms.AccountAdminSearchForm()
             elif 'save_return' in request.POST and next_url:
@@ -370,6 +373,8 @@ def edit_supporter_band(request, supporter_id=None):
     context = {
         'supporter': supporter,
         'supporter_form': supporter_form,
+        'band': band,
+        'add_band': add_band,
         'band_form': band_form,
         'next_url': next_url,
         'user_search_results': user_search_results,

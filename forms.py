@@ -76,7 +76,7 @@ class BaseBandForm(forms.ModelForm):
         return band
 
 
-class SignupBandForm(BaseBandForm):
+class BandForm(BaseBandForm):
 
     class Meta(BaseBandForm.Meta):
         fields = [
