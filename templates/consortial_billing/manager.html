@@ -29,9 +29,8 @@
                           is dropped by Janeway when trying to match plugin URLs.
                         {% endcomment %}
                         <a
-                            href="/admin/consortial_billing/supporter/"
-                            class="button secondary"
-                            target="_blank">
+                            href="{% url 'supporter_list' %}"
+                            class="button secondary">
                             <i class="fa fa-users"></i>
                             All supporters
                         </a>
@@ -131,7 +130,7 @@
                         </a>
                         {% if not base_bands %}
                             <a
-                                href="/admin/consortial_billing/band/add/?display=False&base=True"
+                                href="/admin/consortial_billing/band/add/?display=False&category__exact=base"
                                 class="button secondary"
                                 target="_blank">
                                 <i class="fa fa-plus"></i>
@@ -234,7 +233,7 @@
                     <p>
                         The base bands need replacing every year
                         to keep track of inflation. <a
-                            href="/admin/consortial_billing/band/?base=True"
+                            href="/admin/consortial_billing/band/?category__exact=base"
                             target="_blank">Older base bands</a>
                         are kept on record. Each button below takes
                         you to form where you can select parameters
@@ -244,11 +243,11 @@
                         {% if base_bands %}
                             {% for base_band in base_bands %}
                                 <a
-                                    href="/admin/consortial_billing/band/add/?display=False&base=True&level={{ base_band.level.pk }}"
+                                    href="/admin/consortial_billing/band/add/?display=False&category=base&level={{ base_band.level.pk }}&country={{ base_band.country.code }}"
                                     class="button warning"
                                     target="_blank">
                                     <i class="fa fa-plus"></i>
-                                    Replace {{ base_band.level }} band
+                                    Replace {{ base_band.level }} {{ base_band.country }} band
                                     <br>
                                     (created {{ base_band.datetime }})
                                 </a>
@@ -256,28 +255,13 @@
                         {% endif %}
                         {% if base_bands|length == 0 or base_bands|length != levels|length %}
                             <a
-                                href="/admin/consortial_billing/band/add/?display=False&base=True"
+                                href="/admin/consortial_billing/band/add/?category__exact=base"
                                 class="button warning"
                                 target="_blank">
                                 Create another base band
                             </a>
                         {% endif %}
                     </div>
-                    {% if fixed_fee_bands %}
-                        <p>
-                            Any fixed fee bands need to be updated manually.
-                        </p>
-                        <div class="stacked button-group">
-                            <a
-                                href="/admin/consortial_billing/band/?fixed_fee__exact=True"
-                                class="button secondary"
-                                target="_blank">
-                                <i class="fa fa-pencil"></i>
-                                Edit fixed fee bands
-                                (oldest is {{ fixed_fee_bands.earliest.datetime }})
-                            </a>
-                        </div>
-                    {% endif %}
                     <p>
                         If you've recently changed any configuration options
                         you can update the demo bands shown on the fees page
