@@ -4,14 +4,17 @@ __license__ = "AGPL v3"
 __maintainer__ = "Open Library of Humanities"
 
 from unittest.mock import patch
+import decimal
 
 from django.core.exceptions import ImproperlyConfigured
 
-from plugins.consortial_billing import logic
+from plugins.consortial_billing import logic, models as supporter_models
 from plugins.consortial_billing.tests import test_models
 from utils.logger import get_logger
 
 logic_logger = get_logger(logic.__name__)
+
+CB = 'plugins.consortial_billing'
 
 
 class LogicTests(test_models.TestCaseWithData):
@@ -20,10 +23,10 @@ class LogicTests(test_models.TestCaseWithData):
         display_bands = logic.get_display_bands()
         self.assertEqual(
             display_bands[-1]['GBP'],
-            '1000&ndash;1001',
+            1500,
         )
 
-    @patch('plugins.consortial_billing.utils.open_saved_world_bank_data')
+    @patch(f'{CB}.utils.open_saved_world_bank_data')
     def test_get_indicator_by_country(self, open_saved):
 
         open_saved.return_value = []
@@ -48,82 +51,102 @@ class LogicTests(test_models.TestCaseWithData):
         data = logic.get_indicator_by_country(self.fake_indicator, 2050)
         self.assertEqual(data['NLD'], 12345)
 
-    def test_get_base_band_base_level(self):
-        base_band = logic.get_base_band(self.level_base)
+    def test_countries_with_billing_agents(self):
         self.assertEqual(
-            self.band_base,
-            base_band,
+            {self.agent_gb.country},
+            logic.countries_with_billing_agents(),
+        )
+
+    def test_get_base_band_standard_level(self):
+        self.assertEqual(
+            self.band_base_standard_de,
+            logic.get_base_band(level=self.level_standard),
         )
 
     def test_get_base_band_other_level(self):
-        other_base_band = logic.get_base_band(self.level_other)
         self.assertEqual(
-            self.band_base_level_other,
-            other_base_band,
+            self.band_base_silver_de,
+            logic.get_base_band(level=self.level_silver),
+        )
+
+    def test_get_base_band_other_country(self):
+        self.assertEqual(
+            self.band_base_standard_gb,
+            logic.get_base_band(country='GB'),
         )
 
     def test_get_base_band_no_args(self):
-        base_band = logic.get_base_band()
         self.assertEqual(
-            self.band_base,
-            base_band,
+            self.band_base_standard_de,
+            logic.get_base_band(),
         )
 
     def test_get_base_band_no_args_no_default_level(self):
 
         # Make it so there is no default level
-        self.level_base.default = False
-        self.level_base.save()
+        self.level_standard.default = False
+        self.level_standard.save()
 
         base_band = logic.get_base_band()
 
         # Restore data
-        self.level_base.default = True
-        self.level_base.save()
+        self.level_standard.default = True
+        self.level_standard.save()
 
         self.assertEqual(
-            self.band_base,
+            self.band_base_standard_de,
             base_band,
         )
 
     def test_get_base_bands(self):
-
-        base_bands = logic.get_base_bands()
-        self.assertListEqual(
-            [
-                self.band_base_country_other,
-                self.band_base_level_other,
-                self.band_base
-            ],
-            base_bands,
+        self.assertSetEqual(
+            {
+                self.band_base_standard_de,
+                self.band_base_standard_gb,
+                self.band_base_silver_de,
+                self.band_base_silver_gb,
+            },
+            logic.get_base_bands(),
         )
 
     def test_get_base_band_for_level_falls_back(self):
 
         # Make it so the base band for one level is missing
-        self.band_base_level_other.base = False
-        self.band_base_level_other.save()
+        self.band_base_silver_de.category = 'special'
+        self.band_base_silver_de.save()
 
-        base_band = logic.get_base_band(self.level_other)
         self.assertEqual(
-            self.band_base,
-            base_band,
+            self.band_base_standard_de,
+            logic.get_base_band(level=self.level_silver),
         )
 
         # Restore data
-        self.band_base_level_other.base = True
-        self.band_base_level_other.save()
+        self.band_base_silver_de.category = 'base'
+        self.band_base_silver_de.save()
 
-    @patch('plugins.consortial_billing.models.Band.objects.count')
+    def test_get_base_band_for_country_falls_back(self):
+
+        # Make it so the base band for one country is missing
+        self.band_base_standard_gb.category = 'special'
+        self.band_base_standard_gb.save()
+
+        self.assertEqual(
+            self.band_base_standard_de,
+            logic.get_base_band(country='GB'),
+        )
+
+        # Restore data
+        self.band_base_standard_gb.category = 'base'
+        self.band_base_standard_gb.save()
+
+    @patch(f'{CB}.models.Band.objects.count')
     def test_get_base_band_with_no_bands_at_all(self, band_count):
         # In other words, the plugin is being
         # configured for the first time
 
         # Make it so there is no base band
-        self.band_base.base = False
-        self.band_base.save()
-        self.band_base_level_other.base = False
-        self.band_base_level_other.save()
+        base_bands = supporter_models.Band.objects.filter(category='base')
+        base_bands.update(category='special')
 
         band_count.return_value = 0
         base_band = logic.get_base_band()
@@ -133,10 +156,7 @@ class LogicTests(test_models.TestCaseWithData):
         )
 
         # Restore data
-        self.band_base.base = True
-        self.band_base.save()
-        self.band_base_level_other.base = True
-        self.band_base_level_other.save()
+        base_bands.update(category='base')
 
     def test_latest_multiplier_for_indicator(self):
 
@@ -195,16 +215,52 @@ class LogicTests(test_models.TestCaseWithData):
         setting_names = [setting.name for setting in settings]
         self.assertIn('complete_text', setting_names)
 
+    def test_determine_billing_agent_default(self):
+        agent = logic.determine_billing_agent(
+            self.band_special_silver_fr_small.country
+        )
+        self.assertEqual(agent, self.agent_default)
+
+    def test_determine_billing_agent_specific_country(self):
+        agent = logic.determine_billing_agent(
+            self.band_calc_standard_gb_large.country
+        )
+        self.assertEqual(agent, self.agent_gb)
+
     def test_keep_default_unique(self):
 
-        self.assertTrue(self.level_base.default)
+        self.assertTrue(self.level_standard.default)
 
-        self.level_other.default = True
-        logic.keep_default_unique(self.level_other)
+        self.level_silver.default = True
+        logic.keep_default_unique(self.level_silver)
 
-        self.level_base.refresh_from_db()
-        self.assertFalse(self.level_base.default)
+        self.level_standard.refresh_from_db()
+        self.assertFalse(self.level_standard.default)
 
         # Restore data
-        self.level_base.default = True
-        self.level_base.save()
+        self.level_standard.default = True
+        self.level_standard.save()
+
+    @patch(f'{CB}.models.Currency.exchange_rate')
+    def test_get_total_revenue_no_args(self, exchange_rate):
+        exchange_rate.return_value = (decimal.Decimal('1.000'), '')
+        self.assertTupleEqual(
+            (3500, self.currency_eur),
+            logic.get_total_revenue(),
+        )
+        self.assertEqual(
+            exchange_rate.call_count,
+            4,
+        )
+
+    @patch(f'{CB}.models.Currency.exchange_rate')
+    def test_get_total_revenue_in_currency(self, exchange_rate):
+        exchange_rate.return_value = (decimal.Decimal('1.000'), '')
+        self.assertTupleEqual(
+            (3500, self.currency_gbp),
+            logic.get_total_revenue(self.currency_gbp),
+        )
+        self.assertEqual(
+            exchange_rate.call_count,
+            4,
+        )

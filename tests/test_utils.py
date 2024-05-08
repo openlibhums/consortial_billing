@@ -6,7 +6,7 @@ __maintainer__ = "Open Library of Humanities"
 from unittest.mock import patch, Mock, PropertyMock
 import decimal
 
-from plugins.consortial_billing import utils
+from plugins.consortial_billing import utils, models as supporter_models
 from plugins.consortial_billing.tests import test_models
 
 CB = 'plugins.consortial_billing'
@@ -83,12 +83,12 @@ class UtilsTests(test_models.TestCaseWithData):
             )
             small = data['tbody']['Small (0-4,999 students)']
             self.assertEqual(
-                small['UK']['Higher']['currency'],
+                small['UK']['Silver']['currency'],
                 '£'
             )
             large = data['tbody']['Large (10,000+ students)']
             self.assertGreater(
-                large['USA']['Standard']['fee'],
+                large['US']['Standard']['fee'],
                 decimal.Decimal(0)
             )
 
@@ -98,10 +98,10 @@ class UtilsTests(test_models.TestCaseWithData):
         data = utils.make_table_of_higher_supporters_by_country_and_level()
         self.assertEqual(
             data['thead'][0],
-            'Higher'
+            'Silver'
         )
         self.assertEqual(
-            data['tbody']['UK']['Higher']['currency'],
+            data['tbody']['UK']['Silver']['currency'],
             '£'
         )
 
@@ -149,17 +149,17 @@ class UtilsTests(test_models.TestCaseWithData):
 
     def test_get_standard_support_level(self):
         level = utils.get_standard_support_level()
-        self.assertEqual(level, self.level_base)
+        self.assertEqual(level, self.level_standard)
 
     def test_get_standard_support_level_no_default(self):
 
         # Make it so there is no default
-        self.level_base.default = False
-        self.level_base.save()
+        self.level_standard.default = False
+        self.level_standard.save()
 
         level = utils.get_standard_support_level()
-        self.assertEqual(level, self.level_base)
+        self.assertEqual(level, self.level_standard)
 
         # Restore data
-        self.level_base.default = True
-        self.level_base.save()
+        self.level_standard.default = True
+        self.level_standard.save()
