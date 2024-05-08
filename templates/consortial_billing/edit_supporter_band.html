@@ -7,7 +7,13 @@
 {{ block.super }}
 <li><a href="{% url 'supporters_manager' %}">Supporters Manager</a></li>
 <li><a href="{% url 'supporter_list' %}">All Supporters</a></li>
-<li>Edit Supporter {{ supporter.name }}</li>
+<li>
+  {% if supporter %}
+    Edit Supporter {{ supporter.name }}
+  {% else %}
+    New Supporter
+  {% endif %}
+</li>
 {% endblock %}
 
 {% block body %}
@@ -98,6 +104,7 @@
             {% endif %}
           {% endfor %}
             <div class="contact-row">
+              <span>or</span>
               <a
                 href="{% url 'core_add_user' %}?return={{ request.get_full_path|urlencode }}"
                 class="button success small">
@@ -108,7 +115,20 @@
         </div>
       </div>
       <h2 id="band-info">Band Info</h2>
-      {{ band_form|foundation }}
+      {% if band or add_band %}
+        {{ band_form|foundation }}
+      {% else %}
+        <div class="button-row">
+          <button
+            type="submit"
+            formaction="#band-info"
+            class="button success small"
+            name="add_band">
+            <i class="fa fa-plus"></i>
+            Add band
+          </button>
+        </div>
+      {% endif %}
       <div class="button-row">
         <button
           type="submit"
@@ -118,13 +138,15 @@
           <i class="fa fa-save"></i>
           Save and continue editing
         </button>
-        <button
-          type="submit"
-          class="button success"
-          name="save_return">
-          <i class="fa fa-chevron-left"></i>
-          Save and return
-        </button>
+        {% if next_url %}
+          <button
+            type="submit"
+            class="button success"
+            name="save_return">
+            <i class="fa fa-chevron-left"></i>
+            Save and return
+          </button>
+        {% endif %}
       </div>
     </div>
   </div>

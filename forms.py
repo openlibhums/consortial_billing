@@ -7,7 +7,7 @@ from core.models import Account
 from plugins.consortial_billing import models as supporter_models, logic
 
 
-class BandForm(forms.ModelForm):
+class BaseBandForm(forms.ModelForm):
 
     __original_category = None
 
@@ -18,12 +18,7 @@ class BandForm(forms.ModelForm):
             'currency',
             'size',
             'level',
-            'fee',
-            'category',
         ]
-        widgets = {
-            'category': forms.HiddenInput,
-        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -31,8 +26,6 @@ class BandForm(forms.ModelForm):
         self.fields['currency'].required = True
         self.fields['size'].required = True
         self.fields['level'].required = True
-        self.fields['fee'].required = False
-        self.fields['fee'].disabled = True
         if self.instance:
             self.__original_category = self.instance.category
 
@@ -83,9 +76,30 @@ class BandForm(forms.ModelForm):
         return band
 
 
-class EditBandForm(BandForm):
+class SignupBandForm(BaseBandForm):
 
-    class Meta(BandForm.Meta):
+    class Meta(BaseBandForm.Meta):
+        fields = [
+            'country',
+            'currency',
+            'size',
+            'level',
+            'fee',
+            'category',
+        ]
+        widgets = {
+            'category': forms.HiddenInput,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['fee'].required = False
+        self.fields['fee'].disabled = True
+
+
+class EditBandForm(BaseBandForm):
+
+    class Meta(BaseBandForm.Meta):
         fields = [
             'level',
             'size',
@@ -99,6 +113,7 @@ class EditBandForm(BandForm):
         help_texts = {
             'billing_agent': 'To change the billing agent, select the appropriate country and currency.',
             'fee': 'To edit this field, set the band category to special. To auto-calculate it, set the band category to calculated.',
+            'category': 'Whether the fee is calculated or special for this supporter',
         }
 
     def __init__(self, *args, **kwargs):
@@ -114,6 +129,7 @@ class EditBandForm(BandForm):
                 self.fields['fee'].disabled = False
             elif self.instance.category == 'calculated':
                 self.fields['fee'].disabled = True
+                self.fields['fee'].required = False
 
 
 class SupporterSignupForm(forms.ModelForm):

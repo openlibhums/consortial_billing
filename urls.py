@@ -29,6 +29,11 @@ urlpatterns = [
         name='supporter_list',
     ),
     re_path(
+        r'^new-supporter/$',
+        views.edit_supporter_band,
+        name='new_supporter',
+    ),
+    re_path(
         r'^edit-supporter-band/(?P<supporter_id>\d+)/$',
         views.edit_supporter_band,
         name='edit_supporter_band',
