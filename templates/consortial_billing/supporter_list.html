@@ -30,7 +30,15 @@
       </div>
     {% empty %}
       <div class="box">
-        <strong>No supporters to display.</strong>
+        <p><strong>No supporters to display.</strong></p>
+        <div>
+          <a
+            href="{% url 'new_supporter' %}?return={{ request.get_full_path|urlencode }}"
+            class="button success small">
+            <i class="fa fa-plus"></i>
+            Create new supporter
+          </a>
+        </div>
       </div>
     {% endfor %}
     {% include "common/elements/pagination.html" with form_id=facet_form.id %}

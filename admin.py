@@ -194,6 +194,8 @@ class SupporterAdmin(admin.ModelAdmin):
     )
     search_fields = (
         'name',
+        'id',
+        'ror',
         'address',
         'postal_code',
         'supportercontact__account__first_name',

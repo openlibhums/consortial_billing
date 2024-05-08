@@ -3,13 +3,12 @@ import decimal
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.core.management import call_command
-from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.db.models import Count, Q, Max
+from django.db.models import Count, Q
 from django.utils.decorators import method_decorator
 
-from plugins.consortial_billing import utils \
+from plugins.consortial_billing import utils, \
      logic, models as supporter_models, plugin_settings, forms
 from plugins.consortial_billing.notifications import notify
 
@@ -267,14 +266,18 @@ class SupporterList(FilteredArticlesListView):
 
 
 @staff_member_required
-def edit_supporter_band(request, supporter_id):
+def edit_supporter_band(request, supporter_id=None):
 
-    supporter = supporter_models.Supporter.objects.get(pk=supporter_id)
-    band = supporter.band
+    supporter = None
+    band = None
+    if supporter_id:
+        supporter = supporter_models.Supporter.objects.get(pk=supporter_id)
+        band = supporter.band
     supporter_form = forms.EditSupporterForm(instance=supporter)
-    band_form = forms.EditBandForm(instance=supporter.band)
+    band_form = forms.EditBandForm(instance=band)
     user_search_form = forms.AccountAdminSearchForm()
     user_search_results = []
+    next_url = request.GET.get('next')
 
     if request.method == 'POST':
         supporter_form = forms.EditSupporterForm(
@@ -285,14 +288,19 @@ def edit_supporter_band(request, supporter_id):
             request.POST,
             instance=band,
         )
-        if supporter_form.is_valid() and band_form.is_valid():
-            band = band_form.save()
+        if supporter_form.is_valid():
+            if band_form.is_valid():
+                band = band_form.save()
             supporter = supporter_form.save(band=band)
             if 'save_continue' in request.POST or 'save_return' in request.POST:
                 message = f'{ supporter.name } details saved.'
                 messages.add_message(request, messages.SUCCESS, message)
-                message = f'Band { band.pk } saved:\n { band }.'
-                messages.add_message(request, messages.SUCCESS, message)
+                if band_form.is_valid():
+                    message = f'Band { band.pk } saved:\n { band }.'
+                    messages.add_message(request, messages.SUCCESS, message)
+                else:
+                    message = 'Something went wrong. Please try again.',
+                    messages.add_message(request, messages.WARNING, message)
 
             if 'autofill_ror' in request.POST:
                 ror = supporter.get_ror()
@@ -337,8 +345,8 @@ def edit_supporter_band(request, supporter_id):
                 messages.add_message(request, messages.SUCCESS, message)
             elif 'save_continue' in request.POST:
                 user_search_form = forms.AccountAdminSearchForm()
-            elif 'save_return' in request.POST and request.GET.get('next'):
-                return redirect(request.GET.get('next'))
+            elif 'save_return' in request.POST and next_url:
+                return redirect(next_url)
             elif 'search_user' in request.POST or request.POST['q']:
                 user_search_form = forms.AccountAdminSearchForm(request.POST)
                 results, _dups = search_model_admin(request, Account)
@@ -346,12 +354,13 @@ def edit_supporter_band(request, supporter_id):
                     supportercontact__supporter=supporter,
                 )[:10]
 
-        else:
-            messages.add_message(
-                request,
-                messages.WARNING,
-                'Something went wrong. Please try again.',
-            )
+            if not supporter_id:
+                return redirect(
+                    reverse(
+                        'edit_supporter_band',
+                        kwargs={'supporter_id': supporter.pk}
+                    )
+                )
 
         supporter_form = forms.EditSupporterForm(instance=supporter)
         band_form = forms.EditBandForm(instance=band)
@@ -362,8 +371,11 @@ def edit_supporter_band(request, supporter_id):
         'supporter': supporter,
         'supporter_form': supporter_form,
         'band_form': band_form,
+        'next_url': next_url,
         'user_search_results': user_search_results,
         'user_search_form': user_search_form,
     }
 
     return render(request, template, context)
+
+
