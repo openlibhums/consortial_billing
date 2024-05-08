@@ -67,7 +67,7 @@ class Command(BaseCommand):
                     billing_agent=billing_agent,
                     datetime__year=timezone.now().year,
                     display=True,
-                    base=False,
+                    category='special',
                 )
                 active = True if row.get('active') == 'True' else False
                 supporter, created = models.Supporter.objects.get_or_create(
