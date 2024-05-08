@@ -25,51 +25,39 @@ class FormTests(test_models.TestCaseWithData):
     @patch(f'{CB}.models.Band.calculate_fee')
     @patch(f'{CB}.logic.determine_billing_agent')
     def test_band_form_save_with_data_no_commit(self, det_agent, calc_fee):
-        det_agent.return_value = self.agent_other
+        det_agent.return_value = self.agent_default
         calc_fee.return_value = (1000, 'Oh no!')
         data = {
             'country': 'BE',
-            'currency': self.currency_other,
-            'size': self.size_other,
-            'level': self.level_other,
+            'currency': self.currency_eur,
+            'size': self.size_small,
+            'level': self.level_silver,
+            'category': 'calculated',
         }
         band_form = forms.BandForm(data)
         band = band_form.save(commit=False)
         calc_fee.assert_called()
         det_agent.assert_called()
-        self.assertEqual(band.billing_agent, self.agent_other)
+        self.assertEqual(band.billing_agent, self.agent_default)
         self.assertEqual(band.fee, 1000)
         self.assertEqual(band.warnings, 'Oh no!')
 
     @patch(f'{CB}.models.Band.calculate_fee')
     @patch(f'{CB}.logic.determine_billing_agent')
-    def test_band_form_save_fixed_fee_band(self, det_agent, calc_fee):
-        det_agent.return_value = self.agent_other
-        calc_fee.return_value = (7777, '')
-        data = {
-            'country': 'FR',
-            'currency': self.currency_other,
-            'size': self.size_other,
-            'level': self.level_other,
-        }
-        band_form = forms.BandForm(data)
-        band = band_form.save(commit=False)
-        self.assertEqual(band.pk, self.band_fixed_fee.pk)
-
-    @patch(f'{CB}.models.Band.calculate_fee')
-    @patch(f'{CB}.logic.determine_billing_agent')
     def test_band_form_save_existing_band_commit(self, det_agent, calc_fee):
-        det_agent.return_value = self.agent_other
-        calc_fee.return_value = (2000, 'Oh no!')
+        det_agent.return_value = self.agent_default
+        calc_fee.return_value = (2000, '')
         data = {
             'country': 'BE',
-            'currency': self.currency_other,
-            'size': self.size_other,
-            'level': self.level_other,
+            'currency': self.currency_eur,
+            'size': self.size_small,
+            'level': self.level_silver,
+            'category': 'calculated',
         }
         band_form = forms.BandForm(data)
         band = band_form.save(commit=True)
-        self.assertEqual(band.pk, self.band_other_two.pk)
+        self.band_calc_silver_be_small.pk
+        self.assertEqual(band.pk, self.band_calc_silver_be_small.pk)
 
     @patch(f'{CB}.models.Band.calculate_fee')
     @patch(f'{CB}.logic.determine_billing_agent')
@@ -78,19 +66,20 @@ class FormTests(test_models.TestCaseWithData):
         calc_fee.return_value = (500, '')
         data = {
             'country': 'DE',
-            'currency': self.currency_other,
-            'size': self.size_base,
-            'level': self.level_base,
+            'currency': self.currency_eur,
+            'size': self.size_large,
+            'level': self.level_standard,
+            'category': 'calculated',
         }
         band_form = forms.BandForm(data)
         band = band_form.save(commit=True)
         self.assertNotIn(
             band.pk,
             [
-                self.band_base.pk,
-                self.band_other_one.pk,
-                self.band_other_two.pk,
-                self.band_other_three.pk,
+                self.band_base_standard_de.pk,
+                self.band_base_standard_gb.pk,
+                self.band_base_silver_de.pk,
+                self.band_base_silver_gb.pk,
             ]
         )
         band.delete()
@@ -98,21 +87,22 @@ class FormTests(test_models.TestCaseWithData):
     @patch(f'{CB}.models.Band.calculate_fee')
     @patch(f'{CB}.logic.determine_billing_agent')
     def test_band_form_save_handles_duplicates(self, det_agent, calc_fee):
-        det_agent.return_value = self.agent_other
-        calc_fee.return_value = (2000, 'Oh no!')
-        duplicate_band = copy(self.band_other_two)
+        det_agent.return_value = self.agent_default
+        calc_fee.return_value = (2000, '')
+        duplicate_band = copy(self.band_calc_silver_be_small)
         duplicate_band.pk = None
         duplicate_band.datetime -= timedelta(hours=1)
         duplicate_band.save()
 
         data = {
             'country': 'BE',
-            'currency': self.currency_other,
-            'size': self.size_other,
-            'level': self.level_other,
+            'currency': self.currency_eur,
+            'size': self.size_small,
+            'level': self.level_silver,
+            'category': 'calculated',
         }
         band_form = forms.BandForm(data)
         band = band_form.save()
-        self.assertEqual(band.pk, self.band_other_two.pk)
+        self.assertEqual(band.pk, self.band_calc_silver_be_small.pk)
 
         duplicate_band.delete()
