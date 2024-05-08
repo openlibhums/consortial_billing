@@ -1,0 +1,48 @@
+{% extends "admin/core/base.html" %}
+{% load humanize %}
+
+{% block title %}All Supporters - {{ request.press.name }}{% endblock title %}
+
+{% block breadcrumbs %}
+{{ block.super }}
+<li><a href="{% url 'supporters_manager' %}">Supporters Manager</a></li>
+<li>All Supporters</li>
+{% endblock %}
+
+{% block body %}
+<section id="content" class="row-expanded">
+  <div class="large-8 columns border-right">
+    <aside class="hide-for-large">
+      <ul class="accordion" data-accordion data-allow-all-closed="true">
+        <li class="accordion-item" data-accordion-item>
+          <a href="#" class="accordion-title">{% trans 'Show Filter Options' %}</a>
+           <div class="accordion-content" data-tab-content>
+              {% include "elements/journal/article_list_filters.html" %}
+          </div>
+        </li>
+      </ul>
+    </aside>
+    <h2>All Supporters</h2>
+    {% include "common/elements/sorting.html" with form_id=facet_form.id %}
+    {% for supporter in supporter_list %}
+      <div class="box">
+        {% include 'consortial_billing/supporter_list_item.html' %}
+      </div>
+    {% empty %}
+      <div class="box">
+        <strong>No supporters to display.</strong>
+      </div>
+    {% endfor %}
+    {% include "common/elements/pagination.html" with form_id=facet_form.id %}
+  </div>
+  <aside class="large-4 columns show-for-large">
+    {% include 'elements/journal/article_list_filters.html' %}
+  </aside>
+</section>
+<style>
+  #content aside ul {
+    margin-left: 0;
+    list-style-type: none;
+  }
+</style>
+{% endblock body %}

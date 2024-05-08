@@ -1,0 +1,83 @@
+{% load humanize %}
+<section id="supporter{{ supporter.pk }}">
+  <h3>
+    {{ supporter.name }}
+  </h3>
+  <hr>
+  <div class="supporter-details">
+    <div class="info">
+      <p><strong>{{ supporter.band.currency.symbol }}{{ supporter.fee|default:0 }}</strong></p>
+      <p>
+        {% for contact in supporter.supportercontact_set.all %}
+          {{ contact }}{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </p>
+      <p>{{ supporter.address|linebreaks }}</p>
+      <p>{{ supporter.country.name }}</p>
+      <p>{{ supporter.postal_code|linebreaks }}</p>
+      <p>Billed by: {{ supporter.billing_agent }}</p>
+      <p>Active: {% if supporter.active %}Yes{% else %}No{% endif %}</p>
+      <p>Display: {% if supporter.display %}Yes{% else %}No{% endif %}</p>
+      {% if supporter.ror %}
+        <p>ROR:
+          <a target="_blank" href="{{ supporter.ror }}">
+            {{ supporter.ror }}
+          </a>
+          <i class="fa fa-external-link"></i>
+        </p>
+      {% endif %}
+      <details>
+        <summary>Band details</summary>
+        <p>Created: {{ supporter.band.datetime }}</p>
+        <p>Level: {{ supporter.band.level }}</p>
+        <p>Size: {{ supporter.band.size }}</p>
+        <p>Country: {{ supporter.band.country.name }}</p>
+        <p>Currency: {{ supporter.band.currency }}</p>
+        <p>Fee: {{ supporter.band.fee }}</p>
+        <p>Warnings: {{ supporter.band.warnings }}</p>
+        <p>Prospective band: {{ supporter.prospective_band|default:"" }}</p>
+      </details>
+      {% if supporter.oldband_set.count %}
+        <details>
+          <summary>Old bands</summary>
+          {% for oldband in supporter.oldband_set.all %}
+            <p>{{ oldband.band }}</p>
+          {% endfor %}
+        </details>
+      {% endif %}
+      <details>
+        <summary>Internal notes</summary>
+        <p>{{ supporter.internal_notes|linebreaks }}</p>
+      </details>
+    </div>
+    <div class="actions">
+      <a
+        href="{{ supporter.url }}?next={{ request.get_full_path|urlencode }}"
+        class="button small">
+        <i class="fa fa-edit"></i>
+        Edit
+      </a>
+      <p>Edited {{ supporter.band.datetime|naturaltime }}</p>
+    </div>
+  </div>
+</section>
+<style>
+#supporter{{ supporter.pk }} {
+  .supporter-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  details summary {
+    cursor: pointer;
+  }
+  details {
+    padding-bottom: 1rem;
+  }
+  @media (min-width: 968px) {
+    .supporter-details {
+      flex-direction: row;
+    }
+  }
+}
+</style>

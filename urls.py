@@ -6,7 +6,7 @@ urlpatterns = [
     re_path(
         r'^$',
         views.supporters,
-        name='supporters_list',
+        name='public_supporter_list',
     ),
     re_path(
         r'^manager/$',
@@ -22,5 +22,15 @@ urlpatterns = [
         r'^signup/$',
         views.signup,
         name='supporter_signup',
+    ),
+    re_path(
+        r'^search/$',
+        views.SupporterList.as_view(),
+        name='supporter_list',
+    ),
+    re_path(
+        r'^edit-supporter-band/(?P<supporter_id>\d+)/$',
+        views.edit_supporter_band,
+        name='edit_supporter_band',
     ),
 ]

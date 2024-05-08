@@ -1,0 +1,167 @@
+{% extends "admin/core/base.html" %}
+{% load foundation %}
+
+{% block title %}Edit {{ supporter.name }} - {{ request.press.name }}{% endblock title %}
+
+{% block breadcrumbs %}
+{{ block.super }}
+<li><a href="{% url 'supporters_manager' %}">Supporters Manager</a></li>
+<li><a href="{% url 'supporter_list' %}">All Supporters</a></li>
+<li>Edit Supporter {{ supporter.name }}</li>
+{% endblock %}
+
+{% block body %}
+<form id="edit_supporter_band" method="POST">
+  <div class="large-9 columns">
+    {% csrf_token %}
+    <div class="box">
+      <h2 id="supporter-info">Supporter Info</h2>
+        <button hidden type="submit" name="default">
+          Catch Enter key events
+        </button>
+      {{ supporter_form.name|foundation }}
+      {{ supporter_form.ror|foundation }}
+      <div class="button-row">
+        <button
+          type="submit"
+          formaction="#supporter-info"
+          class="button success"
+          name="autofill_ror">
+          <i class="fa fa-magic"></i>
+          Autofill ROR
+        </button>
+      </div>
+      {{ supporter_form.address|foundation }}
+      {{ supporter_form.postal_code|foundation }}
+      {{ supporter_form.active|foundation }}
+      {{ supporter_form.display|foundation }}
+      {{ supporter_form.internal_notes|foundation }}
+      <h2 id="supporter-contacts">Supporter contacts</h2>
+      <div class="button-row">
+        {% with supporter.supportercontact_set.count as num_contacts %}
+          <p>This supporter has {{ num_contacts }} current contact{{ num_contacts|pluralize }}:</p>
+        {% endwith %}
+      </div>
+      {% for contact in supporter.supportercontact_set.all %}
+        <div class="contact-row">
+          <p>{{ contact }}</p>
+          <a
+            href="{% url 'core_user_edit' contact.account.pk %}?return={{ request.get_full_path|urlencode }}"
+            class="button secondary small">
+            <i class="fa fa-edit"></i>
+            Edit
+          </a>
+          <button
+            type="submit"
+            formaction="#supporter-contacts"
+            class="button alert small"
+            name="remove_contact"
+            value="{{ contact.pk }}">
+            <i class="fa fa-remove"></i>
+            Remove
+          </button>
+        </div>
+      {% endfor %}
+      <div class="callout">
+        <div class="search-bar">
+          <div class="search-field">
+            {{ user_search_form|foundation }}
+          </div>
+          <button
+            type="submit"
+            formaction="#supporter-contacts"
+            class="button secondary"
+            name="search_user">
+            <i class="fa fa-search"></i>
+            Search
+          </button>
+        </div>
+        <div class="search-results">
+          {% for user in user_search_results %}
+            <div class="contact-row">
+              <p>{{ user.full_name }} &lt;{{ user.email }}&gt;</p>
+              <button
+                type="submit"
+                formaction="#supporter-contacts"
+                class="button success small"
+                name="add_contact"
+                value="{{ user.pk }}">
+                <i class="fa fa-plus"></i>
+                Add as contact
+              </button>
+            </div>
+          {% empty %}
+            {% if user_search_form.q.value %}
+              <div class="contact-row">
+                <p>No results for "{{ user_search_form.q.value }}"</p>
+              </div>
+            {% endif %}
+          {% endfor %}
+            <div class="contact-row">
+              <a
+                href="{% url 'core_add_user' %}?return={{ request.get_full_path|urlencode }}"
+                class="button success small">
+                <i class="fa fa-plus"></i>
+                Create new user account
+              </a>
+            </div>
+        </div>
+      </div>
+      <h2 id="band-info">Band Info</h2>
+      {{ band_form|foundation }}
+      <div class="button-row">
+        <button
+          type="submit"
+          formaction="#band-info"
+          class="button secondary"
+          name="save_continue">
+          <i class="fa fa-save"></i>
+          Save and continue editing
+        </button>
+        <button
+          type="submit"
+          class="button success"
+          name="save_return">
+          <i class="fa fa-chevron-left"></i>
+          Save and return
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+<style>
+#edit_supporter_band {
+  h2 {
+    margin: 0.5rem .85rem;
+  }
+  .search-results,
+  .button-row,
+  .contact-row {
+    margin: 0 1em;
+    display: flex;
+    flex-direction: column;
+    column-gap: 2rem;
+  }
+  .button-row {
+    justify-content: space-between;
+    align-content: flex-start;
+  }
+  .search-bar {
+    display: flex;
+    margin-right: 1em;
+    column-gap: 2rem;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .search-field {
+    flex-grow: 1;
+  }
+  @media (min-width: 640px) {
+    .button-row,
+    .contact-row {
+      flex-direction: row;
+    }
+  }
+}
+</style>
+{% endblock body %}

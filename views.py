@@ -1,17 +1,23 @@
 import decimal
 
 from django.shortcuts import render, get_object_or_404, redirect
-from django.template import TemplateDoesNotExist
 from django.urls import reverse
 from django.core.management import call_command
+from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
-from django.core.exceptions import ImproperlyConfigured
+from django.contrib import messages
+from django.db.models import Count, Q, Max
+from django.utils.decorators import method_decorator
 
-from plugins.consortial_billing import utils, \
-     logic, models, plugin_settings, forms
+from plugins.consortial_billing import utils \
+     logic, models as supporter_models, plugin_settings, forms
 from plugins.consortial_billing.notifications import notify
 
+from core.views import FilteredArticlesListView
+from core.models import Account
+from core.model_utils import search_model_admin
 from cms import models as cms_models
+from plugins.consortial_billing.utils import short_country_name
 from utils.logger import get_logger
 from security.decorators import base_check_required
 
@@ -42,20 +48,19 @@ def manager(request):
     )
     settings = logic.get_settings_for_display()
     currencies = []
-    for curr in models.Currency.objects.all():
+    for curr in supporter_models.Currency.objects.all():
         rate, _warning = curr.exchange_rate()
         rate = rate.quantize(decimal.Decimal('1.000'))
         currencies.append((rate, curr.code))
 
     context = {
         'plugin': plugin_settings.SHORT_NAME,
-        'supporters': models.Supporter.objects.all(),
-        'agents': models.BillingAgent.objects.all(),
-        'sizes': models.SupporterSize.objects.all(),
-        'levels': models.SupportLevel.objects.all(),
+        'supporters': supporter_models.Supporter.objects.all(),
+        'agents': supporter_models.BillingAgent.objects.all(),
+        'sizes': supporter_models.SupporterSize.objects.all(),
+        'levels': supporter_models.SupportLevel.objects.all(),
         'currencies': currencies,
         'base_bands': base_bands,
-        'fixed_fee_bands': models.Band.objects.filter(fixed_fee=True),
         'latest_gni_data': latest_gni_data,
         'latest_exchange_rate_data': latest_exchange_rate_data,
         'latest_demo_data': latest_demo_data,
@@ -73,7 +78,7 @@ def signup(request):
 
     band_form = forms.BandForm()
     band = None
-    supporter_form = forms.SupporterForm()
+    supporter_form = forms.SupporterSignupForm()
     supporter = None
     signup_agreement = utils.setting('signup_agreement')
     redirect_text = ''
@@ -99,7 +104,7 @@ def signup(request):
                     instance=band,
                 )
 
-                supporter_form = forms.SupporterForm(request.POST)
+                supporter_form = forms.SupporterSignupForm(request.POST)
 
         if 'sign_up' in request.POST:
             band_form = forms.BandForm(request.POST)
@@ -109,18 +114,10 @@ def signup(request):
                     instance=band,
                 )
 
-                supporter_form = forms.SupporterForm(request.POST)
+                supporter_form = forms.SupporterSignupForm(request.POST)
                 if supporter_form.is_valid():
-                    supporter = supporter_form.save(commit=True)
-                    if supporter.band:
-                        models.OldBand.objects.get_or_create(
-                            supporter=supporter,
-                            band=supporter.band,
-                        )
-                    supporter.band = band
-                    supporter.country = band.country
-                    supporter.save()
-                    models.SupporterContact.objects.get_or_create(
+                    supporter = supporter_form.save(commit=True, band=band)
+                    supporter_models.SupporterContact.objects.get_or_create(
                         supporter=supporter,
                         account=request.user
                     )
@@ -153,7 +150,7 @@ def signup(request):
 
 def supporters(request):
 
-    supporters = models.Supporter.objects.filter(
+    supporters = supporter_models.Supporter.objects.filter(
         active=True,
         display=True,
     ).order_by(
@@ -192,6 +189,181 @@ def view_custom_page(request, page_name):
         template = 'consortial_billing/custom.html'
     context = {
         'page': page,
+    }
+
+    return render(request, template, context)
+
+
+@method_decorator(staff_member_required, name='dispatch')
+class SupporterList(FilteredArticlesListView):
+
+    model = supporter_models.Supporter
+    template_name = 'consortial_billing/supporter_list.html'
+
+    def get_facets(self):
+        return {
+            'q': {
+                'type': 'search',
+                'field_label': 'Search',
+            },
+            'active': {
+                'type': 'boolean',
+                'field_label': 'Active',
+            },
+            'band__datetime__date__gte': {
+                'type': 'date',
+                'field_label': 'Last modified after',
+            },
+            'band__datetime__date__lt': {
+                'type': 'date',
+                'field_label': 'Last modified before',
+            },
+            'band__fee__gt': {
+                'type': 'integer',
+                'field_label': 'Fee greater than',
+            },
+            'band__fee__lt': {
+                'type': 'integer',
+                'field_label': 'Fee less than',
+            },
+            'band__currency': {
+                'type': 'foreign_key',
+                'model': supporter_models.Currency,
+                'field_label': 'Currency',
+                'choice_label_field': 'code',
+            },
+            'band__level': {
+                'type': 'foreign_key',
+                'model': supporter_models.SupportLevel,
+                'field_label': 'Support level',
+                'choice_label_field': 'name',
+            },
+            'band__size': {
+                'type': 'foreign_key',
+                'model': supporter_models.SupporterSize,
+                'field_label': 'Institution size',
+                'choice_label_field': 'name',
+            },
+        }
+
+    def get_order_by_choices(self):
+        return [
+            ('name', 'Names A-Z'),
+            ('-name', 'Names Z-A'),
+            ('-band__datetime', 'Modified recently'),
+            ('band__datetime', 'Not modified recently'),
+            ('-band__fee', 'Highest fee'),
+            ('band__fee', 'Lowest fee'),
+        ]
+
+    def get_order_by(self):
+        order_by = self.request.GET.get('order_by', 'name')
+        order_by_choices = self.get_order_by_choices()
+        return order_by if order_by in dict(order_by_choices) else ''
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+
+@staff_member_required
+def edit_supporter_band(request, supporter_id):
+
+    supporter = supporter_models.Supporter.objects.get(pk=supporter_id)
+    band = supporter.band
+    supporter_form = forms.EditSupporterForm(instance=supporter)
+    band_form = forms.EditBandForm(instance=supporter.band)
+    user_search_form = forms.AccountAdminSearchForm()
+    user_search_results = []
+
+    if request.method == 'POST':
+        supporter_form = forms.EditSupporterForm(
+            request.POST,
+            instance=supporter,
+        )
+        band_form = forms.EditBandForm(
+            request.POST,
+            instance=band,
+        )
+        if supporter_form.is_valid() and band_form.is_valid():
+            band = band_form.save()
+            supporter = supporter_form.save(band=band)
+            if 'save_continue' in request.POST or 'save_return' in request.POST:
+                message = f'{ supporter.name } details saved.'
+                messages.add_message(request, messages.SUCCESS, message)
+                message = f'Band { band.pk } saved:\n { band }.'
+                messages.add_message(request, messages.SUCCESS, message)
+
+            if 'autofill_ror' in request.POST:
+                ror = supporter.get_ror()
+                if ror:
+                    if ror == supporter.ror:
+                        messages.add_message(
+                            request,
+                            messages.SUCCESS,
+                            f'Existing ROR confirmed: { ror }.'
+                        )
+                    else:
+                        messages.add_message(
+                            request,
+                            messages.SUCCESS,
+                            f'Autofilled new ROR: { ror }.'
+                        )
+                    supporter.ror = ror
+                    supporter.save()
+                    supporter_form = forms.EditSupporterForm(
+                        instance=supporter,
+                    )
+                else:
+                    messages.add_message(
+                        request,
+                        messages.WARNING,
+                        f'ROR could not be autofilled.'
+                    )
+            elif 'remove_contact' in request.POST:
+                contact = supporter_models.SupporterContact.objects.get(
+                    pk=request.POST.get('remove_contact')
+                )
+                message = f'Contact removed: { contact }.'
+                contact.delete()
+                messages.add_message(request, messages.SUCCESS, message)
+            elif 'add_contact' in request.POST:
+                account = Account.objects.get(pk=request.POST.get('add_contact'))
+                contact, _created = supporter_models.SupporterContact.objects.get_or_create(
+                    supporter=supporter,
+                    account=account,
+                )
+                message = f'Contact added: { contact }.'
+                messages.add_message(request, messages.SUCCESS, message)
+            elif 'save_continue' in request.POST:
+                user_search_form = forms.AccountAdminSearchForm()
+            elif 'save_return' in request.POST and request.GET.get('next'):
+                return redirect(request.GET.get('next'))
+            elif 'search_user' in request.POST or request.POST['q']:
+                user_search_form = forms.AccountAdminSearchForm(request.POST)
+                results, _dups = search_model_admin(request, Account)
+                user_search_results = results.exclude(
+                    supportercontact__supporter=supporter,
+                )[:10]
+
+        else:
+            messages.add_message(
+                request,
+                messages.WARNING,
+                'Something went wrong. Please try again.',
+            )
+
+        supporter_form = forms.EditSupporterForm(instance=supporter)
+        band_form = forms.EditBandForm(instance=band)
+
+    template = 'consortial_billing/edit_supporter_band.html'
+
+    context = {
+        'supporter': supporter,
+        'supporter_form': supporter_form,
+        'band_form': band_form,
+        'user_search_results': user_search_results,
+        'user_search_form': user_search_form,
     }
 
     return render(request, template, context)

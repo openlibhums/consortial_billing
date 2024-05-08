@@ -51,12 +51,13 @@ class ViewTests(test_models.TestCaseWithData):
             plugin_settings.SHORT_NAME,
             response.context['plugin'],
         )
-        self.assertListEqual(
-            [
-                self.band_base_country_other,
-                self.band_base_level_other,
-                self.band_base
-            ],
+        self.assertSetEqual(
+            {
+                self.band_base_standard_de,
+                self.band_base_standard_gb,
+                self.band_base_silver_de,
+                self.band_base_silver_gb,
+            },
             response.context['base_bands'],
         )
         self.assertEqual(
@@ -90,9 +91,10 @@ class ViewTests(test_models.TestCaseWithData):
         type(self.request).user = self.user_supporter
         type(self.request).GET = {
             'country': 'NL',
-            'size': self.size_other.pk,
-            'level': self.level_other.pk,
-            'currency': self.currency_other.pk,
+            'size': self.size_large.pk,
+            'level': self.level_standard.pk,
+            'currency': self.currency_eur.pk,
+            'category': 'calculated',
             'start_signup': '',
         }
         views.signup(self.request)
@@ -104,9 +106,10 @@ class ViewTests(test_models.TestCaseWithData):
         type(self.request).user = self.user_supporter
         type(self.request).POST = {
             'country': 'NL',
-            'size': self.size_other.pk,
-            'level': self.level_other.pk,
-            'currency': self.currency_other.pk,
+            'size': self.size_large.pk,
+            'level': self.level_standard.pk,
+            'currency': self.currency_eur.pk,
+            'category': 'calculated',
             'calculate': '',
             'name': 'RKD',
         }
@@ -122,7 +125,7 @@ class ViewTests(test_models.TestCaseWithData):
     @patch('plugins.consortial_billing.notifications.notify.event_signup')
     @patch('plugins.consortial_billing.views.render')
     @patch('plugins.consortial_billing.forms.BandForm.save')
-    @patch('plugins.consortial_billing.forms.SupporterForm.save')
+    @patch('plugins.consortial_billing.forms.SupporterSignupForm.save')
     def test_signup_post_sign_up_complete(
         self,
         supporter_save,
@@ -132,30 +135,34 @@ class ViewTests(test_models.TestCaseWithData):
     ):
         type(self.request).user = self.user_supporter
         type(self.request).POST = {
-            'country': 'GB',
-            'size': self.size_other.pk,
-            'level': self.level_other.pk,
-            'currency': self.currency_base.pk,
+            'country': 'BE',
+            'size': self.size_small.pk,
+            'level': self.level_silver.pk,
+            'currency': self.currency_eur.pk,
+            'category': 'calculated',
             'sign_up': '',
-            'name': 'University of Essex',
+            'name': self.supporter_antwerp.name,
         }
-        band_save.return_value = self.band_other_three
-        supporter_save.return_value = self.supporter_two
+        band_save.return_value = self.band_calc_silver_be_small
+        supporter_save.return_value = self.supporter_antwerp
         views.signup(self.request)
         band_save.assert_called_once_with(commit=True)
-        supporter_save.assert_called_once_with(commit=True)
+        supporter_save.assert_called_once_with(
+            commit=True,
+            band=band_save.return_value,
+        )
         context = render.call_args.args[2]
         self.assertTrue(context['complete_text'])
         self.assertFalse(context['redirect_text'])
         event_signup.assert_called_once_with(
             self.request,
-            self.supporter_two,
+            self.supporter_antwerp,
         )
 
     @patch('plugins.consortial_billing.notifications.notify.event_signup')
     @patch('plugins.consortial_billing.views.render')
     @patch('plugins.consortial_billing.forms.BandForm.save')
-    @patch('plugins.consortial_billing.forms.SupporterForm.save')
+    @patch('plugins.consortial_billing.forms.SupporterSignupForm.save')
     def test_signup_post_sign_up_redirect(
         self,
         supporter_save,
@@ -165,23 +172,24 @@ class ViewTests(test_models.TestCaseWithData):
     ):
         type(self.request).user = self.user_supporter
         type(self.request).POST = {
-            'country': 'BE',
-            'size': self.size_other.pk,
-            'level': self.level_other.pk,
-            'currency': self.currency_other.pk,
+            'country': 'GB',
+            'size': self.size_large.pk,
+            'level': self.level_standard.pk,
+            'currency': self.currency_gbp.pk,
+            'category': 'calculated',
             'sign_up': '',
-            'name': 'University of Antwerp',
+            'name': self.supporter_bbk.name,
         }
-        band_save.return_value = self.band_other_two
-        supporter_save.return_value = self.supporter_four
+        band_save.return_value = self.band_calc_standard_gb_large
+        supporter_save.return_value = self.supporter_bbk
         views.signup(self.request)
         context = render.call_args.args[2]
         self.assertTrue(context['redirect_text'])
         self.assertFalse(context['complete_text'])
 
-    def test_supporters_loads(self):
+    def test_public_supporter_list_loads(self):
         response = self.client.get(
-            reverse('supporters_list'),
+            reverse('public_supporter_list'),
             SERVER_NAME=self.press.domain,
         )
         self.assertEqual(response.status_code, 200)

@@ -17,10 +17,10 @@ class EmailTests(test_models.TestCaseWithData):
     def test_email_agent_about_signup(self, send_email):
         emails.email_agent_about_signup(
             request=self.request,
-            supporter=self.supporter_two,
+            supporter=self.supporter_bbk,
         )
         self.assertIn(
-            self.supporter_two.band.billing_agent.agentcontact_set.first().email,
+            self.supporter_bbk.band.billing_agent.agentcontact_set.first().email,
             send_email.call_args.args[3],
         )
         self.assertIn(
@@ -37,10 +37,10 @@ class EmailTests(test_models.TestCaseWithData):
     def test_email_supporter_to_confirm(self, send_email):
         emails.email_supporter_to_confirm(
             request=self.request,
-            supporter=self.supporter_two,
+            supporter=self.supporter_bbk,
         )
         self.assertIn(
-            self.supporter_two.supportercontact_set.first().email,
+            self.supporter_bbk.supportercontact_set.first().email,
             send_email.call_args.args[3],
         )
         self.assertIn(
