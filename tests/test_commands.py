@@ -27,6 +27,7 @@ class CommandTests(test_models.TestCaseWithData):
         self.assertIn(self.fake_indicator, utils_fetch.call_args.args)
         info.assert_called()
 
+    @patch(f'{CB}.models.Band.save')
     @patch(f'{CB}.forms.BandForm.save')
     @patch(f'{CB}.management.commands.calculate_all_fees.logger.info')
     @patch(f'{CB}.management.commands.calculate_all_fees.logger.warning')
@@ -35,10 +36,12 @@ class CommandTests(test_models.TestCaseWithData):
         warning,
         info,
         band_form_save,
+        band_save,
     ):
-        band_form_save.return_value = self.band_other_one
+        band_form_save.return_value = self.band_calc_standard_gb_large
         call_command('calculate_all_fees')
         band_form_save.assert_called_with(commit=False)
+        band_save.assert_called()
         info.assert_called()
         warning.assert_not_called()
 
@@ -55,11 +58,11 @@ class CommandTests(test_models.TestCaseWithData):
         band_form_save,
         band_save,
     ):
-        band_form_save.return_value = self.band_other_one
-        supporter_save.return_value = self.supporter_one
+        band_form_save.return_value = self.band_calc_standard_gb_large
+        supporter_save.return_value = self.supporter_bbk
         call_command('calculate_all_fees', '--save')
-        band_save.assert_not_called()
-        band_form_save.assert_called_with(commit=True)
+        band_form_save.assert_called()
+        band_save.assert_called()
         supporter_save.assert_called()
         info.assert_called()
         warning.assert_not_called()
