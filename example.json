@@ -1,0 +1,674 @@
+[
+    {
+        "model": "consortial_billing.billingagent",
+        "pk": 1,
+        "fields": {
+            "name": "OLH",
+            "country": null,
+            "default": true,
+            "redirect_url": ""
+        }
+    },
+    {
+        "model": "consortial_billing.billingagent",
+        "pk": 2,
+        "fields": {
+            "name": "Jisc Collections",
+            "country": "GB",
+            "default": false,
+            "redirect_url": "https://subscriptionsmanager.jisc.ac.uk/catalogue/2620"
+        }
+    },
+    {
+        "model": "consortial_billing.billingagent",
+        "pk": 3,
+        "fields": {
+            "name": "LYRASIS",
+            "country": "US",
+            "default": false,
+            "redirect_url": ""
+        }
+    },
+    {
+        "model": "consortial_billing.billingagent",
+        "pk": 4,
+        "fields": {
+            "name": "LYRASIS",
+            "country": "CA",
+            "default": false,
+            "redirect_url": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supportersize",
+        "pk": 1,
+        "fields": {
+            "name": "Large",
+            "description": "10,000+ students",
+            "multiplier": "1.33",
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supportersize",
+        "pk": 2,
+        "fields": {
+            "name": "Small",
+            "description": "0-4,999 students",
+            "multiplier": "0.66",
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supportersize",
+        "pk": 3,
+        "fields": {
+            "name": "Medium",
+            "description": "5,000-9,999 students",
+            "multiplier": "1.00",
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supportlevel",
+        "pk": 1,
+        "fields": {
+            "name": "Bronze",
+            "description": "",
+            "order": 4,
+            "default": false,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supportlevel",
+        "pk": 2,
+        "fields": {
+            "name": "Standard",
+            "description": "",
+            "order": 5,
+            "default": true,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supportlevel",
+        "pk": 3,
+        "fields": {
+            "name": "Silver",
+            "description": "",
+            "order": 3,
+            "default": false,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supportlevel",
+        "pk": 4,
+        "fields": {
+            "name": "Gold",
+            "description": "",
+            "order": 2,
+            "default": false,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supportlevel",
+        "pk": 5,
+        "fields": {
+            "name": "Platinum",
+            "description": "",
+            "order": 1,
+            "default": false,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.currency",
+        "pk": 1,
+        "fields": {
+            "code": "EUR",
+            "symbol": "€",
+            "region": "EMU",
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.currency",
+        "pk": 2,
+        "fields": {
+            "code": "GBP",
+            "symbol": "£",
+            "region": "GBR",
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.currency",
+        "pk": 3,
+        "fields": {
+            "code": "USD",
+            "symbol": "$",
+            "region": "USA",
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 174,
+        "fields": {
+            "size": 3,
+            "country": "DE",
+            "currency": 1,
+            "level": 2,
+            "datetime": "2024-04-24T17:12:16Z",
+            "fee": 1750,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 175,
+        "fields": {
+            "size": 1,
+            "country": "DE",
+            "currency": 1,
+            "level": 1,
+            "datetime": "2024-04-24T17:12:17Z",
+            "fee": 5500,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 176,
+        "fields": {
+            "size": 3,
+            "country": "GB",
+            "currency": 2,
+            "level": 2,
+            "datetime": "2024-04-24T17:12:18Z",
+            "fee": 1500,
+            "warnings": "",
+            "billing_agent": 2,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 178,
+        "fields": {
+            "size": 3,
+            "country": "US",
+            "currency": 3,
+            "level": 2,
+            "datetime": "2024-04-24T17:12:21Z",
+            "fee": 2000,
+            "warnings": "",
+            "billing_agent": 3,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 179,
+        "fields": {
+            "size": 1,
+            "country": "US",
+            "currency": 3,
+            "level": 1,
+            "datetime": "2024-04-24T17:12:22Z",
+            "fee": 6000,
+            "warnings": "",
+            "billing_agent": 3,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 263,
+        "fields": {
+            "size": 1,
+            "country": "GB",
+            "currency": 2,
+            "level": 1,
+            "datetime": "2024-05-08T19:10:12.753Z",
+            "fee": 5000,
+            "warnings": "",
+            "billing_agent": 2,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 265,
+        "fields": {
+            "size": 3,
+            "country": "CA",
+            "currency": 3,
+            "level": 2,
+            "datetime": "2024-05-21T14:31:59Z",
+            "fee": 2000,
+            "warnings": "",
+            "billing_agent": 4,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 266,
+        "fields": {
+            "size": 1,
+            "country": "CA",
+            "currency": 3,
+            "level": 1,
+            "datetime": "2024-05-21T14:33:02Z",
+            "fee": 6000,
+            "warnings": "",
+            "billing_agent": 4,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 267,
+        "fields": {
+            "size": 1,
+            "country": "DE",
+            "currency": 1,
+            "level": 3,
+            "datetime": "2024-05-21T14:36:42Z",
+            "fee": 8000,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 268,
+        "fields": {
+            "size": 1,
+            "country": "GB",
+            "currency": 2,
+            "level": 3,
+            "datetime": "2024-05-21T14:37:42Z",
+            "fee": 7500,
+            "warnings": "",
+            "billing_agent": 2,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 269,
+        "fields": {
+            "size": 1,
+            "country": "US",
+            "currency": 3,
+            "level": 3,
+            "datetime": "2024-05-21T14:38:17Z",
+            "fee": 8500,
+            "warnings": "",
+            "billing_agent": 3,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 270,
+        "fields": {
+            "size": 1,
+            "country": "CA",
+            "currency": 3,
+            "level": 3,
+            "datetime": "2024-05-21T14:39:23Z",
+            "fee": 8500,
+            "warnings": "",
+            "billing_agent": 4,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 271,
+        "fields": {
+            "size": 1,
+            "country": "DE",
+            "currency": 1,
+            "level": 4,
+            "datetime": "2024-05-21T14:39:52Z",
+            "fee": 11000,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 272,
+        "fields": {
+            "size": 1,
+            "country": "GB",
+            "currency": 2,
+            "level": 4,
+            "datetime": "2024-05-21T14:40:57Z",
+            "fee": 10000,
+            "warnings": "",
+            "billing_agent": 2,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 273,
+        "fields": {
+            "size": 1,
+            "country": "US",
+            "currency": 3,
+            "level": 4,
+            "datetime": "2024-05-21T14:41:56Z",
+            "fee": 12000,
+            "warnings": "",
+            "billing_agent": 3,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 274,
+        "fields": {
+            "size": 1,
+            "country": "CA",
+            "currency": 3,
+            "level": 4,
+            "datetime": "2024-05-21T14:42:22Z",
+            "fee": 12000,
+            "warnings": "",
+            "billing_agent": 4,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 275,
+        "fields": {
+            "size": 1,
+            "country": "DE",
+            "currency": 1,
+            "level": 5,
+            "datetime": "2024-05-21T14:44:47Z",
+            "fee": 18000,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 276,
+        "fields": {
+            "size": 1,
+            "country": "GB",
+            "currency": 2,
+            "level": 5,
+            "datetime": "2024-05-21T14:45:15Z",
+            "fee": 15000,
+            "warnings": "",
+            "billing_agent": 2,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 277,
+        "fields": {
+            "size": 1,
+            "country": "US",
+            "currency": 3,
+            "level": 5,
+            "datetime": "2024-05-21T14:45:31Z",
+            "fee": 20000,
+            "warnings": "",
+            "billing_agent": 3,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 278,
+        "fields": {
+            "size": 1,
+            "country": "CA",
+            "currency": 3,
+            "level": 5,
+            "datetime": "2024-05-21T14:45:59Z",
+            "fee": 20000,
+            "warnings": "",
+            "billing_agent": 4,
+            "category": "base"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 279,
+        "fields": {
+            "size": 2,
+            "country": "DE",
+            "currency": 1,
+            "level": 2,
+            "datetime": "2024-05-21T14:51:45.274Z",
+            "fee": 1160,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "calculated"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 280,
+        "fields": {
+            "size": 1,
+            "country": "IT",
+            "currency": 1,
+            "level": 2,
+            "datetime": "2024-05-21T14:55:07.594Z",
+            "fee": 1650,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "calculated"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 281,
+        "fields": {
+            "size": 1,
+            "country": "GB",
+            "currency": 2,
+            "level": 2,
+            "datetime": "2024-05-21T14:58:13.404Z",
+            "fee": 2000,
+            "warnings": "",
+            "billing_agent": 2,
+            "category": "calculated"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 282,
+        "fields": {
+            "size": 1,
+            "country": "NL",
+            "currency": 1,
+            "level": 5,
+            "datetime": "2024-05-21T15:00:14.577Z",
+            "fee": 20070,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "calculated"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 283,
+        "fields": {
+            "size": 1,
+            "country": "AR",
+            "currency": 3,
+            "level": 1,
+            "datetime": "2024-05-21T15:00:46.459Z",
+            "fee": 1240,
+            "warnings": "",
+            "billing_agent": 1,
+            "category": "calculated"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 284,
+        "fields": {
+            "size": 1,
+            "country": "US",
+            "currency": 3,
+            "level": 4,
+            "datetime": "2024-05-21T15:02:14.989Z",
+            "fee": 12000,
+            "warnings": "",
+            "billing_agent": 3,
+            "category": "calculated"
+        }
+    },
+    {
+        "model": "consortial_billing.band",
+        "pk": 285,
+        "fields": {
+            "size": 3,
+            "country": "CA",
+            "currency": 3,
+            "level": 3,
+            "datetime": "2024-05-21T15:02:43.749Z",
+            "fee": 8500,
+            "warnings": "",
+            "billing_agent": 4,
+            "category": "calculated"
+        }
+    },
+    {
+        "model": "consortial_billing.supporter",
+        "pk": 464,
+        "fields": {
+            "name": "Example Supporter 1",
+            "ror": "",
+            "address": "123 My Street",
+            "postal_code": "12345",
+            "country": "DE",
+            "display": true,
+            "band": 279,
+            "prospective_band": null,
+            "active": true,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supporter",
+        "pk": 465,
+        "fields": {
+            "name": "Example Supporter 2",
+            "ror": "",
+            "address": "",
+            "postal_code": "",
+            "country": "IT",
+            "display": true,
+            "band": 280,
+            "prospective_band": null,
+            "active": true,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supporter",
+        "pk": 466,
+        "fields": {
+            "name": "Example Supporter 3",
+            "ror": "",
+            "address": "",
+            "postal_code": "",
+            "country": "GB",
+            "display": true,
+            "band": 281,
+            "prospective_band": null,
+            "active": true,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supporter",
+        "pk": 467,
+        "fields": {
+            "name": "Example Supporter 4",
+            "ror": "",
+            "address": "",
+            "postal_code": "",
+            "country": "NL",
+            "display": true,
+            "band": 282,
+            "prospective_band": null,
+            "active": true,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supporter",
+        "pk": 468,
+        "fields": {
+            "name": "Example Supporter 5",
+            "ror": "",
+            "address": "",
+            "postal_code": "",
+            "country": "AR",
+            "display": true,
+            "band": 283,
+            "prospective_band": null,
+            "active": true,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supporter",
+        "pk": 469,
+        "fields": {
+            "name": "Example Supporter 6",
+            "ror": "",
+            "address": "",
+            "postal_code": "",
+            "country": "US",
+            "display": true,
+            "band": 284,
+            "prospective_band": null,
+            "active": true,
+            "internal_notes": ""
+        }
+    },
+    {
+        "model": "consortial_billing.supporter",
+        "pk": 470,
+        "fields": {
+            "name": "Example Supporter 7",
+            "ror": "",
+            "address": "",
+            "postal_code": "",
+            "country": "CA",
+            "display": true,
+            "band": 285,
+            "prospective_band": null,
+            "active": true,
+            "internal_notes": ""
+        }
+    }
+]
