@@ -3,6 +3,7 @@ import csv
 from django.contrib import admin
 from django.contrib import messages
 from django.utils import timezone
+from django.conf import settings
 
 from plugins.consortial_billing import models
 from core import files
@@ -42,11 +43,33 @@ class OldBandInline(admin.TabularInline):
         return False
 
 
+class BaseBandInline(admin.TabularInline):
+    model = models.Band
+    extra = 0
+    verbose_name_plural = 'Base Bands (including Old Bands)'
+    exclude = ('warnings',)
+    readonly_fields = (
+        'size',
+        'country',
+        'currency',
+        'level',
+        'datetime',
+        'fee',
+        'category',
+    )
+    can_delete = False
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.filter(category='base').order_by('-datetime')
+
+
 class BillingAgentAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         '_contacts',
         'country',
+        'redirect_url',
         'default',
     )
     list_editable = (
@@ -55,6 +78,7 @@ class BillingAgentAdmin(admin.ModelAdmin):
     )
     inlines = [
         AgentContactInline,
+        BaseBandInline,
     ]
 
     def _contacts(self, obj):
@@ -79,6 +103,9 @@ class SupporterSizeAdmin(admin.ModelAdmin):
         'multiplier',
         'internal_notes',
     )
+    inlines = [
+        BaseBandInline,
+    ]
 
 
 class SupportLevelAdmin(admin.ModelAdmin):
@@ -97,6 +124,9 @@ class SupportLevelAdmin(admin.ModelAdmin):
         'internal_notes',
         'default',
     )
+    inlines = [
+        BaseBandInline,
+    ]
 
 
 class CurrencyAdmin(admin.ModelAdmin):
@@ -117,6 +147,10 @@ class CurrencyAdmin(admin.ModelAdmin):
     readonly_fields = (
         '_exchange_rate',
     )
+    inlines = [
+        BaseBandInline,
+    ]
+
 
     def _exchange_rate(self, obj):
         if obj:
@@ -155,7 +189,9 @@ class BandAdmin(admin.ModelAdmin):
     ]
 
     def get_readonly_fields(self, request, obj=None):
-        if obj and obj.category == 'base':
+        if settings.DEBUG:
+            return ()
+        elif obj and obj.category == 'base':
             return (
                 'size',
                 'country',
