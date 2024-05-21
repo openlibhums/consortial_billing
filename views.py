@@ -211,11 +211,11 @@ class SupporterList(FilteredArticlesListView):
             },
             'band__datetime__date__gte': {
                 'type': 'date',
-                'field_label': 'Last modified after',
+                'field_label': 'Band updated after',
             },
             'band__datetime__date__lt': {
                 'type': 'date',
-                'field_label': 'Last modified before',
+                'field_label': 'Band updated before',
             },
             'band__fee__gt': {
                 'type': 'integer',
