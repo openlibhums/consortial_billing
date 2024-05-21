@@ -416,8 +416,11 @@ class Band(models.Model):
 
     def __str__(self):
         yyyy_mm_dd = self.datetime.strftime("%Y-%m-%d")
-        return f'{self.currency.symbol}{self.fee if self.fee else "?"}, ' \
-               f'{self.level.name}, {self.size.name}, {self.country.name}, ' \
+        return f'{self.currency.symbol if self.currency else ""}' \
+               f'{self.fee if self.fee else "?"}, ' \
+               f'{self.level.name if self.level else ""}, ' \
+               f'{self.size.name if self.size else ""}, ' \
+               f'{self.country.name if self.country else ""}, ' \
                f'{ self.get_category_display() }, created {yyyy_mm_dd}'
 
     class Meta:

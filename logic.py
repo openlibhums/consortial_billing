@@ -163,7 +163,6 @@ def get_base_band(level=None, country=None):
 def get_base_bands():
     # We create the result set this crude way to avoid being
     # reliant on postgreSQL for order_by + distinct.
-    # base_bands will only ever be a handful of items.
     base_bands = set()
     # Get any country-specific base bands (by billing agent)
     for country in countries_with_billing_agents():
