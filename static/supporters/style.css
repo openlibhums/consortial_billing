@@ -3,6 +3,14 @@
     margin-left: 0;
     list-style-type: none;
   }
+  .header-with-button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    a {
+      margin-bottom: 0;
+    }
+  }
   .supporter-details {
     display: flex;
     flex-direction: column;

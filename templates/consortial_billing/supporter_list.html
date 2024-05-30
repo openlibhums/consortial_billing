@@ -27,7 +27,15 @@
         </li>
       </ul>
     </aside>
-    <h2>All Supporters</h2>
+    <div class="header-with-button">
+        <h2>All Supporters</h2>
+        <a
+          href="{% url 'new_supporter' %}?return={{ request.get_full_path|urlencode }}"
+          class="button success small">
+          <i class="fa fa-plus"></i>
+          Create new supporter
+        </a>
+    </div>
     {% include "common/elements/sorting.html" with form_id=facet_form.id %}
     {% for supporter in supporter_list %}
       <div class="box">
@@ -36,14 +44,6 @@
     {% empty %}
       <div class="box">
         <p><strong>No supporters to display.</strong></p>
-        <div>
-          <a
-            href="{% url 'new_supporter' %}?return={{ request.get_full_path|urlencode }}"
-            class="button success small">
-            <i class="fa fa-plus"></i>
-            Create new supporter
-          </a>
-        </div>
       </div>
     {% endfor %}
     {% include "common/elements/pagination.html" with form_id=facet_form.id %}
