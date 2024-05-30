@@ -313,8 +313,8 @@ def edit_supporter_band(request, supporter_id=None):
             # and then they press the Autofill button,
             # we want to check the API and autofill the form
             # with a matching ROR,
-            # before the rest of the form data is validated.
-            ror = supporter.get_ror(name=request.POST['name'])
+            # before the form data is validated.
+            ror = utils.get_ror(request.POST['name'])
             if ror:
                 post_data = request.POST.copy()
                 post_data.update({'ror': ror})
@@ -322,7 +322,7 @@ def edit_supporter_band(request, supporter_id=None):
                     post_data,
                     instance=supporter,
                 )
-                if ror == supporter.ror:
+                if supporter and ror == supporter.ror:
                     message = f'Existing ROR confirmed: { ror }.'
                 else:
                     message = f'Autofilled new ROR: { ror }.'
@@ -341,6 +341,7 @@ def edit_supporter_band(request, supporter_id=None):
                 supporter.band = band
                 supporter.save()
 
+            # Add save messages
             if 'save_continue' in request.POST or 'save_return' in request.POST:
                 message = f'{ supporter.name } details saved.'
                 messages.add_message(request, messages.SUCCESS, message)
@@ -350,7 +351,9 @@ def edit_supporter_band(request, supporter_id=None):
                 elif band:
                     message = 'Something went wrong. Please try again.'
                     messages.add_message(request, messages.WARNING, message)
-            elif 'remove_contact' in request.POST:
+
+            # Handle each exclusive case
+            if 'remove_contact' in request.POST:
                 contact = supporter_models.SupporterContact.objects.get(
                     pk=request.POST.get('remove_contact')
                 )
@@ -378,6 +381,7 @@ def edit_supporter_band(request, supporter_id=None):
                     supportercontact__supporter=supporter,
                 )[:10]
 
+            # Handle create
             if not supporter_id:
                 return redirect(
                     reverse(
@@ -386,6 +390,7 @@ def edit_supporter_band(request, supporter_id=None):
                     )
                 )
         else:
+            # Show field errors as messages
             for form in [supporter_form, band_form]:
                 for field, errors in form.errors.items():
                     label = form.fields[field].label

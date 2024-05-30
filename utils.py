@@ -9,6 +9,7 @@ import json
 import decimal
 from typing import List
 from tqdm import tqdm
+from urllib.parse import urlencode
 
 from django.utils import timezone
 from django.core.files.base import ContentFile
@@ -293,3 +294,20 @@ def update_demo_band_data():
 def get_saved_demo_band_data() -> List:
     filename = os.path.join(plugin_settings.SHORT_NAME, DEMO_DATA_FILENAME)
     return open_json_media_file(filename)
+
+
+def get_ror(name):
+    """ Gets a ROR that exactly matches an organization name
+    """
+    base = 'https://api.ror.org/organizations'
+    params = { 'affiliation': name }
+    response = requests.get(f'{ base }?{ urlencode(params) }')
+    try:
+        response.raise_for_status()
+        content = json.loads(response.content)
+        record = content['items'].pop() if content['items'] else None
+        if record and record['chosen'] and record['matching_type'] == 'EXACT':
+            return record['organization']['id']
+    except requests.HTTPError as error:
+        logger.error('Unexpected ROR API response:')
+        logger.error(error)
