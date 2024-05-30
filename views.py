@@ -5,18 +5,17 @@ from django.urls import reverse
 from django.core.management import call_command
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import OuterRef, Subquery
 from django.utils.decorators import method_decorator
 
 from plugins.consortial_billing import utils, \
      logic, models as supporter_models, plugin_settings, forms
 from plugins.consortial_billing.notifications import notify
 
-from core.views import FilteredArticlesListView
+from core.views import GenericFacetedListView
 from core.models import Account
 from core.model_utils import search_model_admin
 from cms import models as cms_models
-from plugins.consortial_billing.utils import short_country_name
 from utils.logger import get_logger
 from security.decorators import base_check_required
 
@@ -194,12 +193,21 @@ def view_custom_page(request, page_name):
 
 
 @method_decorator(staff_member_required, name='dispatch')
-class SupporterList(FilteredArticlesListView):
+class SupporterList(GenericFacetedListView):
 
     model = supporter_models.Supporter
     template_name = 'consortial_billing/supporter_list.html'
 
     def get_facets(self):
+
+        band_obj = supporter_models.Band.objects.filter(
+            current_supporter__pk=OuterRef('pk'),
+        )
+
+        band_category = Subquery(
+            band_obj.values('category')[:1]
+        )
+
         return {
             'q': {
                 'type': 'search',
@@ -208,6 +216,14 @@ class SupporterList(FilteredArticlesListView):
             'active': {
                 'type': 'boolean',
                 'field_label': 'Active',
+            },
+            'band_category': {
+                'type': 'charfield_with_choices',
+                'annotations': {
+                    'band_category': band_category,
+                },
+                'model_choices': supporter_models.Band._meta.get_field('category').choices,
+                'field_label': 'Band category',
             },
             'band__datetime__date__gte': {
                 'type': 'date',
