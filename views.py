@@ -294,7 +294,7 @@ def edit_supporter_band(request, supporter_id=None):
     band_form = forms.EditBandForm(instance=band)
     user_search_form = forms.AccountAdminSearchForm()
     user_search_results = []
-    next_url = request.GET.get('return')
+    next_url = request.GET.get('next')
 
     if request.method == 'POST':
         supporter_form = forms.EditSupporterForm(
@@ -305,6 +305,33 @@ def edit_supporter_band(request, supporter_id=None):
             request.POST,
             instance=band,
         )
+
+        if 'autofill_ror' in request.POST:
+            # If a user enters an invalid ROR manually,
+            # and then they press the Autofill button,
+            # we want to check the API and autofill the form
+            # with a matching ROR,
+            # before the rest of the form data is validated.
+            ror = supporter.get_ror(name=request.POST['name'])
+            if ror:
+                post_data = request.POST.copy()
+                post_data.update({'ror': ror})
+                supporter_form = forms.EditSupporterForm(
+                    post_data,
+                    instance=supporter,
+                )
+                if ror == supporter.ror:
+                    message = f'Existing ROR confirmed: { ror }.'
+                else:
+                    message = f'Autofilled new ROR: { ror }.'
+                messages.add_message(request, messages.SUCCESS, message)
+            else:
+                messages.add_message(
+                    request,
+                    messages.WARNING,
+                    f'ROR could not be autofilled.'
+                )
+
         if supporter_form.is_valid():
             if band_form.is_valid():
                 band = band_form.save()
@@ -318,33 +345,6 @@ def edit_supporter_band(request, supporter_id=None):
                 elif band:
                     message = 'Something went wrong. Please try again.'
                     messages.add_message(request, messages.WARNING, message)
-
-            if 'autofill_ror' in request.POST:
-                ror = supporter.get_ror()
-                if ror:
-                    if ror == supporter.ror:
-                        messages.add_message(
-                            request,
-                            messages.SUCCESS,
-                            f'Existing ROR confirmed: { ror }.'
-                        )
-                    else:
-                        messages.add_message(
-                            request,
-                            messages.SUCCESS,
-                            f'Autofilled new ROR: { ror }.'
-                        )
-                    supporter.ror = ror
-                    supporter.save()
-                    supporter_form = forms.EditSupporterForm(
-                        instance=supporter,
-                    )
-                else:
-                    messages.add_message(
-                        request,
-                        messages.WARNING,
-                        f'ROR could not be autofilled.'
-                    )
             elif 'remove_contact' in request.POST:
                 contact = supporter_models.SupporterContact.objects.get(
                     pk=request.POST.get('remove_contact')
@@ -380,6 +380,16 @@ def edit_supporter_band(request, supporter_id=None):
                         kwargs={'supporter_id': supporter.pk}
                     )
                 )
+        else:
+            for form in [supporter_form, band_form]:
+                for field, errors in form.errors.items():
+                    label = form.fields[field].label
+                    for error in errors:
+                        messages.add_message(
+                            request,
+                            messages.WARNING,
+                            f'{ label }: {error}',
+                        )
 
         supporter_form = forms.EditSupporterForm(instance=supporter)
         band_form = forms.EditBandForm(instance=band)
