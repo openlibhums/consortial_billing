@@ -479,10 +479,6 @@ class Supporter(models.Model):
         max_length=255,
         blank=True,
     )
-    country = CountryField(
-        blank=True,
-        null=True,
-    )
     display = models.BooleanField(
         default=True,
         help_text="May we include your institution name "
