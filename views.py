@@ -114,7 +114,9 @@ def signup(request):
 
                 supporter_form = forms.SupporterSignupForm(request.POST)
                 if supporter_form.is_valid():
-                    supporter = supporter_form.save(commit=True, band=band)
+                    supporter = supporter_form.save(commit=False)
+                    supporter.band = band
+                    supporter.save()
                     supporter_models.SupporterContact.objects.get_or_create(
                         supporter=supporter,
                         account=request.user
@@ -152,7 +154,7 @@ def supporters(request):
         active=True,
         display=True,
     ).order_by(
-        'country', 'name'
+        'band__country', 'name'
     )
 
     if request.press.theme == 'hourglass':
@@ -333,9 +335,12 @@ def edit_supporter_band(request, supporter_id=None):
                 )
 
         if supporter_form.is_valid():
+            supporter = supporter_form.save(commit=not(band_form.is_valid()))
             if band_form.is_valid():
                 band = band_form.save()
-            supporter = supporter_form.save(band=band)
+                supporter.band = band
+                supporter.save()
+
             if 'save_continue' in request.POST or 'save_return' in request.POST:
                 message = f'{ supporter.name } details saved.'
                 messages.add_message(request, messages.SUCCESS, message)

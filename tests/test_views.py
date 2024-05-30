@@ -126,9 +126,11 @@ class ViewTests(test_models.TestCaseWithData):
     @patch('plugins.consortial_billing.views.render')
     @patch('plugins.consortial_billing.forms.BandForm.save')
     @patch('plugins.consortial_billing.forms.SupporterSignupForm.save')
+    @patch('plugins.consortial_billing.models.Supporter.save')
     def test_signup_post_sign_up_complete(
         self,
         supporter_save,
+        supporter_form_save,
         band_save,
         render,
         event_signup,
@@ -144,13 +146,11 @@ class ViewTests(test_models.TestCaseWithData):
             'name': self.supporter_antwerp.name,
         }
         band_save.return_value = self.band_calc_silver_be_small
-        supporter_save.return_value = self.supporter_antwerp
+        supporter_form_save.return_value = self.supporter_antwerp
         views.signup(self.request)
         band_save.assert_called_once_with(commit=True)
-        supporter_save.assert_called_once_with(
-            commit=True,
-            band=band_save.return_value,
-        )
+        supporter_form_save.assert_called_once_with(commit=False)
+        supporter_save.assert_called_once()
         context = render.call_args.args[2]
         self.assertTrue(context['complete_text'])
         self.assertFalse(context['redirect_text'])

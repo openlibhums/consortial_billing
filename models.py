@@ -579,6 +579,19 @@ class Supporter(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+
+        # If the band has been changed, create an old band record.
+        if self.band and self.pk:
+            old_band = Supporter.objects.get(pk=self.pk).band
+            if old_band and old_band != self.band:
+                OldBand.objects.get_or_create(
+                    supporter=self,
+                    band=old_band,
+                )
+
+        super().save(*args, **kwargs)
+
     class Meta:
         ordering = ('name',)
 
