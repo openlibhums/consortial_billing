@@ -551,7 +551,7 @@ class Supporter(models.Model):
         base = 'https://api.ror.org/organizations'
         params = { 'affiliation': self.name }
         response = requests.get(f'{ base }?{ urlencode(params) }')
-        if response.status_code == 200:
+        if response.ok:
             content = json.loads(response.content)
             record = content['items'].pop() if content['items'] else None
             if record and record['chosen'] and record['matching_type'] == 'EXACT':
@@ -564,6 +564,10 @@ class Supporter(models.Model):
                     return ror
                 except ValidationError:
                     logger.error(f'ROR API returned invalid ROR!')
+        else:
+            logger.error(
+                f'Unexpected response: {response.status_code} {response.url}'
+            )
 
     def __str__(self):
         return self.name
