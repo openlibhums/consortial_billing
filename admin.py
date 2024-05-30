@@ -188,26 +188,6 @@ class BandAdmin(admin.ModelAdmin):
         OldBandInline,
     ]
 
-    def get_readonly_fields(self, request, obj=None):
-        if settings.DEBUG:
-            return ()
-        elif obj and obj.category == 'base':
-            return (
-                'size',
-                'country',
-                'currency',
-                'level',
-                'fee',
-                'warnings',
-                'datetime',
-                'billing_agent',
-                'category'
-            )
-        else:
-            return (
-                'datetime',
-            )
-
 
 class SupporterAdmin(admin.ModelAdmin):
 

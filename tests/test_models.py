@@ -288,7 +288,7 @@ class ModelTests(TestCaseWithData):
         agent = self.band_base_standard_gb.determine_billing_agent()
         self.assertEqual(agent, self.agent_gb)
 
-    def test_band_save(self):
+    def test_band_save_calculated(self):
         with patch.object(
             self.band_calc_standard_gb_large,
             'calculate_fee',
@@ -297,3 +297,18 @@ class ModelTests(TestCaseWithData):
             self.band_calc_standard_gb_large.fee = None
             self.band_calc_standard_gb_large.save()
             calculate_fee.assert_called_once()
+
+    def test_band_save_special_formerly_calculated(self):
+        # Set up data
+        self.band_calc_standard_gb_large.category = 'special'
+        new_band = self.band_calc_standard_gb_large.save()
+
+        # Restore instances
+        self.band_calc_standard_gb_large.category = 'calculated'
+        self.band_calc_standard_gb_large.save()
+
+        # Run test
+        self.assertNotEqual(
+            self.band_calc_standard_gb_large,
+            new_band,
+        )

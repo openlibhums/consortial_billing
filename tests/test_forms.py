@@ -56,7 +56,6 @@ class FormTests(test_models.TestCaseWithData):
         }
         band_form = forms.BandForm(data)
         band = band_form.save(commit=True)
-        self.band_calc_silver_be_small.pk
         self.assertEqual(band.pk, self.band_calc_silver_be_small.pk)
 
     @patch(f'{CB}.models.Band.calculate_fee')
