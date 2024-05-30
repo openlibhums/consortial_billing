@@ -126,21 +126,6 @@ class SupporterSignupForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['name'].required = True
 
-    def save(self, commit=True, band=None):
-        supporter = super().save(commit=False)
-        if band:
-            if supporter.band and supporter.band != band:
-                supporter_models.OldBand.objects.get_or_create(
-                    supporter=supporter,
-                    band=supporter.band,
-                )
-            supporter.band = band
-            supporter.prospective_band = None
-            supporter.country = band.country
-        if commit:
-            supporter.save()
-        return supporter
-
 
 class EditSupporterForm(SupporterSignupForm):
 

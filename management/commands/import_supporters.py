@@ -75,5 +75,4 @@ class Command(BaseCommand):
                     name=row.get('name'),
                     active=active,
                     display=True,
-                    country=country,
                 )

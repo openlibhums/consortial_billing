@@ -299,11 +299,11 @@ class ModelTests(TestCaseWithData):
             calculate_fee.assert_called_once()
 
     def test_band_save_special_formerly_calculated(self):
-        # Set up data
+        # Set up test data
         self.band_calc_standard_gb_large.category = 'special'
         new_band = self.band_calc_standard_gb_large.save()
 
-        # Restore instances
+        # Restore data
         self.band_calc_standard_gb_large.category = 'calculated'
         self.band_calc_standard_gb_large.save()
 
@@ -312,3 +312,19 @@ class ModelTests(TestCaseWithData):
             self.band_calc_standard_gb_large,
             new_band,
         )
+
+    def test_supporter_save_old_band(self):
+        # Set up test data
+        self.supporter_bbk.band = self.band_calc_silver_gb_large
+        self.supporter_bbk.save()
+
+        # Restore data
+        self.supporter_bbk.band = self.band_calc_standard_gb_large
+        self.supporter_bbk.save()
+
+        # Run test
+        old_bbk_band = models.OldBand.objects.get(
+            supporter=self.supporter_bbk,
+            band=self.band_calc_standard_gb_large,
+        )
+        self.assertTrue(old_bbk_band)
