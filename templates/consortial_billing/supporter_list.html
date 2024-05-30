@@ -1,6 +1,11 @@
 {% extends "admin/core/base.html" %}
 {% load humanize %}
+{% load static %}
 
+{% block css %}
+  {{ block.super }}
+  <link href="{% static "supporters/style.css" %}" rel="stylesheet">
+{% endblock css %}
 {% block title %}All Supporters - {{ request.press.name }}{% endblock title %}
 
 {% block breadcrumbs %}
@@ -10,7 +15,7 @@
 {% endblock %}
 
 {% block body %}
-<section id="content" class="row-expanded">
+<section id="content" class="row-expanded supporter-list">
   <div class="large-8 columns border-right">
     <aside class="hide-for-large">
       <ul class="accordion" data-accordion data-allow-all-closed="true">
@@ -47,10 +52,4 @@
     {% include 'elements/journal/article_list_filters.html' %}
   </aside>
 </section>
-<style>
-  #content aside ul {
-    margin-left: 0;
-    list-style-type: none;
-  }
-</style>
 {% endblock body %}

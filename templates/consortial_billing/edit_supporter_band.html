@@ -1,6 +1,11 @@
 {% extends "admin/core/base.html" %}
 {% load foundation %}
+{% load static %}
 
+{% block css %}
+  {{ block.super }}
+  <link href="{% static "supporters/style.css" %}" rel="stylesheet">
+{% endblock css %}
 {% block title %}Edit {{ supporter.name }} - {{ request.press.name }}{% endblock title %}
 
 {% block breadcrumbs %}
@@ -18,7 +23,7 @@
 
 {% block body %}
 <form id="edit_supporter_band" method="POST">
-  <div class="large-9 columns">
+  <div class="large-9 columns edit-supporter-band">
     {% csrf_token %}
     <div class="box">
       <h2 id="supporter-info">Supporter Info</h2>
@@ -151,39 +156,4 @@
     </div>
   </div>
 </form>
-<style>
-#edit_supporter_band {
-  h2 {
-    margin: 0.5rem .85rem;
-  }
-  .search-results,
-  .button-row,
-  .contact-row {
-    margin: 0 1em;
-    display: flex;
-    flex-direction: column;
-    column-gap: 2rem;
-  }
-  .button-row {
-    justify-content: space-between;
-    align-content: flex-start;
-  }
-  .search-bar {
-    display: flex;
-    margin-right: 1em;
-    column-gap: 2rem;
-    justify-content: space-between;
-    align-items: flex-end;
-  }
-  .search-field {
-    flex-grow: 1;
-  }
-  @media (min-width: 640px) {
-    .button-row,
-    .contact-row {
-      flex-direction: row;
-    }
-  }
-}
-</style>
 {% endblock body %}
