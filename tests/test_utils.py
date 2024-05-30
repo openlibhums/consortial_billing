@@ -163,3 +163,27 @@ class UtilsTests(test_models.TestCaseWithData):
         # Restore data
         self.level_standard.default = True
         self.level_standard.save()
+
+    @patch('requests.get')
+    @patch('json.loads')
+    def test_get_ror(self, json_loads, mock_get):
+        json_loads.return_value = {
+            'items': [
+                {
+                    'chosen': True,
+                    'matching_type': 'EXACT',
+                    'organization': {
+                        'id': 'The Holy Grorl'
+                    }
+                }
+            ]
+        }
+        response = Mock()
+        type(response).status_code = PropertyMock(return_value=200)
+        mock_get.return_value = response
+        name = 'Organization Name'
+        ror = utils.get_ror(name)
+        mock_get.assert_called_once_with(
+            f'https://api.ror.org/organizations?affiliation=Organization+Name'
+        )
+        self.assertEqual(ror, 'The Holy Grorl')

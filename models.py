@@ -1,17 +1,14 @@
 import uuid
 import os
 import re
-import json
 import decimal
 from typing import Tuple
-from urllib.parse import urlencode
-import requests
 
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from django.core.exceptions import ValidationError, ImproperlyConfigured
+from django.core.exceptions import ValidationError
 from django.shortcuts import reverse
 
 from django_countries.fields import CountryField
@@ -552,29 +549,12 @@ class Supporter(models.Model):
             args=(self.pk, ),
         )
 
-    def get_ror(self, save=False, overwrite=False, name=None):
-        base = 'https://api.ror.org/organizations'
-        params = { 'affiliation': name or self.name }
-        response = requests.get(f'{ base }?{ urlencode(params) }')
-
-        try:
-            response.raise_for_status()
-            content = json.loads(response.content)
-            record = content['items'].pop() if content['items'] else None
-            if record and record['chosen'] and record['matching_type'] == 'EXACT':
-                ror = record['organization']['id']
-                try:
-                    validate_ror(ror)
-                    if save and (not self.ror or overwrite):
-                        self.ror = ror
-                        self.save()
-                    return ror
-                except ValidationError:
-                    logger.error(f'ROR API returned invalid ROR!')
-        except requests.HTTPError as error:
-            logger.error('Unexpected ROR API response:')
-            logger.error(error)
-
+    def get_ror(self, save=False, overwrite=False):
+        ror = utils.get_ror(self.name)
+        if ror and save and (not self.ror or overwrite):
+            self.ror = ror
+            self.save()
+        return ror
 
     def __str__(self):
         return self.name
