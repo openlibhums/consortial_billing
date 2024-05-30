@@ -24,13 +24,16 @@ class SupporterContactInline(admin.TabularInline):
 class SupporterInline(admin.TabularInline):
     fk_name = 'band'
     model = models.Supporter
-    fields = ('name', 'country')
-    readonly_fields = ('name', 'country')
+    fields = ('name', '_country')
+    readonly_fields = ('name', '_country')
     show_change_link = True
     can_delete = False
 
     def has_add_permission(self, request, obj):
         return False
+
+    def _country(self, obj):
+        return obj.band.country.name if obj and obj.band else ''
 
 
 class OldBandInline(admin.TabularInline):
@@ -199,7 +202,7 @@ class SupporterAdmin(admin.ModelAdmin):
         '_contacts',
         'address',
         'postal_code',
-        'country',
+        '_country',
         'size',
         'level',
         'fee',
@@ -247,6 +250,9 @@ class SupporterAdmin(admin.ModelAdmin):
         else:
             return ''
 
+    def _country(self, obj):
+        return obj.band.country.name if obj and obj.band else ''
+
     @admin.action(description="Export selected supporters")
     def export_supporters(self, request, queryset):
         """
@@ -259,7 +265,6 @@ class SupporterAdmin(admin.ModelAdmin):
             'ror',
             'address',
             'postal_code',
-            'country',
             'display',
             'active',
             'size',

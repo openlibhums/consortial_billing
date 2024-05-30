@@ -13,7 +13,7 @@
         {% endfor %}
       </p>
       <p>{{ supporter.address|linebreaks }}</p>
-      <p>{{ supporter.country.name }}</p>
+      <p>{{ supporter.band.country.name }}</p>
       <p>{{ supporter.postal_code|linebreaks }}</p>
       <p>Billed by: {{ supporter.billing_agent }}</p>
       <p>Active: {% if supporter.active %}Yes{% else %}No{% endif %}</p>
