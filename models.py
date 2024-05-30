@@ -409,6 +409,15 @@ class Band(models.Model):
         if not self.fee and self.category == 'calculated':
             self.fee, self.warnings = self.calculate_fee()
 
+        # The user has changed an existing band from calculated to special.
+        # In this case we want to create a new band object so we do not throw
+        # off other supporter fees that may be dependant on the existing band.
+        if self.pk and self.category == 'special':
+            previous_category = Band.objects.get(pk=self.pk)
+            if previous_category == 'calculated':
+                self.warnings = ''
+                self.pk = None
+
         # to do: change the type if the fee entered is
         # different than the calculated one
 
