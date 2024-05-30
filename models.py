@@ -547,11 +547,13 @@ class Supporter(models.Model):
             args=(self.pk, ),
         )
 
-    def get_ror(self, save=False, overwrite=False):
+    def get_ror(self, save=False, overwrite=False, name=None):
         base = 'https://api.ror.org/organizations'
-        params = { 'affiliation': self.name }
+        params = { 'affiliation': name or self.name }
         response = requests.get(f'{ base }?{ urlencode(params) }')
-        if response.ok:
+
+        try:
+            response.raise_for_status()
             content = json.loads(response.content)
             record = content['items'].pop() if content['items'] else None
             if record and record['chosen'] and record['matching_type'] == 'EXACT':
@@ -564,10 +566,10 @@ class Supporter(models.Model):
                     return ror
                 except ValidationError:
                     logger.error(f'ROR API returned invalid ROR!')
-        else:
-            logger.error(
-                f'Unexpected response: {response.status_code} {response.url}'
-            )
+        except requests.HTTPError as error:
+            logger.error('Unexpected ROR API response:')
+            logger.error(error)
+
 
     def __str__(self):
         return self.name
