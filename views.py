@@ -219,6 +219,10 @@ class SupporterList(GenericFacetedListView):
                 'type': 'boolean',
                 'field_label': 'Active',
             },
+            'display': {
+                'type': 'boolean',
+                'field_label': 'Display',
+            },
             'band_category': {
                 'type': 'charfield_with_choices',
                 'annotations': {
