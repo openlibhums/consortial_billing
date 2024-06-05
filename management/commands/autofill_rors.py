@@ -42,7 +42,7 @@ class Command(BaseCommand):
         else:
             supporters = models.Supporter.objects.filter(ror='')
         for supporter in supporters:
-            time.sleep(.1)
+            time.sleep(.2)
             try:
                 existing_ror = supporter.ror
                 ror = supporter.get_ror(
