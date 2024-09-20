@@ -10,8 +10,8 @@ SHORT_NAME = 'consortial_billing'
 MANAGER_URL = 'supporters_manager'
 DESCRIPTION = 'This plugin helps presses manage consortial support'
 AUTHOR = 'Open Library of Humanities'
-VERSION = '2.1'
-JANEWAY_VERSION = "1.6.0"
+VERSION = '2.2'
+JANEWAY_VERSION = "1.7"
 IS_WORKFLOW_PLUGIN = False
 
 ON_SIGNUP = "on_signup"
