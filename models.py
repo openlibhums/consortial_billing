@@ -519,6 +519,14 @@ class Supporter(models.Model):
         return self.band.size if self.band else None
 
     @property
+    def country(self):
+        return self.band.country if self.band else None
+
+    @property
+    def country_name(self):
+        return self.band.country.name if self.band and self.band.country else ''
+
+    @property
     def level(self):
         return self.band.level if self.band else None
 

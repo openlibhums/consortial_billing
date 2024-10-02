@@ -153,6 +153,7 @@ def supporters(request):
     supporters = supporter_models.Supporter.objects.filter(
         active=True,
         display=True,
+        band__isnull=False,
     ).order_by(
         'band__country', 'name'
     )
