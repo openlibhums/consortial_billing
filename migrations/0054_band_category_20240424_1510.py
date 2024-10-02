@@ -26,13 +26,13 @@ def migrate_fixed_to_category(apps, schema_editor):
     # plus calculated bands dependent on it.
     Band = apps.get_model('consortial_billing', 'Band')
     for band in Band.objects.filter(fixed_fee=True):
-        new_base_band = copy(band)
-        new_base_band.pk = None
-        new_base_band.category = 'base'
-        new_base_band.save()
+        # Update existing band as calculated
         band.category = 'calculated'
         band.save()
-
+        # Create a copy with category
+        band.pk = None
+        band.category = 'base'
+        band.save()
 
 class Migration(migrations.Migration):
 
