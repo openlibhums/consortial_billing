@@ -10,16 +10,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='band',
-            name='base',
-        ),
-        migrations.RemoveField(
-            model_name='band',
-            name='display',
-        ),
-        migrations.RemoveField(
-            model_name='band',
-            name='fixed_fee',
-        ),
     ]

@@ -292,6 +292,30 @@ class Band(models.Model):
                   'for one supporter with a manually set fee.',
     )
 
+    # Deprecated fields
+    base = models.BooleanField(
+        default=False,
+        help_text='Deprecated. '
+                  'Select if this is the base band to represent '
+                  'the base fee, country, and currency for a '
+                  'given support level.',
+    )
+    display = models.BooleanField(
+        default=True,
+        help_text='Deprecated. ',
+    )
+    fixed_fee = models.BooleanField(
+        default=False,
+        help_text='Deprecated. '
+                  'Select if you want to manually set the fee '
+                  'for this band. The fee calculator for this '
+                  'band (i.e., this combination of size, level, '
+                  'country, and currency) will then return '
+                  'whatever fee you type in the fee field. '
+                  'Note: thie field has no effect on base bands, '
+                  'which do take a manually input fee.',
+    )
+
     @property
     def economic_disparity(self) -> Tuple[decimal.Decimal, str]:
         """
