@@ -38,4 +38,9 @@ urlpatterns = [
         views.edit_supporter_band,
         name='edit_supporter_band',
     ),
+    re_path(
+        r'^recommend-us/$',
+        views.recommend_us,
+        name='recommend_us',
+    ),
 ]

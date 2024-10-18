@@ -425,3 +425,12 @@ def edit_supporter_band(request, supporter_id=None):
     return render(request, template, context)
 
 
+def recommend_us(request):
+    if request.press.theme == 'hourglass':
+        template = 'custom/recommend-us.html'
+    else:
+        template = 'consortial_billing/requires_hourglass.html'
+    context = {
+
+    }
+    return render(request, template, context)
