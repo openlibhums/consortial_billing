@@ -6,6 +6,7 @@ from django.core.management import call_command
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db.models import OuterRef, Subquery
+from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
 
 from plugins.consortial_billing import utils, \
@@ -17,9 +18,23 @@ from core.models import Account
 from core.model_utils import search_model_admin
 from cms import models as cms_models
 from utils.logger import get_logger
+from utils.logic import get_current_request
 from security.decorators import base_check_required
+from submission import models as submission_models
 
 logger = get_logger(__name__)
+
+
+def hourglass(template):
+    """
+    A helper for accessing templates that only exist in Hourglass,
+    with a fallback template to explain this if needed.
+    """
+    request = get_current_request()
+    if request.press.theme == 'hourglass':
+        return template
+    else:
+        return 'consortial_billing/requires_hourglass.html'
 
 
 @staff_member_required
@@ -426,11 +441,54 @@ def edit_supporter_band(request, supporter_id=None):
 
 
 def recommend_us(request):
-    if request.press.theme == 'hourglass':
-        template = 'custom/recommend-us.html'
-    else:
-        template = 'consortial_billing/requires_hourglass.html'
+    template = hourglass('custom/recommend-us.html')
     context = {
 
     }
+    return render(request, template, context)
+
+
+@require_POST
+def recommend_us_see_matching_supporters(request):
+    query = request.POST.get('supporter_query', '')
+    supporters = supporter_models.Supporter.objects.filter(name__icontains=query)
+    template = hourglass('custom/recommend-us-see-matching-supporters.html')
+    context = {
+        "supporters": supporters,
+    }
+    return render(request, template, context)
+
+
+@require_POST
+def recommend_us_choose_role(request):
+    template = hourglass('custom/recommend-us-choose-role.html')
+    context = {}
+    return render(request, template, context)
+
+
+@require_POST
+def recommend_us_search_article(request):
+    template = hourglass('custom/recommend-us-search-article.html')
+    context = {}
+    return render(request, template, context)
+
+
+@require_POST
+def recommend_us_choose_article(request):
+    query = request.POST.get('article_query', '')
+    if query:
+        articles = request.press.published_articles.filter(title__icontains=query)
+    else:
+        articles = submission_models.Article.objects.none()
+    template = hourglass('custom/recommend-us-choose-article.html')
+    context = {
+        'articles': articles,
+    }
+    return render(request, template, context)
+
+
+@require_POST
+def recommend_us_generate_email(request):
+    template = hourglass('custom/recommend-us-generate-email.html')
+    context = {}
     return render(request, template, context)
