@@ -148,5 +148,65 @@
     "value": {
       "default": "<p>Note: We don't have data for the country selected, so we could not adjust the GNI per capita accordingly, but you can still sign up! Please contact us for a custom quote.</p>"
     }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "General email for recommending the OLH",
+      "is_translatable": true,
+      "name": "recommend_us_general_email",
+      "pretty_name": "Recommend Us General Email",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "<p>Dear Librarian,</p><p>I am writing to ask if the library would be able to join the Open Library of Humanities please? I am very impressed with their <a href=\"https://www.openlibhums.org/site/become-a-supporter/\">excellent cause as a diamond open-access publisher</a>. Many thanks.</p>"
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Author email for recommending the OLH",
+      "is_translatable": true,
+      "name": "recommend_us_author_email",
+      "pretty_name": "Recommend Us Author Email",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "<p>Dear Librarian,</p><p>I am writing to ask if the library would be able to join the Open Library of Humanities please? I recently published my paper ‘<a href=\"{% if article.doi %}{{ article.doi }}{% else %}{{ article.url }}{% endif %}\">{{ article.title|safe }}</a>’ in <i>{{ article.journal.name }}</i> with the Open Library of Humanities, and I was very impressed with their publication process and <a href=\"https://www.openlibhums.org/site/become-a-supporter/\">excellent cause as a diamond open-access publisher</a>. Many thanks.</p>"
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Reader email for recommending the OLH",
+      "is_translatable": true,
+      "name": "recommend_us_reader_email",
+      "pretty_name": "Recommend Us Reader Email",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "<p>Dear Librarian,</p><p>I am writing to ask if the library would be able to join the Open Library of Humanities please? I recently read ‘<a href=\"{% if article.doi %}{{ article.doi }}{% else %}{{ article.url }}{% endif %}\">{{ article.title|safe }}</a>’ in <i>{{ article.journal.name }}</i>, and I was very impressed with their publication process and <a href=\"https://www.openlibhums.org/site/become-a-supporter/\">excellent cause as a diamond open-access publisher</a>. Many thanks.</p>"
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Editor email for recommending the OLH",
+      "is_translatable": true,
+      "name": "recommend_us_editor_email",
+      "pretty_name": "Recommend Us Editor Email",
+      "type": "rich-text"
+    },
+    "value": {
+      "default": "<p>Dear Librarian,</p><p>I am writing to ask if the library would be able to join the Open Library of Humanities please? I am an editor for <a href=\"{{ journal.site_url }}\"><i>{{ journal.name }}</i></a>, and I am in strong support of their <a href=\"https://www.openlibhums.org/site/become-a-supporter/\">excellent cause as a diamond open-access publisher</a>. Many thanks.</p>"
+    }
   }
 ]
