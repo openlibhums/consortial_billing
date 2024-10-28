@@ -38,4 +38,44 @@ urlpatterns = [
         views.edit_supporter_band,
         name='edit_supporter_band',
     ),
+    re_path(
+        r'^recommend-us/$',
+        views.recommend_us,
+        name='recommend_us',
+    ),
+    re_path(
+        r'^recommend-us/see-matching-supporters/$',
+        views.recommend_us_see_matching_supporters,
+        name='recommend_us_see_matching_supporters',
+    ),
+    re_path(
+        r'^recommend-us/choose-role/$',
+        views.recommend_us_choose_role,
+        name='recommend_us_choose_role',
+    ),
+    re_path(
+        r'^recommend-us/search-article/$',
+        views.recommend_us_search_article,
+        name='recommend_us_search_article',
+    ),
+    re_path(
+        r'^recommend-us/search-journal/$',
+        views.recommend_us_search_journal,
+        name='recommend_us_search_journal',
+    ),
+    re_path(
+        r'^recommend-us/choose-article/$',
+        views.recommend_us_choose_article,
+        name='recommend_us_choose_article',
+    ),
+    re_path(
+        r'^recommend-us/choose-journal/$',
+        views.recommend_us_choose_journal,
+        name='recommend_us_choose_journal',
+    ),
+    re_path(
+        r'^recommend-us/generate-email/$',
+        views.recommend_us_generate_email,
+        name='recommend_us_generate_email',
+    ),
 ]
