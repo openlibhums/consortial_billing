@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.db.models import OuterRef, Subquery
 from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
-from django.template import Template, RequestContext, Context
+from django.template import Template, RequestContext
 
 from plugins.consortial_billing import utils, \
      logic, models as supporter_models, plugin_settings, forms
@@ -29,7 +29,7 @@ from submission import models as submission_models
 logger = get_logger(__name__)
 
 
-def hourglass(template):
+def requires_hourglass(template):
     """
     A helper for accessing templates that only exist in Hourglass,
     with a fallback template to explain this if needed.
@@ -450,7 +450,7 @@ def recommend_us(request):
     to generate an email for recommending us to their librarian.
     Depends on the subsequent views via HTMX.
     """
-    template = hourglass('custom/recommend-us.html')
+    template = requires_hourglass('custom/recommend-us.html')
     context = {
         'step': '1',
     }
@@ -464,7 +464,9 @@ def recommend_us_see_matching_supporters(request):
         supporters = supporter_models.Supporter.objects.filter(name__icontains=query)
     else:
         supporters = supporter_models.Supporter.objects.none()
-    template = hourglass('custom/recommend-us-see-matching-supporters.html')
+    template = requires_hourglass(
+        'custom/recommend-us-see-matching-supporters.html'
+    )
     context = {
         'supporters': supporters,
         'step': '2',
@@ -475,7 +477,7 @@ def recommend_us_see_matching_supporters(request):
 
 @require_POST
 def recommend_us_choose_role(request):
-    template = hourglass('custom/recommend-us-choose-role.html')
+    template = requires_hourglass('custom/recommend-us-choose-role.html')
     context = {
         'step': '3',
     }
@@ -491,7 +493,7 @@ def recommend_us_search_article(request):
         context['role'] = 'author'
     elif 'reader' in request.POST:
         context['role'] = 'reader'
-    template = hourglass('custom/recommend-us-search-article.html')
+    template = requires_hourglass('custom/recommend-us-search-article.html')
     return render(request, template, context)
 
 
@@ -501,7 +503,7 @@ def recommend_us_search_journal(request):
         'role': 'editor',
         'step': '4',
     }
-    template = hourglass('custom/recommend-us-search-journal.html')
+    template = requires_hourglass('custom/recommend-us-search-journal.html')
     return render(request, template, context)
 
 
@@ -509,11 +511,12 @@ def recommend_us_search_journal(request):
 def recommend_us_choose_article(request):
     query = request.POST.get('article_query', '')
     if query:
-        articles = request.press.published_articles.filter(title__icontains=query)
+        search_filters = {"title": True}
+        articles = submission_models.Article.objects.search(query, search_filters)
     else:
         articles = submission_models.Article.objects.none()
     role = request.POST.get('role', '')
-    template = hourglass('custom/recommend-us-choose-article.html')
+    template = requires_hourglass('custom/recommend-us-choose-article.html')
     context = {
         'articles': articles,
         'step': '5',
@@ -535,7 +538,7 @@ def recommend_us_choose_journal(request):
     else:
         journal_names = SettingValue.objects.none()
     role = request.POST.get('role', '')
-    template = hourglass('custom/recommend-us-choose-journal.html')
+    template = requires_hourglass('custom/recommend-us-choose-journal.html')
     context = {
         'journal_names': journal_names,
         'step': '5',
@@ -573,25 +576,19 @@ def recommend_us_generate_email(request):
 
     article_pk = request.POST.get('article_pk', '')
     if article_pk:
-        setting_context.push(
-            {
-                'article': get_object_or_404(
-                    submission_models.Article,
-                    pk=article_pk,
-                )
-            }
-        )
+        try:
+            article = request.press.published_articles.get(pk=article_pk)
+            setting_context['article'] = article
+        except submission_models.Article.DoesNotExist:
+            article = None
 
     journal_pk = request.POST.get('journal_pk', '')
     if journal_pk:
-        setting_context.push(
-            {
-                'journal': get_object_or_404(
-                    Journal,
-                    pk=journal_pk,
-                )
-            }
-        )
+        try:
+            journal = request.press.public_journals.get(pk=journal_pk)
+            setting_context['journal'] = journal
+        except Journal.DoesNotExist:
+            journal = None
 
     email = template.render(setting_context)
     context = {
@@ -599,5 +596,5 @@ def recommend_us_generate_email(request):
         'step': step,
     }
 
-    template = hourglass('custom/recommend-us-generate-email.html')
+    template = requires_hourglass('custom/recommend-us-generate-email.html')
     return render(request, template, context)
