@@ -598,3 +598,17 @@ def recommend_us_generate_email(request):
 
     template = requires_hourglass('custom/recommend-us-generate-email.html')
     return render(request, template, context)
+
+
+@require_POST
+def recommend_us_confirm_sent(request):
+    template = requires_hourglass('custom/recommend-us-confirm-sent.html')
+    previous_step = request.POST.get('previous_step', '6')
+    try:
+        step = str(int(previous_step) + 1)
+    except ValueError:
+        step = '7'
+    context = {
+        'step': step,
+    }
+    return render(request, template, context)
