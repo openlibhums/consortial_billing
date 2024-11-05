@@ -78,4 +78,9 @@ urlpatterns = [
         views.recommend_us_generate_email,
         name='recommend_us_generate_email',
     ),
+    re_path(
+        r'^recommend-us/confirm-sent/$',
+        views.recommend_us_confirm_sent,
+        name='recommend_us_confirm_sent',
+    ),
 ]
