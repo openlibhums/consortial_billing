@@ -232,9 +232,11 @@ class SupporterList(GenericFacetedListView):
         band_obj = supporter_models.Band.objects.filter(
             current_supporter__pk=OuterRef('pk'),
         )
-
         band_category = Subquery(
             band_obj.values('category')[:1]
+        )
+        band_country = Subquery(
+            band_obj.values('country')[:1]
         )
 
         return {
@@ -291,6 +293,14 @@ class SupporterList(GenericFacetedListView):
                 'model': supporter_models.SupporterSize,
                 'field_label': 'Institution size',
                 'choice_label_field': 'name',
+            },
+            'band_country': {
+                'type': 'charfield_with_choices',
+                'annotations': {
+                    'band_country': band_country,
+                },
+                'model_choices': supporter_models.Band._meta.get_field('country').choices,
+                'field_label': 'Country',
             },
         }
 
