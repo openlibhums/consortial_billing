@@ -15,6 +15,7 @@ from django_countries.fields import CountryField
 
 from plugins.consortial_billing import utils, logic, plugin_settings
 
+from core.model_utils import JanewayBleachField
 from utils.logger import get_logger
 logger = get_logger(__name__)
 
@@ -508,7 +509,7 @@ class Supporter(models.Model):
         help_text="Whether the supporter is active",
     )
 
-    internal_notes = models.TextField(
+    internal_notes = JanewayBleachField(
         max_length=500,
         blank=True,
         help_text="Internal notes on this supporter",
