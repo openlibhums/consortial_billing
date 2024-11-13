@@ -47,7 +47,9 @@
       {% endif %}
       <details>
         <summary>Internal notes</summary>
-        <p>{{ supporter.internal_notes|linebreaks }}</p>
+        <div>
+          {{ supporter.internal_notes|safe }}
+        </div>
       </details>
     </div>
     <div class="actions">
