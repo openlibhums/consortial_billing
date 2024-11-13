@@ -1,34 +1,3 @@
-.supporter-list {
-  aside ul {
-    margin-left: 0;
-    list-style-type: none;
-  }
-  .header-with-button {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    a {
-      margin-bottom: 0;
-    }
-  }
-  .supporter-details {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    details summary {
-      cursor: pointer;
-    }
-    details {
-      padding-bottom: 1rem;
-    }
-  }
-  @media (min-width: 968px) {
-    .supporter-details {
-      flex-direction: row;
-    }
-  }
-}
-
 .edit-supporter-band {
   h2 {
     margin: 0.5rem .85rem;
