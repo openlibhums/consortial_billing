@@ -1,49 +1,41 @@
 {% load humanize %}
+
 <section id="supporter{{ supporter.pk }}">
   <h3>
     {{ supporter.name }}
   </h3>
-  <hr>
-  <div class="supporter-details">
-    <div class="info">
-      <p><strong>{{ supporter.band.currency.symbol }}{{ supporter.fee|default:0 }}</strong></p>
-      <p>
-        {% for contact in supporter.supportercontact_set.all %}
-          {{ contact }}{% if not forloop.last %}, {% endif %}
-        {% endfor %}
-      </p>
-      <p>{{ supporter.address|linebreaks }}</p>
-      <p>{{ supporter.band.country.name }}</p>
-      <p>{{ supporter.postal_code|linebreaks }}</p>
-      <p>Billed by: {{ supporter.billing_agent }}</p>
-      <p>Active: {% if supporter.active %}Yes{% else %}No{% endif %}</p>
-      <p>Display: {% if supporter.display %}Yes{% else %}No{% endif %}</p>
-      {% if supporter.ror %}
-        <p>ROR:
-          <a target="_blank" href="{{ supporter.ror }}">
-            {{ supporter.ror }}
-          </a>
-          <i class="fa fa-external-link"></i>
-        </p>
-      {% endif %}
-      <details>
-        <summary>Band details</summary>
-        <p>Created: {{ supporter.band.datetime }}</p>
-        <p>Level: {{ supporter.band.level }}</p>
-        <p>Size: {{ supporter.band.size }}</p>
-        <p>Country: {{ supporter.band.country.name }}</p>
-        <p>Currency: {{ supporter.band.currency }}</p>
-        <p>Fee: {{ supporter.band.fee }}</p>
-        <p>Warnings: {{ supporter.band.warnings }}</p>
-        <p>Prospective band: {{ supporter.prospective_band|default:"" }}</p>
-      </details>
-      {% if supporter.oldband_set.count %}
-        <details>
-          <summary>Old bands</summary>
-          {% for oldband in supporter.oldband_set.all %}
-            <p>{{ oldband.band }}</p>
+  <div class="rummage-result-details">
+    <div class="flex portrait-column landscape-column gap-0-25">
+      <div class="flex wrap gap-0-25">
+        {% if supporter.active %}
+          <div class="label success">
+            <span class="fa fa-check"></span>
+            Active
+          </div>
+        {% else %}
+          <div class="label alert">
+            <span class="fa fa-warning"></span>
+            Inactive
+          </div>
+        {% endif %}
+        {% if supporter.display %}
+          <div class="label success">
+            <span class="fa fa-eye"></span>
+            OK to display
+          </div>
+        {% else %}
+          <div class="label alert">
+            <span class="fa fa-warning"></span>
+            Not OK to display
+          </div>
+        {% endif %}
+      </div>
+      {% if supporter.supportercontact_set.exists %}
+        <div>
+          {% for contact in supporter.supportercontact_set.all %}
+            {{ contact }}{% if not forloop.last %}, {% endif %}
           {% endfor %}
-        </details>
+        </div>
       {% endif %}
       <details>
         <summary>Internal notes</summary>
@@ -51,15 +43,74 @@
           {{ supporter.internal_notes|safe }}
         </div>
       </details>
+      <div>
+        {% if supporter.address %}
+          {{ supporter.address|linebreaksbr }}
+          <br>
+        {% endif %}
+        {% if supporter.band %}
+          {{ supporter.band.country.name }}
+          <br>
+        {% endif %}
+        {% if supporter.postal_code %}
+          {{ supporter.postal_code|linebreaksbr }}
+        {% endif %}
+      </div>
     </div>
-    <div class="actions">
-      <a
-        href="{{ supporter.url }}?next={{ request.get_full_path|urlencode }}"
-        class="button small">
-        <i class="fa fa-edit"></i>
-        Edit
-      </a>
-      <p>Edited {{ supporter.band.datetime|naturaltime }}</p>
+    <div class="flex portrait-column gap-2">
+      <div>
+        <div><strong>{{ supporter.band.currency.symbol }}{{ supporter.fee|intcomma|default:0 }}</strong></div>
+        <div>Billed by {{ supporter.billing_agent }}</div>
+        {% if supporter.ror %}
+          <p>ROR:
+            <a target="_blank" href="{{ supporter.ror }}">
+              {{ supporter.ror }}
+            </a>
+            <i class="fa fa-external-link"></i>
+          </p>
+        {% endif %}
+        <details>
+          <summary>Band details</summary>
+            <div>
+              {% if supporter.band %}
+                <div>Created: {{ supporter.band.datetime }}</div>
+                <div>Level: {{ supporter.band.level }}</div>
+                <div>Size: {{ supporter.band.size }}</div>
+                <div>Country: {{ supporter.band.country.name }}</div>
+                <div>Currency: {{ supporter.band.currency }}</div>
+                <div>Fee: {{ supporter.band.fee }}</div>
+                {% if supporter.band.warnings %}
+                  <div>Warnings: {{ supporter.band.warnings }}</div>
+                {% endif %}
+                {% if supporter.band.prospective_band %}
+                  <div>Prospective band: {{ supporter.prospective_band }}</div>
+                {% endif %}
+              {% else %}
+                No band
+              {% endif %}
+            </div>
+        </details>
+        {% if supporter.oldband_set.count %}
+          <details>
+            <summary>Old bands</summary>
+            {% for oldband in supporter.oldband_set.all %}
+              <p>{{ oldband.band }}</p>
+            {% endfor %}
+          </details>
+        {% endif %}
+        <details>
+          <summary>Internal notes</summary>
+          <p>{{ supporter.internal_notes|linebreaks }}</p>
+        </details>
+      </div>
+      <div class="actions">
+        <a
+          href="{{ supporter.url }}?next={{ request.get_full_path|urlencode }}"
+          class="button small">
+          <i class="fa fa-edit"></i>
+          Edit
+        </a>
+      </div>
     </div>
   </div>
 </section>
