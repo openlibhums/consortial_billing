@@ -26,7 +26,6 @@ class Migration(migrations.Migration):
             field=core.model_utils.JanewayBleachField(
                 blank=True,
                 help_text='Internal notes on this supporter',
-                max_length=500
             ),
         ),
         migrations.RunPython(

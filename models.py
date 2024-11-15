@@ -510,7 +510,6 @@ class Supporter(models.Model):
     )
 
     internal_notes = JanewayBleachField(
-        max_length=500,
         blank=True,
         help_text="Internal notes on this supporter",
     )
