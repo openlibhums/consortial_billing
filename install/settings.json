@@ -208,5 +208,65 @@
     "value": {
       "default": "Dear Librarian,\n\nI am writing to ask if the library would be able to join the Open Library of Humanities please? I am an editor for {{ journal.name }} ( {{ journal.site_url }} ), and I am in strong support of their excellent cause as a diamond open-access publisher (see https://www.openlibhums.org/site/become-a-supporter/ ).\n\nMany thanks."
     }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "General email for thanking supporters",
+      "is_translatable": true,
+      "name": "thank_supporter_general_email",
+      "pretty_name": "Thank Supporter General Email",
+      "type": "text"
+    },
+    "value": {
+      "default": "Dear Librarian,\n\nI am writing to thank the library for being a member of the Open Library of Humanities. I am very impressed with their excellent cause as a diamond open-access publisher, and I am proud our library supports their efforts.\n\nMany thanks."
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Author email for thanking supporters",
+      "is_translatable": true,
+      "name": "thank_supporter_author_email",
+      "pretty_name": "Thank Supporter Author Email",
+      "type": "text"
+    },
+    "value": {
+      "default": "Dear Librarian,\n\nI am writing to thank the library for being a member of the Open Library of Humanities. I recently published my paper ‘{{ article.title|safe }}’ ( {% if article.doi %}{{ article.doi }}{% else %}{{ article.url }}{% endif %} ) in {{ article.journal.name }}. I was very impressed with their publication process and excellent cause as a diamond open-access publisher, and I am proud our library supports their efforts.\n\nMany thanks."
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Reader email for thanking supporters",
+      "is_translatable": true,
+      "name": "thank_supporter_reader_email",
+      "pretty_name": "Thank Supporter Reader Email",
+      "type": "text"
+    },
+    "value": {
+      "default": "Dear Librarian,\n\nI am writing to thank the library for being a member of the Open Library of Humanities. I recently read ‘{{ article.title|safe }}’ ( {% if article.doi %}{{ article.doi }}{% else %}{{ article.url }}{% endif %} ) in {{ article.journal.name }}. I was very impressed with their excellent cause as a diamond open-access publisher, and I am proud our library supports their efforts.\n\nMany thanks."
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:consortial_billing"
+    },
+    "setting": {
+      "description": "Editor email for thanking supporters",
+      "is_translatable": true,
+      "name": "thank_supporter_editor_email",
+      "pretty_name": "Thank Supporter Editor Email",
+      "type": "text"
+    },
+    "value": {
+      "default": "Dear Librarian,\n\nI am writing to thank the library for being a member of the Open Library of Humanities. I am an editor for {{ journal.name }} ( {{ journal.site_url }} ), and I am in strong support of their excellent cause as a diamond open-access publisher. I am proud our library supports their efforts.\n\nMany thanks."
+    }
   }
 ]
