@@ -41,6 +41,13 @@ def requires_hourglass(template):
         return 'consortial_billing/requires_hourglass.html'
 
 
+def get_next_step(previous_step, default='1'):
+    try:
+        return str(int(previous_step) + 1)
+    except ValueError:
+        return default
+
+
 @staff_member_required
 def manager(request):
 
@@ -469,7 +476,7 @@ def recommend_us_see_matching_supporters(request):
     )
     context = {
         'supporters': supporters,
-        'step': '2',
+        'step': get_next_step(request.POST.get('previous_step')),
         'query': query,
     }
     return render(request, template, context)
@@ -479,31 +486,31 @@ def recommend_us_see_matching_supporters(request):
 def recommend_us_choose_role(request):
     template = requires_hourglass('custom/recommend-us-choose-role.html')
     context = {
-        'step': '3',
+        'goal': request.POST.get('goal', 'recommend_us'),
+        'step': get_next_step(request.POST.get('previous_step')),
     }
     return render(request, template, context)
 
 
 @require_POST
 def recommend_us_search_article(request):
-    context = {
-        'step': '4',
-    }
-    if 'author' in request.POST:
-        context['role'] = 'author'
-    elif 'reader' in request.POST:
-        context['role'] = 'reader'
     template = requires_hourglass('custom/recommend-us-search-article.html')
+    context = {
+        'goal': request.POST.get('goal', 'recommend_us'),
+        'role': request.POST.get('role', 'general'),
+        'step': get_next_step(request.POST.get('previous_step')),
+    }
     return render(request, template, context)
 
 
 @require_POST
 def recommend_us_search_journal(request):
-    context = {
-        'role': 'editor',
-        'step': '4',
-    }
     template = requires_hourglass('custom/recommend-us-search-journal.html')
+    context = {
+        'goal': request.POST.get('goal', 'recommend_us'),
+        'role': request.POST.get('role', 'general'),
+        'step': get_next_step(request.POST.get('previous_step')),
+    }
     return render(request, template, context)
 
 
@@ -515,12 +522,12 @@ def recommend_us_choose_article(request):
         articles = submission_models.Article.objects.search(query, search_filters)
     else:
         articles = submission_models.Article.objects.none()
-    role = request.POST.get('role', '')
     template = requires_hourglass('custom/recommend-us-choose-article.html')
     context = {
+        'goal': request.POST.get('goal', 'recommend_us'),
         'articles': articles,
-        'step': '5',
-        'role': role,
+        'step': get_next_step(request.POST.get('previous_step')),
+        'role': request.POST.get('role', 'general'),
         'query': query,
     }
     return render(request, template, context)
@@ -540,8 +547,9 @@ def recommend_us_choose_journal(request):
     role = request.POST.get('role', '')
     template = requires_hourglass('custom/recommend-us-choose-journal.html')
     context = {
+        'goal': request.POST.get('goal', 'recommend_us'),
         'journal_names': journal_names,
-        'step': '5',
+        'step': get_next_step(request.POST.get('previous_step')),
         'role': role,
         'query': query,
     }
@@ -550,31 +558,27 @@ def recommend_us_choose_journal(request):
 
 @require_POST
 def recommend_us_generate_email(request):
+    goal = request.POST.get('goal', 'recommend_us')
     role = request.POST.get('role', '')
-    step = '6'
-    setting_name = 'recommend_us_general_email'
+    article_pk = request.POST.get('article_pk', '')
+    journal_pk = request.POST.get('journal_pk', '')
 
-    if role == 'author':
-        setting_name = 'recommend_us_author_email'
-    elif role == 'reader':
-        setting_name = 'recommend_us_reader_email'
-    elif role == 'editor':
-        setting_name = 'recommend_us_editor_email'
-    else:
-        # We assume this is "other" because no role input is available
-        # in the request data.
-        setting_name = 'recommend_us_general_email'
-        step = '4'
+    # Curtail possible values for security
+    if goal not in ['thank_supporter', 'recommend_us']:
+        goal = 'recommend_us'
+    if role not in ['author', 'reader', 'editor', 'general']:
+        role = 'general'
 
-    # An author, reader, or editor could not find the article or journal so
-    # selects general
-    if 'general' in request.POST:
-        setting_name = 'recommend_us_general_email'
+    # Handle situations where someone does not find their journal or article
+    if role in ['editor'] and not journal_pk:
+        role = 'general'
+    if role in ['author', 'reader'] and not article_pk:
+        role = 'general'
 
-    template = Template(utils.setting(setting_name))
+    setting_name = f'{goal}_{role}_email'
+    email_template = Template(utils.setting(setting_name))
     setting_context = RequestContext(request)
 
-    article_pk = request.POST.get('article_pk', '')
     if article_pk:
         try:
             article = request.press.published_articles.get(pk=article_pk)
@@ -582,7 +586,6 @@ def recommend_us_generate_email(request):
         except submission_models.Article.DoesNotExist:
             article = None
 
-    journal_pk = request.POST.get('journal_pk', '')
     if journal_pk:
         try:
             journal = request.press.public_journals.get(pk=journal_pk)
@@ -590,25 +593,19 @@ def recommend_us_generate_email(request):
         except Journal.DoesNotExist:
             journal = None
 
-    email = template.render(setting_context)
+    email = email_template.render(setting_context)
+    template = requires_hourglass('custom/recommend-us-generate-email.html')
     context = {
         'email': email,
-        'step': step,
+        'step': get_next_step(request.POST.get('previous_step')),
     }
-
-    template = requires_hourglass('custom/recommend-us-generate-email.html')
     return render(request, template, context)
 
 
 @require_POST
 def recommend_us_confirm_sent(request):
     template = requires_hourglass('custom/recommend-us-confirm-sent.html')
-    previous_step = request.POST.get('previous_step', '6')
-    try:
-        step = str(int(previous_step) + 1)
-    except ValueError:
-        step = '7'
     context = {
-        'step': step,
+        'step': get_next_step(request.POST.get('previous_step')),
     }
     return render(request, template, context)
