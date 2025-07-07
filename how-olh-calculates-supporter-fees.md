@@ -6,11 +6,11 @@ The OLH sets fees for supporting institutions based on where they are in the wor
 
 There are five parts to calculating the fees:
 
-1. setting base fees,
-2. accounting for geographic location,
-3. accounting for institution size,
-4. converting the currency, and
-5. adjusting for supporter level.
+1. Setting base fees
+2. Accounting for geographic location
+3. Accounting for institution size
+4. Converting the currency
+5. Adjusting for supporter level
 
 ## 1. Base fee
 
@@ -126,6 +126,6 @@ This kind of calculation method requires regular updates to the underlying data.
 
 This is what we have to do each year:
 
-  - put up base fees by inflation, usually around 3%, but more recently
-  - download new GNI per capita tables from the World Bank
-  - download new exchange rate data from the World Bank
+- Put up base fees by inflation, usually around 3%, but more recently.
+- Download new GNI per capita tables from the World Bank.
+- Download new exchange rate data from the World Bank.
