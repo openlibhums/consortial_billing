@@ -1,6 +1,7 @@
 {% extends "admin/core/base.html" %}
 {% load foundation %}
 {% load static %}
+{% load humanize %}
 
 {% block css %}
   {{ block.super }}
@@ -50,7 +51,7 @@
       <h2 id="supporter-contacts">Supporter contacts</h2>
       <div class="button-row">
         {% with supporter.supportercontact_set.count as num_contacts %}
-          <p>This supporter has {{ num_contacts }} current contact{{ num_contacts|pluralize }}:</p>
+          <p>This supporter has {{ num_contacts|intcomma }} current contact{{ num_contacts|pluralize }}:</p>
         {% endwith %}
       </div>
       {% for contact in supporter.supportercontact_set.all %}

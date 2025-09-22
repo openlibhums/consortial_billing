@@ -1,5 +1,6 @@
 {% extends "admin/core/base.html" %}
 {% load admin_urls %}
+{% load humanize %}
 
 {% block title %}Consortial Billing - {{ request.press.name }}{% endblock title %}
 
@@ -106,7 +107,7 @@
                             class="button secondary"
                             target="_blank">
                             {% if sizes %}
-                                Institution sizes ({{ sizes|length }})
+                                Institution sizes ({{ sizes|length|intcomma }})
                             {% else %}
                                 <i class="fa fa-plus"></i>
                                 Create an institution size
@@ -180,8 +181,8 @@
                     <div class="content">
                         <h3>{{ base_band.level }}</h3>
                         <ul>
-                            <li>{{ base_band.fee }} {{ base_band.currency }}</li>
-                            <li>{{ base_band.size }}</li>
+                            <li>{{ base_band.fee|intcomma }} {{ base_band.currency }}</li>
+                            <li>{{ base_band.size|intcomma }}</li>
                             <li>{{ base_band.country.name }}</li>
                             <li>Created on {{ base_band.datetime|date:"j F Y" }}</li>
                         </ul>
