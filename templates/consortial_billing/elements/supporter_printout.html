@@ -10,7 +10,7 @@
 <p>Address:<br>{{ supporter.billing_address|default:''  }}</p>
 <p>Postal code:<br>{{ supporter.postal_code|default:''  }}</p>
 <p>Country:<br>{{ supporter.band.country.name }}</p>
-<p>Institution size:<br>{{ supporter.band.size|intcomma }}</p>
+<p>Institution size:<br>{{ supporter.band.size }}</p>
 <p>Support level:<br>{{ supporter.band.level }}</p>
 <p>Calculated fee:<br>{{ supporter.band.fee|intcomma }} {{ supporter.band.currency }}</p>
 <p>OK to display:<br>{% if supporter.display %}Yes{% else %}No{% endif %}</p>
