@@ -478,7 +478,12 @@ def recommend_us(request):
 def recommend_us_see_matching_supporters(request):
     query = request.POST.get('supporter_query', '')
     if query:
-        supporters = supporter_models.Supporter.objects.filter(name__icontains=query)
+        supporters = supporter_models.Supporter.objects.filter(
+            name__icontains=query,
+            active=True,
+            display=True,
+            band__isnull=False,
+        )
     else:
         supporters = supporter_models.Supporter.objects.none()
     template = requires_hourglass(
