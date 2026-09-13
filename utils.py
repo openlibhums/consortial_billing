@@ -153,6 +153,7 @@ def short_country_name(country, max_length=10):
     special_abbreviations = {
         'GB': 'UK',
         'CH': 'Switz.',
+        'ZA': 'S. Africa',
     }
     if len(country.name) > max_length:
         if country.code in special_abbreviations:

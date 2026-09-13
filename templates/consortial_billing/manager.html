@@ -238,29 +238,24 @@
                         </button>
                     </div>
                     <p>
-                        The base bands need replacing every year
-                        to keep track of inflation. <a
-                            href="/admin/consortial_billing/band/?category__exact=base"
-                            target="_blank">Older base bands</a>
-                        are kept on record. Each button below takes
-                        you to form where you can select parameters
-                        for a new base band for that level.
+                        The base bands need editing every year
+                        to keep track of inflation.
                     </p>
                     <div class="stacked button-group">
                         {% if base_bands %}
                             {% for base_band in base_bands %}
                                 <a
-                                    href="/admin/consortial_billing/band/add/?display=False&category=base&level={{ base_band.level.pk }}&country={{ base_band.country.code }}"
-                                    class="button warning"
+                                    href="/admin/consortial_billing/band/{{ base_band.pk }}/change/"
+                                    class="button"
                                     target="_blank">
-                                    <i class="fa fa-plus"></i>
-                                    Replace {{ base_band.level }} {{ base_band.country }} band
+                                    <i class="fa fa-pencil"></i>
+                                    Edit {{ base_band.level }} {{ base_band.country }} band
                                     <br>
-                                    (created {{ base_band.datetime }})
+                                    (modified {{ base_band.datetime }})
                                 </a>
                             {% endfor %}
                         {% endif %}
-                        {% if base_bands|length == 0 or base_bands|length != levels|length %}
+                        {% if base_bands|length == 0 or base_bands|length < levels|length %}
                             <a
                                 href="/admin/consortial_billing/band/add/?category__exact=base"
                                 class="button warning"
