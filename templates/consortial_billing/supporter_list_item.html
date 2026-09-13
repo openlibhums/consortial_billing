@@ -37,12 +37,6 @@
           {% endfor %}
         </div>
       {% endif %}
-      <details>
-        <summary>Internal notes</summary>
-        <div>
-          {{ supporter.internal_notes|safe }}
-        </div>
-      </details>
       <div>
         {% if supporter.address %}
           {{ supporter.address|linebreaksbr }}
@@ -100,7 +94,7 @@
         {% endif %}
         <details>
           <summary>Internal notes</summary>
-          <p>{{ supporter.internal_notes|linebreaks }}</p>
+          <p>{{ supporter.internal_notes|safe }}</p>
         </details>
       </div>
       <div class="actions">

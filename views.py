@@ -252,6 +252,12 @@ class SupporterList(GenericFacetedListView):
                 'type': 'boolean',
                 'field_label': 'Display',
             },
+            'band__level': {
+                'type': 'foreign_key',
+                'model': supporter_models.SupportLevel,
+                'field_label': 'Support level',
+                'choice_label_field': 'name',
+            },
             'band_category': {
                 'type': 'charfield_with_choices',
                 'annotations': {
@@ -281,12 +287,6 @@ class SupporterList(GenericFacetedListView):
                 'model': supporter_models.Currency,
                 'field_label': 'Currency',
                 'choice_label_field': 'code',
-            },
-            'band__level': {
-                'type': 'foreign_key',
-                'model': supporter_models.SupportLevel,
-                'field_label': 'Support level',
-                'choice_label_field': 'name',
             },
             'band__size': {
                 'type': 'foreign_key',
