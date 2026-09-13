@@ -266,6 +266,7 @@ class Band(models.Model):
     )
     datetime = models.DateTimeField(
         default=timezone.now,
+        verbose_name="Last modified",
     )
     fee = models.IntegerField(
         blank=True,
@@ -415,6 +416,8 @@ class Band(models.Model):
             if previous_category == 'calculated':
                 self.warnings = ''
                 self.pk = None
+
+        self.datetime = timezone.now()
 
         # to do: change the type if the fee entered is
         # different than the calculated one
