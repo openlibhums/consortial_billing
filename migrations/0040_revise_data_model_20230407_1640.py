@@ -228,6 +228,7 @@ class Migration(migrations.Migration):
             name="datetime",
             field=models.DateTimeField(
                 default=django.utils.timezone.now,
+                verbose_name='Last modified'
             ),
         ),
         migrations.AddField(
