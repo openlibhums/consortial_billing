@@ -164,7 +164,12 @@ class TestCaseWithData(TestCase):
             band=cls.band_calc_standard_gb_large,
             active=True,
         )
-        cls.supporter_bbk.save()
+        cls.supporter_ucl = models.Supporter.objects.create(
+            name='University College London',
+            ror='https://ror.org/02jx3x895',
+            band=cls.band_calc_standard_gb_large,
+            active=True,
+        )
         models.SupporterContact.objects.get_or_create(
             supporter=cls.supporter_bbk,
             account=cls.user_supporter,
