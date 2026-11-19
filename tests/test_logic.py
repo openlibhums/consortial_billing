@@ -245,7 +245,7 @@ class LogicTests(test_models.TestCaseWithData):
     def test_get_total_revenue_no_args(self, exchange_rate):
         exchange_rate.return_value = (decimal.Decimal('1.000'), '')
         self.assertTupleEqual(
-            (3500, self.currency_eur),
+            (5000, self.currency_eur),
             logic.get_total_revenue(),
         )
         self.assertEqual(
@@ -257,7 +257,7 @@ class LogicTests(test_models.TestCaseWithData):
     def test_get_total_revenue_in_currency(self, exchange_rate):
         exchange_rate.return_value = (decimal.Decimal('1.000'), '')
         self.assertTupleEqual(
-            (3500, self.currency_gbp),
+            (5000, self.currency_gbp),
             logic.get_total_revenue(self.currency_gbp),
         )
         self.assertEqual(

@@ -223,3 +223,83 @@ class ViewTests(test_models.TestCaseWithData):
         views.view_custom_page(self.request, self.custom_page.name)
         url = reverse('supporter_signup')
         redirect.assert_called_once_with(url+'?start_signup=')
+
+    def test_edit_supporter_band_from_calculated_category_to_special(self):
+        self.client.force_login(self.user_staff)
+        post_data = {
+            # Just so the form is valid
+            "name": self.supporter_bbk.name,
+            "ror": self.supporter_bbk.ror,
+            "address": self.supporter_bbk.address,
+            "postal_code": self.supporter_bbk.postal_code,
+            "internal_notes": "",
+            "q": "",
+
+            # Needed data
+            "level": self.level_standard.pk,
+            "size": self.size_large.pk,
+            "country": "GB",
+            "currency": self.currency_gbp.pk,
+            "fee": 9999,
+            "category": "special",
+            "billing_agent": self.agent_gb.pk,
+            "warnings": "",
+            "save_continue": "",
+        }
+        self.client.post(
+            reverse(
+                'edit_supporter_band',
+                kwargs={'supporter_id': self.supporter_bbk.pk}
+            ),
+            post_data,
+            SERVER_NAME=self.press.domain,
+        )
+
+        # Check that saving Birkbeck's new fee of 9999
+        # did not change UCL's band or fee
+        self.supporter_ucl.refresh_from_db()
+        self.supporter_bbk.refresh_from_db()
+        self.assertNotEqual(self.supporter_ucl.band, self.supporter_bbk.band)
+
+    def test_edit_supporter_band_with_special_category_and_multiple_supporters(self):
+
+        # Create the state resulting from fee leaking across custom bands
+        # https://github.com/openlibhums/consortial_billing/issues/101
+        self.band_calc_standard_gb_large.category = "special"
+        self.band_calc_standard_gb_large.save()
+
+        self.client.force_login(self.user_staff)
+        post_data = {
+            # Just so the form is valid
+            "name": self.supporter_bbk.name,
+            "ror": self.supporter_bbk.ror,
+            "address": self.supporter_bbk.address,
+            "postal_code": self.supporter_bbk.postal_code,
+            "internal_notes": "",
+            "q": "",
+
+            # Needed data
+            "level": self.band_calc_standard_gb_large.level.pk,
+            "size": self.band_calc_standard_gb_large.size.pk,
+            "country": self.band_calc_standard_gb_large.country,
+            "currency": self.band_calc_standard_gb_large.currency.pk,
+            "fee": self.band_calc_standard_gb_large.fee,
+            "category": self.band_calc_standard_gb_large.category,
+            "billing_agent": self.band_calc_standard_gb_large.billing_agent.pk,
+            "warnings": "",
+            "save_continue": "",
+        }
+        self.client.post(
+            reverse(
+                'edit_supporter_band',
+                kwargs={'supporter_id': self.supporter_bbk.pk}
+            ),
+            post_data,
+            SERVER_NAME=self.press.domain,
+        )
+
+        # Check that saving Birkbeck's band
+        # prompts a new band to be created
+        self.supporter_ucl.refresh_from_db()
+        self.supporter_bbk.refresh_from_db()
+        self.assertNotEqual(self.supporter_ucl.band, self.supporter_bbk.band)

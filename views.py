@@ -73,9 +73,13 @@ def manager(request):
     settings = logic.get_settings_for_display()
     currencies = []
     for curr in supporter_models.Currency.objects.all():
-        rate, _warning = curr.exchange_rate()
-        rate = rate.quantize(decimal.Decimal('1.000'))
-        currencies.append((rate, curr.code))
+        try:
+            rate, _warning = curr.exchange_rate()
+            rate = rate.quantize(decimal.Decimal('1.000'))
+            currencies.append((rate, curr.code))
+        except FileNotFoundError:
+            logger.error("Exchange rate files not found")
+
 
     context = {
         'plugin': plugin_settings.SHORT_NAME,
@@ -344,10 +348,26 @@ def edit_supporter_band(request, supporter_id=None):
             request.POST,
             instance=supporter,
         )
-        band_form = forms.EditBandForm(
-            request.POST,
-            instance=band,
-        )
+
+        # Check if the user has changed an existing band from calculated to
+        # special, or if there are two or more supporters on one special band.
+        # In these cases we want to create a new band object so we do not throw
+        # off other supporter fees that may be dependant on the existing band.
+        saved_category = band.category
+        form_category = request.POST.get("category")
+        if (
+            saved_category == "calculated" and form_category == "special"
+        ) or (
+            form_category == "special" and band.current_supporter.count() > 1
+        ):
+            band_form = forms.EditBandForm(
+                request.POST,
+            )
+        else:
+            band_form = forms.EditBandForm(
+                request.POST,
+                instance=band,
+            )
 
         if 'autofill_ror' in request.POST:
             # If a user enters an invalid ROR manually,
